@@ -1,0 +1,12 @@
+outputs/
+#*.cfg
+*.pyc
+generated/
+/scripts/.idea
+/scripts/*.pyc
+/scripts/cz_app
+/.project
+/.pydevproject
+/.settings
+test.junit.xml
+data/intents/WEATHER-FAQ-CZ*

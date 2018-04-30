@@ -1,0 +1,31 @@
+<nodes>
+    <node name="ABOUT_MUSIC">
+        <condition>&lt;? input.text.substring(0, 5).toLowerCase() == 'music' ?&gt;</condition>
+        <output>
+            <textValues>
+                <values>%%ENTEST2</values>
+                <values>%%ENTEST3</values>
+                <selection_policy>random</selection_policy>
+            </textValues>
+            <sa>sa-aboutMusic</sa>
+        </output>
+    </node>
+    <node name="ABOUT_SONG">
+        <condition>@song</condition>
+        <output>
+            <response>
+                <condition>$song</condition>
+                <output>
+                    <text>%%ENTEST0</text>
+                </output>
+            </response>
+            <response>
+                <condition>anything_else</condition>
+                <output>
+                    <text>%%ENTEST1</text>
+                </output>
+            </response>
+            <sa>sa-aboutSong</sa>
+        </output>
+    </node>
+</nodes>

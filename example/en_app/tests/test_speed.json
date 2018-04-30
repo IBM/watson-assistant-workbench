@@ -1,0 +1,15 @@
+{"dialog_id": 1, "input_message": {"input": {"text": "max speed"}}, "output_message": {"output": {"text": ["Do you really want to know your average speed?"]}}}
+{"dialog_id": 1, "input_message": {"input": {"text": "yes"}}, "output_message": {"output": {"text": ["Your maximum speed is very high."]}}}
+{"dialog_id": 2, "input_message": {"input": {"text": "max speed"}}, "output_message": {"output": {"text": ["Do you really want to know your average speed?"]}}}
+{"dialog_id": 2, "input_message": {"input": {"text": "no"}}, "output_message": {"output": {"text": ["No problem. I'm returning to the main menu."]}}}
+{"dialog_id": 3, "input_message": {"input": {"text": "max speed"}}, "output_message": {"output": {"text": ["Do you really want to know your average speed?"]}}}
+{"dialog_id": 3, "input_message": {"input": {"text": "hjk"}}, "output_message": {"output": {"text": ["Please tell me if you want to know your maximum speed."]}}}
+{"dialog_id": 3, "input_message": {"input": {"text": "yes"}}, "output_message": {"output": {"text": ["Your maximum speed is very high."]}}}
+{"dialog_id": 4, "input_message": {"input": {"text": "max speed"}}, "output_message": {"output": {"text": ["Do you really want to know your average speed?"]}}}
+{"dialog_id": 4, "input_message": {"input": {"text": "hjk"}}, "output_message": {"output": {"text": ["Please tell me if you want to know your maximum speed."]}}}
+{"dialog_id": 4, "input_message": {"input": {"text": "hjk"}}, "output_message": {"output": {"text": ["Please say \"yes\" or \"no\"."]}}}
+{"dialog_id": 4, "input_message": {"input": {"text": "no"}}, "output_message": {"output": {"text": ["No problem. I'm returning to the main menu."]}}}
+{"dialog_id": 5, "input_message": {"input": {"text": "max speed"}}, "output_message": {"output": {"text": ["Do you really want to know your average speed?"]}}}
+{"dialog_id": 5, "input_message": {"input": {"text": "hjk"}}, "output_message": {"output": {"text": ["Please tell me if you want to know your maximum speed."]}}}
+{"dialog_id": 5, "input_message": {"input": {"text": "hjk"}}, "output_message": {"output": {"text": ["Please say \"yes\" or \"no\"."]}}}
+{"dialog_id": 5, "input_message": {"input": {"text": "hjk"}}, "output_message": {"output": {"text": ["You repeatedly entered unexpected command, I'm returning to the main menu."]}}}

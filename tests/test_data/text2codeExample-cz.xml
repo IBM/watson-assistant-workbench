@@ -1,0 +1,31 @@
+<nodes>
+    <node name="ABOUT_MUSIC">
+        <condition>&lt;? input.text.substring(0, 5).toLowerCase() == 'hudba' ?&gt;</condition>
+        <output>
+            <textValues>
+                <values>Taky mám rád hudbu</values>
+                <values>Já věděl, že máš rád hudbu!</values>
+                <selection_policy>random</selection_policy>
+            </textValues>
+            <sa>sa-aboutMusic</sa>
+        </output>
+    </node>
+    <node name="ABOUT_SONG">
+        <condition>@song</condition>
+        <output>
+            <response>
+                <condition>$song</condition>
+                <output>
+                    <text>Mluvili jsme o $song.</text>
+                </output>
+            </response>
+            <response>
+                <condition>anything_else</condition>
+                <output>
+                    <text>Jaká je tvá oblíbená písnička?</text>
+                </output>
+            </response>
+            <sa>sa-aboutSong</sa>
+        </output>
+    </node>
+</nodes>

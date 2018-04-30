@@ -1,0 +1,37 @@
+max speed	Do you really want to know your average speed?
+yes	Your maximum speed is very high.
+===
+max speed	Do you really want to know your average speed?
+no	No problem. I'm returning to the main menu.
+===
+max speed	Do you really want to know your average speed?
+hjk	Please tell me if you want to know your maximum speed.
+yes	Your maximum speed is very high.
+===
+max speed	Do you really want to know your average speed?
+hjk	Please tell me if you want to know your maximum speed.
+hjk	Please say "yes" or "no".
+no	No problem. I'm returning to the main menu.
+===
+max speed	Do you really want to know your average speed?
+hjk	Please tell me if you want to know your maximum speed.
+hjk	Please say "yes" or "no".
+hjk	You repeatedly entered unexpected command, I'm returning to the main menu.
+===
+max speed	Do you really want to know your average speed?
+hjk	Please tell me if you want to know your maximum speed.
+hjk	Please say "yes" or "no".
+hjk	You repeatedly entered unexpected command, I'm returning to the main menu.
+max speed	Do you really want to know your average speed?
+hjk	Please tell me if you want to know your maximum speed.
+hjk	Please say "yes" or "no".
+hjk	You repeatedly entered unexpected command, I'm returning to the main menu.
+===
+max speed	Do you really want to know your average speed?
+hjk	Please tell me if you want to know your maximum speed.
+hjk	Please say "yes" or "no".
+no	No problem. I'm returning to the main menu.
+max speed	Do you really want to know your average speed?
+hjk	Please tell me if you want to know your maximum speed.
+hjk	Please say "yes" or "no".
+hjk	You repeatedly entered unexpected command, I'm returning to the main menu.

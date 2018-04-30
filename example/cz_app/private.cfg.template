@@ -1,0 +1,21 @@
+[conversation]
+url = https://gateway.watsonplatform.net/conversation/api/v1/workspaces
+version = 2017-05-26
+username = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+password = xxxxxxxxxxxx
+workspace_id =xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+description = Example of WAW and T2C technologies
+
+[cloudfunctions]
+namespace = xxxx
+username = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+password = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+[version]
+name = placeholder_version
+
+[replace]
+
+[context]
+client_name = placeholder_name
+

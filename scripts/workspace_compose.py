@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, json, sys, argparse
+import os, json, sys, argparse, codecs
 from cfgCommons import Cfg
 from wawCommons import printf, eprintf
 
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     # process intents
     intentsJSON = {}
     if hasattr(config, 'common_outputs_intents'):
-        with open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'r') as intentsFile:
+        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'r', encoding='utf8') as intentsFile:
             intentsJSON = json.load(intentsFile)
         workspace['intents'] = intentsJSON
     else:
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # process entities
     entitiesJSON = {}
     if hasattr(config, 'common_outputs_entities'):
-        with open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), 'r') as entitiesFile:
+        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), 'r', encoding='utf8') as entitiesFile:
             entitiesJSON = json.load(entitiesFile)
         workspace['entities'] = entitiesJSON
     else:
@@ -74,15 +74,15 @@ if __name__ == '__main__':
     # process dialog
     dialogJSON = {}
     if hasattr(config, 'common_outputs_dialogs'):
-        with open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'r') as dialogFile:
+        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'r', encoding='utf8') as dialogFile:
             dialogJSON = json.load(dialogFile)
             workspace['dialog_nodes'] = dialogJSON
     else:
         print('outputs_dialogs not specified, omitting dialog.')
 
     if hasattr(config, 'common_outputs_workspace'):
-        with open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace')), 'w') as outputFile:
-            outputFile.write(json.dumps(workspace, indent=4).encode('utf8'))
+        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace')), 'w', encoding='utf8') as outputFile:
+            outputFile.write(json.dumps(workspace, indent=4, ensure_ascii=False, encoding='utf8'))
     else:
         print('output_workspace not specified, generating to console.')
 

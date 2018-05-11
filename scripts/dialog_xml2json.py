@@ -106,7 +106,7 @@ DEFAULT_BACK_MESSAGE_TO_MAIN = LET.Element('message_to_main')
 DEFAULT_BACK_MESSAGE_TO_MAIN.text = 'Returning back to the main menu.'
 DEFAULT_BACK.append(DEFAULT_BACK_MESSAGE_TO_MAIN)
 
-# DEFAULT BACK
+# DEFAULT REPEAT
 DEFAULT_REPEAT = LET.Element('autogenerate')
 # propagate
 DEFAULT_REPEAT.set('propagate','false')
@@ -119,11 +119,11 @@ DEFAULT_GENERIC.set('propagate','true')
 DEFAULT_GENERIC.set('on','false')
 
 # GLOBAL VARIABLES
-counter=0
-firstNode=True
-parent_map={}
-rootGlobal=None
-schema=None
+counter = 0
+firstNode = True
+parent_map = {}
+rootGlobal = None
+schema = None
 
 def replace_config_variables (importTree):
      global config
@@ -209,7 +209,7 @@ def importNodes(root, config):
                 # INSERT NODE
 
                 #eprintf('    Appending node: %s\n', importChild) 
-			"""
+            """
             root.append(importChild)
 
     if defaultNode is not None:
@@ -379,7 +379,7 @@ def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parent
         if children is not None:
             # propagate settings only if propagation not switched off
             generateNodes(
-                children, 
+                children,
                 node,
                 abortSettings if abortSettings is not None and not isFalse(abortSettings, 'propagate') else None,
                 againSettings if againSettings is not None and not isFalse(againSettings, 'propagate') else None,
@@ -626,15 +626,15 @@ def printNodes(root, parent, dialogJSON):
         # ACTIONS
         if nodeXML.find('actions') is not None:
             actionsXML = nodeXML.find('actions')
-            nodeJSON['actions'] = []           
+            nodeJSON['actions'] = []
             for actionXML in actionsXML.findall('action'):
                 actionJSON = {}
-                convertAll(actionJSON, actionXML)      
+                convertAll(actionJSON, actionXML)
                 nodeJSON['actions'].append(actionJSON['action'])
         # GO TO
         if nodeXML.find('goto') is not None:
             if nodeXML.find('goto').find('target') is None:
-                eprintf('chybi target goto uzlu: %s\n', nodeXML.find('name').text)
+                eprintf('WARNING: missing goto target in node: %s\n', nodeXML.find('name').text)
             elif nodeXML.find('goto').find('target').text == '::FIRST_SIBLING':
                 nodeXML.find('goto').find('target').text = next(x for x in root if x.tag == 'node').find('name').text
             gotoJson = {'dialog_node':nodeXML.find('goto').find('target').text}
@@ -752,7 +752,7 @@ if __name__ == '__main__':
         printf('WARNING: Schema not found, using default path /../data_spec/dialog_schema.xml\n;')
     schemaFile = os.path.join(schemaDirname, getattr(config, 'common_schema'))
     if not os.path.exists(schemaFile):
-        eprintf('ERROR: Schema file not found.\n')
+        eprintf('ERROR: Schema file %s not found.\n', schemaFile)
         exit(1)
     schemaTree = LET.parse(schemaFile)
     schema = LET.XMLSchema(schemaTree)
@@ -792,4 +792,4 @@ if __name__ == '__main__':
     if hasattr(config, 'common_output_config'):
         config.saveConfiguration(getattr(config, 'common_output_config'))
 
-	printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')

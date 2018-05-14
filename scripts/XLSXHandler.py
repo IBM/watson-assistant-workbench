@@ -137,6 +137,9 @@ class XLSXHandler(object):
             if label in self._labelsMap:
                 printf('Warning: Found a label that has already been assigned to an intent and will be overwritten. Label: %s\n', label)
             del block[0]
+            if not block or not block[0][0]:
+                printf('WARNING: First cell of the goto block does not contain any data. (domain=%s, prefix=%s, label=%s)\n', domain, prefix, label)
+                return
             firstCell = block[0][0]
 
         # If it's entity block, load the entity

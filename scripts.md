@@ -24,18 +24,22 @@ Converts entity csv files to Watson conversation service .json format
 python scripts/entities_csv2json.py -ie example/en_app/entities/ -od example/en_app/outputs/ -oe entities.json -s -v
 ```
 
-## Convert intents from csv to WCS json
-Converts intent csv files to Watson conversation service .json format
+## Convert intents or counterexamples from csv to WCS json
+Converts intent or counterexample csv files to Watson conversation service .json format
 
 ```
 python scripts/intents_csv2json.py -ii example/en_app/intents/ -od example/en_app/outputs/ -oi intents.json -s -v
 ```
+or
+```
+python scripts/intents_csv2json.py -ii example/en_app/counterexamples/ -od example/en_app/outputs/ -oi counterexamples.json -s -v
+```
 
 ## Compose workspace
-Concatenate intents, entities and dialogues files to Watson Conversation Service workspace
+Concatenate intents, entities, dialogs and counterexamples files to the Watson Conversation Service workspace
 
 ```
-python scripts/workspace_compose.py -ow workspace.json -od dialog.json -oi intents.json -oe entities.json -of example/en_app/outputs/ -wn "My first workspace" -v
+python scripts/workspace_compose.py -ow workspace.json -od dialog.json -oi intents.json -oe entities.json -ox counterexamples.json -of example/en_app/outputs/ -wn "My first workspace" -v  
 ```
 
 ## Deploy workspace
@@ -69,23 +73,31 @@ python scripts/workspace_delete.py example/en_app/private.cfg -v
 ```
 
 ## Decompose workspace
-Decomposes WCS .json workspace to intents, entities and dialogs files in WCS .json format 
+Decomposes WCS .json workspace to intents, entities, dialogs and counterexamples files in WCS .json format 
 
 ```
-python scripts/workspace_decompose.py example/en_app/outputs/workspace.json -i example/en_app/outputs/intentsNew.json -e example/en_app/outputs/entitiesNew.json -d example/en_app/outputs/dialogNew.json -v
+python scripts/workspace_decompose.py example/en_app/outputs/workspace.json -i example/en_app/outputs/intentsNew.json -e example/en_app/outputs/entitiesNew.json -d example/en_app/outputs/dialogNew.json -c counterexamplesNew.json -v
 ```
 
-## Convert intents from WCS json to csv
-Converts WCS intents from .json format to csv intent files
+## Convert intents or counterexamples from WCS json to csv
+Converts WCS intents or counterexamples from .json format to csv intent files
 
-_At first you have to create new folder for these intents:_
+_At first you have to create new folder for these intents/counterexamples:_
 
 ```
 mkdir -p example/en_app/outputs/intents
 ```
+or
+```
+mkdir -p example/en_app/outputs/counterexamples
+```
 
 ```
 python scripts/intents_json2csv.py example/en_app/outputs/intentsNew.json example/en_app/outputs/intents/ -v
+```
+or
+```
+python scripts/intents_json2csv.py example/en_app/outputs/counterexamplesNew.json example/en_app/outputs/counterexamples/ -v
 ```
 
 ## Convert entities from WCS json to csv

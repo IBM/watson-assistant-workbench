@@ -25,3 +25,5 @@ Scripts use python 2.7
 Please install following python modules: configparser, openpyxl, cryptography, unidecode, requests
 
 For brief summary how to run scripts please see scripts.md.
+
+Release notes can be found in 'release_notes.md'

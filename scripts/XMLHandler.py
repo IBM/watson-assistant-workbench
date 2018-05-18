@@ -99,7 +99,7 @@ class XMLHandler(object):
                     outputXml.append(self._createXmlElement('url', output))
 
                 else:
-                    eprintf('Warning: Unrecognized channel: %s, value: %s\n', channelName, output)
+                    eprintf('WARNING: Unrecognized channel: %s, value: %s\n', channelName, output)
 
         if buttons:
             genericXml = XML.Element('generic', structure='listItem')

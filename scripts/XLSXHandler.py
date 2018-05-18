@@ -21,12 +21,7 @@ from zipfile import BadZipfile
 import DialogData as Dialog
 from DialogData import DialogData
 
-'''
-Created on Jan 12, 2018
-@author: alukes
-'''
 NAME_POLICY = 'soft'
-
 
 class XLSXHandler(object):
     """ Converts Excel speadsheet into T2C data structures. """

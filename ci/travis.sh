@@ -27,7 +27,7 @@ echo "--------------------------------------------------------------------------
 echo "-- Dialog, intents from XLS to XML, CSV";
 echo "--------------------------------------------------------------------------------";
 mkdir -p tests/data/dialog/generated;
-python scripts/dialog_xls2xml.py -x tests/data/dialog/xls/WEATHER-FAQ-CZ.xlsx -gd tests/data/dialog/generated -gi "tests/data/intents" -v;
+python scripts/dialog_xls2xml.py -x tests/data/xls/E_CZ_T2C_authoring.xlsx -gd tests/data/dialog/generated -gi "tests/data/intents" -ge "tests/data/entities" -v;
 stopIfFailed $?;
 ./ci/artifactory-deploy.sh "tests/data/dialog/generated/*";
 

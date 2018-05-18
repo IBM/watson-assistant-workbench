@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <nodes>
     <import>chitchat.xml</import>
-    <import>generated/WEATHER-FAQ-CZ.xml</import>
+    <import>generated/E_CZ_T2C_authoring.xml</import>
     <node name="welcome">
         <condition>conversation_start</condition>
         <output>

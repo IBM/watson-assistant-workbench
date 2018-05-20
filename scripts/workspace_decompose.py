@@ -24,6 +24,7 @@ if __name__ == '__main__':
     parser.add_argument('-i','--intents', required=False, help='file with intents in .json format (not extracted if not specified)')
     parser.add_argument('-e','--entities', required=False, help='file with entities in .json format (not extracted if not specified)')
     parser.add_argument('-d','--dialog', required=False, help='file with dialog in .json format (not extracted if not specified)')
+    parser.add_argument('-c','--counterexamples', required=False, help='file with counterexamples in .json format (not extracted if not specified)')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(sys.argv[1:])
 
@@ -45,5 +46,14 @@ if __name__ == '__main__':
     if args.dialog:
         with open(args.dialog, 'w') as dialogFile:
             dialogFile.write(json.dumps(workspaceJSON['dialog_nodes'], indent=4, ensure_ascii=False).encode('utf8'))
+
+    if args.counterexamples:
+        with open(args.counterexamples, 'w') as counterexamplesFile:
+            counterexamplesJSON = []
+            counterexampleIntentJSON = {}
+            counterexampleIntentJSON['intent'] = "IRRELEVANT"
+            counterexampleIntentJSON['examples'] = workspaceJSON['counterexamples']
+            counterexamplesJSON.append(counterexampleIntentJSON)
+            counterexamplesFile.write(json.dumps(counterexamplesJSON, indent=4, ensure_ascii=False).encode('utf8'))
 
     if VERBOSE: printf("Workspace %s was successfully decomposed\n", args.workspace)

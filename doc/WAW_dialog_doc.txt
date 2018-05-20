@@ -11,7 +11,7 @@
 	**********************************************************************
 	** <nodes>
 	**********************************************************************
-	Elements (in this order!)
+	Elements
 		<import>
 		<autogenerate>
 		<node>
@@ -20,10 +20,10 @@
 	Example
 		<nodes>
 			<import>dialog/chitchat.xml</import>
-			<import>dialog/manual.xml</import>
 			<autogenerate>...</autogenerate>
 			<node>...</node>
 			<node>...</node>
+			<import>dialog/manual.xml</import>
 			<node>...</node>
 		</nodes>
 
@@ -50,6 +50,8 @@
 			if type = repeat
 				<attempts> number of attempts before user is returned to the main menu
 				<outputs>
+			if type = generic
+				anything (any valid xml structure)
 	Attributes
 		type REQUIRED Specifies a type of the autogeneration
 			Values
@@ -57,6 +59,7 @@
 				'again' Generates node for repeating last question
 				'back' Generates node for returning to the previous node
 				'repeat' generate nodes for asking user for input repeatedly until the user attempts exhausted
+				'generic' generate everything to each level of dialog (e.g. if you want to generate structure to call agent from everywhere)
 		propagate
 			Values
 				'true' It automatically repeats this node settings in sublevels
@@ -263,6 +266,8 @@
 	** <target>
 	**************************************************
 	Specifies a name of the node where to jump.
+	There is build-in special key '::FIRST_SIBLING' that is
+	replaced by the name of the first sibling of given dialog level.
 
 	**************************************************
 	** <selector>

@@ -2,24 +2,27 @@ group: travis_latest
 language: python
 cache: pip
 python:
-    - 2.7
-    #- 3.6
-matrix:
-    allow_failures:
-        - python: 3.6
+- 2.7
+
 install:
-    #- pip install -r requirements.txt
-    - pip install flake8 pytest
-    - pip install unicode unidecode lxml
-before_script:
-    # stop the build if there are Python syntax errors or undefined names
-    #- flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
-    # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
-    #- flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+- pip install flake8 pytest
+- pip install unicode unidecode lxml requests openpyxl
+
 script:
-    #- pytest --capture=sys  # add other tests here
-    - cd example/cz_app
-    - python ../../scripts/update_all.py -c common.cfg -c private.cfg
+- ./ci/travis.sh
+
 notifications:
+#  email:
+#    recipients:
+#    - tondrej@cz.ibm.com
+#    - tomas_macek@cz.ibm.com
+#    - tereza.pytelova@cz.ibm.com
+#    on_success: change
+#    on_failure: always
+#    on_pull_requests: false
+  slack:
+    rooms:
+      secure: yDXe4PxGoBVK+aFSl7elh/TB/c8TtF4cbv8FFNVFgK0DNIArCfOi2AoqfWfHUxHA80YHKcdXFxsIb8q9WpG/Lwmef89fapJLGkb3Qox2uEO+Cjn/rGnh6RY5q2yZbesp1alHngIwzJyxxWb1XSpgdlk+vr2V0Czm6JnepcH6LC9f2wELqFngW/DGr2mhHwjKk6GVlybd9M4VBjlSyqirUd6Yio5a4kwvvAQK6HxwvBL7JFPMQcOo5KKnWWa6KW4ptW/MxP0saghgmbMOYKkFzjkyqN1S0MNx23Vrpi0B89QsV4y4yrhjn72Kpfou8PIkeNrYgTH2r+KXJ95tVmTV05v/XXO8Ln16VtovYQXPTmmYm+fzNznDh3O2FKWOMoOTCRzTxEJzk05A/cSKS+v1a/fDfEsLq6kO4/DvW8AFEAMxJXXI4Isnv7Kqkzb0jND2Ce7NVr0bWIloneXBLpE7EpdWyCBxj4IhYzfHZk2Lw7Y/Qhz8m+NcZ7pg3wMfkQKS7X0phm5K4BvLop0ZPuGgYvZi5/nlS3dyH+71O1tjSudn5cjnLpKMbNsf7QeWoGNn8NW/X1HHy72PB8zZmqSa0Pl/EcBJBkzZciAXICrelWP1Qxwpez4M0xFC/XZ8f+Yl9lLn+BQpfL6K1nsrBy0oiw1+ERVzKDK05fPV3DbXkbw=
     on_success: change
-    on_failure: change  # `always` will be the setting once code changes slow down
+    on_failure: always
+    on_pull_requests: false

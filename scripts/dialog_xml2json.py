@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json,sys,argparse,os,re,csv,io
+import json,sys,argparse,os,re,csv,io,copy
 import lxml.etree as LET
 from cfgCommons import Cfg
 from wawCommons import printf, eprintf
@@ -106,17 +106,24 @@ DEFAULT_BACK_MESSAGE_TO_MAIN = LET.Element('message_to_main')
 DEFAULT_BACK_MESSAGE_TO_MAIN.text = 'Returning back to the main menu.'
 DEFAULT_BACK.append(DEFAULT_BACK_MESSAGE_TO_MAIN)
 
-# DEFAULT BACK
+# DEFAULT REPEAT
 DEFAULT_REPEAT = LET.Element('autogenerate')
 # propagate
 DEFAULT_REPEAT.set('propagate','false')
 
+# DEFAULT GENERIC
+DEFAULT_GENERIC = LET.Element('autogenerate')
+# propagate
+DEFAULT_GENERIC.set('propagate','true')
+# on
+DEFAULT_GENERIC.set('on','false')
+
 # GLOBAL VARIABLES
-counter=0
-firstNode=True
-parent_map={}
-rootGlobal=None
-schema=None
+counter = 0
+firstNode = True
+parent_map = {}
+rootGlobal = None
+schema = None
 
 def replace_config_variables (importTree):
      global config
@@ -202,7 +209,7 @@ def importNodes(root, config):
                 # INSERT NODE
 
                 #eprintf('    Appending node: %s\n', importChild) 
-			"""
+            """
             root.append(importChild)
 
     if defaultNode is not None:
@@ -287,7 +294,7 @@ def isFalse(autogenerate, attributeName):
             eprintf('Unknown value of \'%s\' tag: %s.\n', attributeName, attributeValue)
             return False
 
-def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parentBackSettings, parentRepeatSettings):
+def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parentBackSettings, parentRepeatSettings, parentGenericSettings):
     global parent_map, VERBOSE
     # GENERATE NAMES
     for node in root.findall('node'):
@@ -299,6 +306,7 @@ def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parent
     againSettings = None
     backSettings = None
     repeatSettings = None
+    genericSettings = None
 
     for autogenerate in root.findall('autogenerate'):
         if autogenerate.get('type') == 'abort':
@@ -313,18 +321,23 @@ def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parent
         if autogenerate.get('type') == 'repeat':
             if VERBOSE: eprintf('Repeat settings found in parent: %s\n', parent.find('name').text if parent is not None else 'root')
             repeatSettings = autogenerate
+        if autogenerate.get('type') == 'generic':
+            if VERBOSE: eprintf('Generic settings found in parent: %s\n', parent.find('name').text if parent is not None else 'root')
+            genericSettings = autogenerate
 
     abortSettings = mergeSettings(abortSettings, parentAbortSettings)
     # TODO discuss how those funcitonality should work and if it is possible to implement it just in conversation
     #againSettings = mergeSettings(againSettings, parentAgainSettings)
     #backSettings = mergeSettings(backSettings, parentBackSettings)
     repeatSettings = mergeSettings(repeatSettings, parentRepeatSettings)
+    genericSettings = mergeSettings(genericSettings, parentGenericSettings)
 
     # generate if settings exist and are not switched off
     abort = True if (abortSettings is not None and not isFalse(abortSettings, 'on')) else False
     again = True if (againSettings is not None and not isFalse(againSettings, 'on')) else False
     back = True if (backSettings is not None and not isFalse(backSettings, 'on')) else False
     repeat = True if (repeatSettings is not None and not isFalse(repeatSettings, 'on')) else False
+    generic = True if (genericSettings is not None and not isFalse(genericSettings, 'on')) else False
 
     indexOfInsertion = len(root)
     for index in range(0, len(root)):
@@ -350,6 +363,13 @@ def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parent
         # BACK NODE RETURNING TO PREVIOUS NODE
         root.insert(indexOfInsertion, generateBackNode(root, parent, backSettings))
         indexOfInsertion = indexOfInsertion + 1
+    if generic:
+        # GENERIC NODE
+        for genericChild in genericSettings:
+            genericChildCopy = copy.deepcopy(genericChild)
+            generateNodeName(genericChildCopy, 'GENERIC_')
+            root.insert(indexOfInsertion, genericChildCopy)
+            indexOfInsertion = indexOfInsertion + 1
     if repeat:
         generateRepeatNodes(root, parent, repeatSettings)
 
@@ -358,11 +378,15 @@ def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parent
         children = node.find('nodes')
         if children is not None:
             # propagate settings only if propagation not switched off
-            generateNodes(children, node,
-            abortSettings if abortSettings is not None and not isFalse(abortSettings, 'propagate') else None,
-            againSettings if againSettings is not None and not isFalse(againSettings, 'propagate') else None,
-            backSettings if backSettings is not None and not isFalse(backSettings, 'propagate') else None,
-            repeatSettings if repeatSettings is not None and not isFalse(repeatSettings, 'propagate') else None)
+            generateNodes(
+                children,
+                node,
+                abortSettings if abortSettings is not None and not isFalse(abortSettings, 'propagate') else None,
+                againSettings if againSettings is not None and not isFalse(againSettings, 'propagate') else None,
+                backSettings if backSettings is not None and not isFalse(backSettings, 'propagate') else None,
+                repeatSettings if repeatSettings is not None and not isFalse(repeatSettings, 'propagate') else None,
+                genericSettings if genericSettings is not None and not isFalse(genericSettings, 'propagate') else None
+            )
 
 def mergeSettings(childSettings, parentSettings):
     if childSettings is None:
@@ -602,15 +626,17 @@ def printNodes(root, parent, dialogJSON):
         # ACTIONS
         if nodeXML.find('actions') is not None:
             actionsXML = nodeXML.find('actions')
-            nodeJSON['actions'] = []           
+            nodeJSON['actions'] = []
             for actionXML in actionsXML.findall('action'):
                 actionJSON = {}
-                convertAll(actionJSON, actionXML)      
+                convertAll(actionJSON, actionXML)
                 nodeJSON['actions'].append(actionJSON['action'])
         # GO TO
         if nodeXML.find('goto') is not None:
             if nodeXML.find('goto').find('target') is None:
-                eprintf('chybi target goto uzlu: %s\n', nodeXML.find('name').text)
+                eprintf('WARNING: missing goto target in node: %s\n', nodeXML.find('name').text)
+            elif nodeXML.find('goto').find('target').text == '::FIRST_SIBLING':
+                nodeXML.find('goto').find('target').text = next(x for x in root if x.tag == 'node').find('name').text
             gotoJson = {'dialog_node':nodeXML.find('goto').find('target').text}
             gotoJson['selector'] = nodeXML.find('goto').find('selector').text if nodeXML.find('goto').find('selector') is not None else DEFAULT_SELECTOR
             nodeJSON['go_to'] = gotoJson
@@ -726,7 +752,7 @@ if __name__ == '__main__':
         printf('WARNING: Schema not found, using default path /../data_spec/dialog_schema.xml\n;')
     schemaFile = os.path.join(schemaDirname, getattr(config, 'common_schema'))
     if not os.path.exists(schemaFile):
-        eprintf('ERROR: Schema file not found.\n')
+        eprintf('ERROR: Schema file %s not found.\n', schemaFile)
         exit(1)
     schemaTree = LET.parse(schemaFile)
     schema = LET.XMLSchema(schemaTree)
@@ -744,7 +770,7 @@ if __name__ == '__main__':
     names = findAllNodeNames(dialogTree)
 
     parent_map = dict((c, p) for p in dialogTree.getiterator() for c in p)
-    generateNodes(root, None, DEFAULT_ABORT, DEFAULT_AGAIN, DEFAULT_BACK, DEFAULT_REPEAT)
+    generateNodes(root, None, DEFAULT_ABORT, DEFAULT_AGAIN, DEFAULT_BACK, DEFAULT_REPEAT, DEFAULT_GENERIC)
     if VERBOSE: eprintf('\n')
 
     # create dialog structure for JSON
@@ -766,4 +792,4 @@ if __name__ == '__main__':
     if hasattr(config, 'common_output_config'):
         config.saveConfiguration(getattr(config, 'common_output_config'))
 
-	printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')

@@ -53,7 +53,7 @@ if __name__ == '__main__':
         pathList = pathList + getattr(config, 'common_generated_entities')
 
     filesAtPath = getFilesAtPath(pathList)
-    for entityFileName in filesAtPath:
+    for entityFileName in sorted(filesAtPath):
 
         with open(entityFileName, "r") as entityFile:
 
@@ -90,7 +90,7 @@ if __name__ == '__main__':
                         # strip and lower all items in line
                         [x.strip().lower() for x in rawSynonyms]
                         representativeValue = rawSynonyms[0]
-                        synonyms = list(set(rawSynonyms[1:]))
+                        synonyms = sorted(list(set(rawSynonyms[1:])))
                         valueJSON = {}
                         if representativeValue[0] is '~':
                             # all patterns are represented by the first value without first char (~)

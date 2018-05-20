@@ -4,11 +4,11 @@
 <xs:element name="nodes" type="nodesSchema"/>
 
 <xs:complexType name="nodesSchema">
-    <xs:sequence minOccurs="1" maxOccurs="1">
-        <xs:element name="import" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="autogenerate" type="autogenerateSchema" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="node" type="nodeSchema" minOccurs="0" maxOccurs="unbounded"/>
-    </xs:sequence>
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="import" type="xs:string"/>
+        <xs:element name="autogenerate" type="autogenerateSchema"/>
+        <xs:element name="node" type="nodeSchema"/>
+    </xs:choice>
 </xs:complexType>
 
 <xs:complexType name="autogenerateSchema">
@@ -57,6 +57,7 @@
         <xs:enumeration value="again"/>
         <xs:enumeration value="back"/>
         <xs:enumeration value="repeat"/>
+        <xs:enumeration value="generic"/>
     </xs:restriction>
 </xs:simpleType>
 

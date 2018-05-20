@@ -10,3 +10,4 @@ generated/
 /.settings
 test.junit.xml
 data/intents/WEATHER-FAQ-CZ*
+log.log

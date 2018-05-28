@@ -17,14 +17,8 @@ import re
 from wawCommons import eprintf
 from collections import OrderedDict
 
-'''
-Created on Jan 15, 2018
-@author: alukes
-'''
-
 class IntentData(object):
     """ Represents a data structure containing all necessary information for a single Dialog intent. """
-
 
     def __init__(self):
         self._alternatives = []  # list of all text alternatives of intent
@@ -34,54 +28,49 @@ class IntentData(object):
         self._jumptoSelector = None
         self._rawOutputs = []  # list of all outputs from the right column of the Excel source
         self._buttons = OrderedDict()  # key: button label, value: full button value, MUST BE ORDERED!
+        self._foldables = OrderedDict()  # key: short text, value: long text
 
-        
     def addIntentAlternative(self, intentAlternative):
         self._alternatives.append(intentAlternative)
 
-
     def getIntentAlternatives(self):
         return self._alternatives
-
 
     def addChannelOutput(self, channelName, channelOutput):
         if channelName not in self._channels:
             self._channels[channelName] = []
         self._channels[channelName].append(channelOutput)
 
-
     def getChannelOutputs(self):
         return self._channels
-
 
     def addVariable(self, name, value):
         self._variables[name] = value
 
-
     def getVariables(self):
         return self._variables
 
-    
     def setJumpTo(self, target, selector):
         self._jumptoTarget = target
         self._jumptoSelector = selector
 
-
     def getJumpToTarget(self):
         return self._jumptoTarget
-
 
     def getJumpToSelector(self):
         return self._jumptoSelector
 
-
     def addButton(self, label, value):
         self._buttons[label] = value
-
 
     def getButtons(self):
         return self._buttons
 
+    def addFoldable(self, _short_text, _long_text):
+        self._foldables[_short_text] = _long_text
+
+    def getFoldable(self):
+        return self._foldables
 
     def addRawOutput(self, rawOutputs, labelsMap):
         """ Read the raw output and store all data from it - 
@@ -96,6 +85,8 @@ class IntentData(object):
                 self.__handleVariableDefinition(item[1:])
             elif item.startswith(u'B'):
                 self.__handleButtonDefinition(item[1:])
+            elif item.startswith(u'F'):
+                self.__handleFoldableDefinition(item[1:])
             elif item.startswith(u':'):
                 self.__handleJumpToDefinition(item[1:], labelsMap)
             else:
@@ -107,17 +98,14 @@ class IntentData(object):
             if rawOutputs[2]:
                 self.__handleJumpToDefinition(rawOutputs[2], labelsMap)
 
-
     def generateNodes(self):
         return self._channels or self._buttons
-
 
     def __handleVariableDefinition(self, variables):
         for varAssignment in re.split(';', variables):
             keyAndValue = re.split('=', varAssignment)
             if len(keyAndValue) == 2:
                 self.addVariable(keyAndValue[0], keyAndValue[1])
-
 
     def __handleJumpToDefinition(self, jumpto, labelsMap):
         selector = 'user_input'
@@ -135,7 +123,6 @@ class IntentData(object):
         else:
             self.setJumpTo(labelsMap[label], selector)
 
-
     def __handleChannelDefinition(self, channel):
         channelName = '1'
         channelValue = channel
@@ -145,12 +132,16 @@ class IntentData(object):
         if unicode.isdigit(channel[0]):
             channelName = channel[0]
             channelValue = channel[1:]
-
         self.addChannelOutput(channelName, channelValue)
-
 
     def __handleButtonDefinition(self, buttons):
         for button in re.split(';', buttons):
             labelAndValue = re.split('=', button)
             if len(labelAndValue) == 2:
                 self.addButton(labelAndValue[0].strip(), labelAndValue[1].strip())
+
+    def __handleFoldableDefinition(self, foldables):
+        for button in re.split(';', foldables):
+            shortAndLong = re.split('=', button)
+            if len(shortAndLong) == 2:
+                self.addFoldable(shortAndLong[0].strip(), shortAndLong[1].strip())

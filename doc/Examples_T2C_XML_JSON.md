@@ -4,7 +4,7 @@ We provide here some examples to illustrate how WAW T2C, WAW XML and WA JSON map
 ## Buttons ##
 
 **T2C format** (column B, we omit %%b if putting it to column C)
-	%%bHospital=Pacient moved to hospital;Released soon= The patient will be released from hospital soon
+	%%BHospital=Pacient moved to hospital;Released soon= The patient will be released from hospital soon
 
  
 **XML format**
@@ -37,3 +37,47 @@ We provide here some examples to illustrate how WAW T2C, WAW XML and WA JSON map
         }
     ],
     "text": { ....
+
+
+## Foldables ##
+
+**T2C format** 
+	Example %%Fclick on me=long form of text; title= very very long form of the article
+ 
+**XML format**
+
+    <output>
+      <textValues>
+        <values structure="listItem">Example </values>
+      </textValues>
+      <more structure="listItem">
+        <title>click on me</title>
+        <body>long form of text</body>
+      </more>
+      <more structure="listItem">
+        <title>title</title>
+        <body>very very long form of the article</body>
+      </more>
+    </output>
+
+
+**JSON**
+
+    "output": {
+        "text": {
+            "values": [
+                "Example"
+            ]
+        }, 
+        "more": [
+            {
+                "body": "long form of text", 
+                "title": "click on me"
+            }, 
+            {
+                "body": "very very long form of the article", 
+                "title": "title"
+            }
+        ]
+    }
+

@@ -15,13 +15,7 @@ limitations under the License.
 
 from IntentData import IntentData
 
-'''
-Created on Jan 12, 2018
-@author: alukes
-'''
-
 X_PLACEHOLDER = '<x>'
-
 
 class DialogData(object):
     """ Represents complete Dialog data structure. """

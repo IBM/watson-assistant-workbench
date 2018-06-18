@@ -28,9 +28,9 @@ class XLSXHandler(object):
 
 
     def __init__(self):
-        self._dataBlocks = []
-        self._labelsMap = {}
-        self._dialogData = DialogData()
+        self._dataBlocks = []             #internal representatiom of XLS split to blocks
+        self._labelsMap = {}              #lable-intent translation table
+        self._dialogData = DialogData()   #internal representation of the workspace
 
 
     def getDataBlocks(self):
@@ -60,7 +60,7 @@ class XLSXHandler(object):
 
 
     def parseXLSXIntoDataBlocks(self, filename):
-        """ Read Excel spreadsheet in T2C format. Store the data as tuples (domain, prefix, intent, rawBlock) into private field. """
+        """ Read Excel spreadsheet in T2C format. Stores the data as tuples (domain, prefix, intent, rawBlock) into private field. """
 
         printf('Processing xlsx file: %s\n', filename)
         if not os.path.exists(filename):
@@ -145,6 +145,7 @@ class XLSXHandler(object):
             firstCell = block[0][0]
 
         # If it's entity block, load the entity
+        # ToDo: If complex condition starts with @ - it can be still a condition, not an intent definition
         if firstCell.startswith(u'@'):
             self.__handleEntityBlock(block)
             return
@@ -154,8 +155,14 @@ class XLSXHandler(object):
         intentName = firstCell
 
         if self.__isConditionBlock(firstCell):
+
             if conditionHasX and block[1][0]:
                 intentName = re.sub(Dialog.X_PLACEHOLDER, block[1][0], firstCell)
+            else: # condition statement without <x>
+                intentName = firstCell
+            if label:
+                self._labelsMap[label] = intentName.decode('utf-8')
+
         else:
             if firstCell.startswith(u'#'):
                 intentName = firstCell[1:]
@@ -173,6 +180,8 @@ class XLSXHandler(object):
 
 
     def __isConditionBlock(self, firstCell):
+        """ Returns tru if first cell contains X_PLACEHOLDER or mor then 1 condition indicator (one is jus a header)"""
+        a=len(re.sub('[^#$@&|]', '', firstCell))
         return Dialog.X_PLACEHOLDER in firstCell or len(re.sub('[^#$@&|]', '', firstCell)) > 1
 
     def __handleConditionBlock(self, intent, block, domain):

@@ -15,6 +15,7 @@ limitations under the License.
 
 import json,sys,argparse,os,re,csv,io,copy
 import lxml.etree as LET
+from xml.sax.saxutils import unescape
 from cfgCommons import Cfg
 from wawCommons import printf, eprintf
 import time
@@ -689,7 +690,8 @@ def convertAll(upperNodeJson, nodeXml):
             elif nodeXml.get('type') is not None and nodeXml.get('type') == 'number':
                 upperNodeJson[key] = float(nodeXml.text)
             else:
-                upperNodeJson[key] = nodeXml.text.strip()
+                upperNodeJson[key] = unescape(nodeXml.text.strip())
+
         else:
             upperNodeJson[key] = None
     else:

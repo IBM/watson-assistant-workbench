@@ -18,6 +18,7 @@ import unidecode
 from openpyxl import load_workbook
 from wawCommons import printf, eprintf, toIntentName
 from zipfile import BadZipfile
+from xml.sax.saxutils import escape
 import DialogData as Dialog
 from DialogData import DialogData
 
@@ -98,10 +99,10 @@ class XLSXHandler(object):
                     currentBlock = []
                 else:
                     # if valid row - we add it to block
-                    currentBlock.append((row[0].value.strip() if row[0].value and not row[0].value.startswith('//') else None,
-                                         row[1].value.strip() if row[1].value and not row[1].value.startswith('//') else None,
-                                         row[2].value.strip() if row[2].value and not row[2].value.startswith('//') else None,
-                                         row[3].value.strip() if row[3].value and not row[3].value.startswith('//') else None))
+                    currentBlock.append((escape(row[0].value.strip()) if row[0].value and not row[0].value.startswith('//') else None,
+                                         escape(row[1].value.strip()) if row[1].value and not row[1].value.startswith('//') else None,
+                                         escape(row[2].value.strip()) if row[2].value and not row[2].value.startswith('//') else None,
+                                         escape(row[3].value.strip()) if row[3].value and not row[3].value.startswith('//') else None))
             if currentBlock:
                 self.__createBlock(domainName, prefix, currentBlock)
 

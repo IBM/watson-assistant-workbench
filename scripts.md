@@ -1,6 +1,6 @@
 # Scripts
 This file shows how to run scripts to create and upload workspace and how to convert it back to WAW representation.
-Part of this pipeline is covered by update_all.py script (see below) Except update_all.py script all scripts are ran from the root directory.
+Part of this pipeline is covered by `update_all.py` script (see below) Except `update_all.py` script, all scripts are ran from the root directory.
 
 
 ## Convert dialog from T2C xlsx to WAW xml
@@ -127,7 +127,7 @@ python scripts/dialog_json2xml.py example/en_app/outputs/dialogNew.json -d examp
 ```
 
 ## Update all
-Cleans folders for generated and output files, converts dialogs from T2C and WAW xml format and intents and entities from csv format to WCS .json workspace and deploys it to the Watson Conversation Service (Cleans folders specified in config files as "outputs" and "generated" and runs all scripts from dialog_xls2xml.py to workspace_deploy.py)
+Cleans folders for generated and output files, converts dialogs from T2C and WAW xml format and intents and entities from csv format to WCS .json workspace and deploys it to the Watson Conversation Service (Cleans folders specified in config files as "outputs" and "generated" and runs all scripts from `dialog_xls2xml.py` to `workspace_deploy.py`)
 
 _You have to run update\_all script from app directory:_
 

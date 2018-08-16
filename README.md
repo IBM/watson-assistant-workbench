@@ -12,18 +12,18 @@ It aims at
 - support for internationalization
 - and more :)
 
-It countains a bundle of tools for generating WA workspace from the structure data (and viceversa), testing and uploading (working with the WCS API).
+It contains a bundle of tools for generating WA workspace from the structure data (and viceversa), testing and uploading (working with the WCS API).
 
 Currently supported conversation version is 2017-02-03 except:
 - Fuzzy matching, Folders, Digression and Pattern defined entities are not supported.
 - A name of a dialog node still has to be unique as it is used as node ID.
 - Missing "slot_in_focus" property.
-- Slots and are not supported in json to xml conversion scripts.
+- Slots are not supported in json to xml conversion scripts.
 
 Scripts use python 2.7
 
 Please install following python modules: configparser, openpyxl, cryptography, unidecode, requests
 
-For brief summary how to run scripts please see scripts.md.
+For brief summary how to run scripts please see `scripts.md`.
 
 Release notes can be found in 'release_notes.md'

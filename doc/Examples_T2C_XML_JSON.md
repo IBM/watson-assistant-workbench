@@ -1,4 +1,4 @@
-#Examples of mapping T2C, XML and JSON#
+# Examples of mapping T2C, XML and JSON #
 We provide here some examples to illustrate how WAW T2C, WAW XML and WA JSON map in particular use cases.
 
 ## Buttons ##

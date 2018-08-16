@@ -39,6 +39,10 @@ RESULTS=`curl -s -X GET -H 'X-JFrog-Art-Api: '${ARTIFACTORY_API_KEY} "https://na
 for RESULT in ${RESULTS}; do
     PATH_TO_FILE=`curl -s -X GET -H 'X-JFrog-Art-Api: '${ARTIFACTORY_API_KEY} ${RESULT} | grep downloadUri | awk '{print $3}' | sed s'/.$//' | sed s'/.$//' | sed -r 's/^.{1}//'`
     echo "Artifactory: delete ${PATH_TO_FILE}"
+    if [ -z "${ARTIFACTORY_API_KEY}" ]; then
+        echo "Artifactory: skip - API KEY is not provided for pull requests from forks";
+        continue
+    fi
     curl -X DELETE -H 'X-JFrog-Art-Api: '${ARTIFACTORY_API_KEY}  ${PATH_TO_FILE}
 done
 

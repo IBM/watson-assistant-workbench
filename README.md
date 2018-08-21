@@ -1,6 +1,6 @@
 # watson-assistant-workbench
 WAW is a toolkit for maintaining Watson Assistant data in github repository.
-It aims at 
+It aims at
 - structured data-driven approach, with easy diffs visible in GitHub
 - easy collaboration among large teams
 - improved dialog tree representation resulting in greater readability and easier updates compared to the original WA JSON format
@@ -25,5 +25,7 @@ Scripts use python 2.7
 Please install following python modules: configparser, openpyxl, cryptography, unidecode, requests
 
 For brief summary how to run scripts please see `scripts.md`.
+
+Description of T2C  and xml/csv WAW formats can be found in `doc` folder.
 
 Release notes can be found in 'release_notes.md'

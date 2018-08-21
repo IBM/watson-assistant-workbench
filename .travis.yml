@@ -12,14 +12,14 @@ script:
 - ./ci/travis.sh
 
 notifications:
-#  email:
+  email:
 #    recipients:
 #    - tondrej@cz.ibm.com
 #    - tomas_macek@cz.ibm.com
-#    - tereza.pytelova@cz.ibm.com
-#    on_success: change
-#    on_failure: always
-#    on_pull_requests: false
+    - tereza.pytelova@cz.ibm.com
+    on_success: change
+    on_failure: always
+    on_pull_requests: false
   slack:
     rooms:
       secure: yDXe4PxGoBVK+aFSl7elh/TB/c8TtF4cbv8FFNVFgK0DNIArCfOi2AoqfWfHUxHA80YHKcdXFxsIb8q9WpG/Lwmef89fapJLGkb3Qox2uEO+Cjn/rGnh6RY5q2yZbesp1alHngIwzJyxxWb1XSpgdlk+vr2V0Czm6JnepcH6LC9f2wELqFngW/DGr2mhHwjKk6GVlybd9M4VBjlSyqirUd6Yio5a4kwvvAQK6HxwvBL7JFPMQcOo5KKnWWa6KW4ptW/MxP0saghgmbMOYKkFzjkyqN1S0MNx23Vrpi0B89QsV4y4yrhjn72Kpfou8PIkeNrYgTH2r+KXJ95tVmTV05v/XXO8Ln16VtovYQXPTmmYm+fzNznDh3O2FKWOMoOTCRzTxEJzk05A/cSKS+v1a/fDfEsLq6kO4/DvW8AFEAMxJXXI4Isnv7Kqkzb0jND2Ce7NVr0bWIloneXBLpE7EpdWyCBxj4IhYzfHZk2Lw7Y/Qhz8m+NcZ7pg3wMfkQKS7X0phm5K4BvLop0ZPuGgYvZi5/nlS3dyH+71O1tjSudn5cjnLpKMbNsf7QeWoGNn8NW/X1HHy72PB8zZmqSa0Pl/EcBJBkzZciAXICrelWP1Qxwpez4M0xFC/XZ8f+Yl9lLn+BQpfL6K1nsrBy0oiw1+ERVzKDK05fPV3DbXkbw=

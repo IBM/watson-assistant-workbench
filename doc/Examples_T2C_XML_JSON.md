@@ -3,11 +3,10 @@ We provide here some examples to illustrate how WAW T2C, WAW XML and WA JSON map
 
 ## Buttons ##
 
-**T2C format** (column B, we omit %%b if putting it to column C)
-	%%BHospital=Pacient moved to hospital;Released soon= The patient will be released from hospital soon
+##### T2C format (column B, we omit %%b if putting it to column C)
+**Example:** `%%BHospital=Pacient moved to hospital;Released soon= The patient will be released from hospital soon`
 
- 
-**XML format**
+##### XML format
 
     <output>
       <suggestions structure="listItem">
@@ -23,7 +22,7 @@ We provide here some examples to illustrate how WAW T2C, WAW XML and WA JSON map
     </output>
 
 
-**JSON**
+##### JSON
 
     "output": {
       "suggestions": [
@@ -41,10 +40,10 @@ We provide here some examples to illustrate how WAW T2C, WAW XML and WA JSON map
 
 ## Foldables ##
 
-**T2C format** 
-	Example %%Fclick on me=long form of text; title= very very long form of the article
- 
-**XML format**
+##### T2C format
+**Example:** `%%Fclick on me=long form of text; title= very very long form of the article`
+
+##### XML format
 
     <output>
       <textValues>
@@ -61,7 +60,7 @@ We provide here some examples to illustrate how WAW T2C, WAW XML and WA JSON map
     </output>
 
 
-**JSON**
+##### JSON
 
     "output": {
         "text": {
@@ -80,4 +79,3 @@ We provide here some examples to illustrate how WAW T2C, WAW XML and WA JSON map
             }
         ]
     }
-

@@ -6,14 +6,14 @@ python:
 
 install:
 - pip install flake8 pytest
-- pip install unicode unidecode lxml requests openpyxl
+- pip install -r requirements.txt
 
 script:
 - ./ci/travis.sh
 
 notifications:
   email:
-#    recipients:
+    recipients:
 #    - tondrej@cz.ibm.com
 #    - tomas_macek@cz.ibm.com
     - tereza.pytelova@cz.ibm.com

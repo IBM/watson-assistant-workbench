@@ -12,7 +12,8 @@
         <output>
             <response>
                 <output>
-                    <text>Promiňte, nerozumněl jsem vám, můžete svou otázku formulovat jinak?</text>
+                    <text scope="type-server">Promiňte, nerozuměl jsem vám, můžete svou otázku formulovat jinak?</text>
+                    <text scope="type-local">Promiňte, používám jen lokální rozpoznávání řeči a nerozuměl jsem vám, můžete svou otázku formulovat jinak?</text>
                 </output>
             </response>
         </output>

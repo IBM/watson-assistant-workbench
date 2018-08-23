@@ -37,7 +37,6 @@ class Cfg:
         replaceSection = 'replace'
         versionSection = 'version'
         contextSection = 'context'
-        commonSection = 'common'
 
         # List of attributes of framework section to be appended rather then ovewrriden (if the same parameter is defined in more config files)
         frameworkAppend = ['xls', 'intents', 'entities', 'dialogs', 'functions', 'generated_intents',

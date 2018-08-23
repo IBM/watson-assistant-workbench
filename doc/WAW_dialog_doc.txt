@@ -8,6 +8,16 @@
 	Instead of <xs:all> tag this schema uses <xs:sequence minOccurs="1" maxOccurs="1"> tag which allows "unbounded"
 	value of "maxOccurs" attribute of inside tags.
 
+	Sometimes you want to build more dialogs with very similar structure,
+	e.g. one online dialog which will reside on the server, and the local one
+	which will be always available but will not contain some functionality.
+	For this purpose there is the `scope` attribute which indicates whether
+	to include this tag to output dialog or not.
+	- following node will be included only if server dialog is built:
+	<node scope="type-server"/>
+	- following node will be included in all built dialogs:
+	<node/>
+
 	**********************************************************************
 	** <nodes>
 	**********************************************************************

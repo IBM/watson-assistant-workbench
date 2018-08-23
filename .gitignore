@@ -11,3 +11,4 @@ generated/
 test.junit.xml
 data/intents/WEATHER-FAQ-CZ*
 log.log
+tests/data/dialog/g_dialogs

@@ -21,10 +21,15 @@
             <sa name="sa-musicNext"/>
         </output>
     </node>
-    <node name="generalContext_musicCreate" scope="hybrid-online">
+    <node name="generalContext_musicCreate">
         <condition>#ui-musicCreate</condition>
         <output>
-            <sa name="sa-musicCreate"/>
+            <sa scope="type-server">
+                <name>sa-musicCreate</name>
+            </sa>
+            <sa scope="type-local">
+                <name>sa-musicServerOnly</name>
+            </sa>
         </output>
     </node>
     <node name="generalContext_musicSubmenu">

@@ -230,6 +230,22 @@ def removeAllComments(tree):
         p = c.getparent()
         p.remove(c)
 
+def removeOutOfScopeNodes(tree):
+    scopedNodes = tree.xpath('//*[@scope]')
+    for scopedNode in scopedNodes:
+        if not inScope(scopedNode):
+            p = scopedNode.getparent()
+            p.remove(scopedNode)
+
+def inScope(node):
+    if not hasattr(config, 'common_scope'):
+        return False # no scope specified -> remove all scoped nodes
+    scope = getattr(config, 'common_scope')
+    if scope == node.get('scope'):
+        return True
+    else:
+        return False
+
 # When duplicit node is found, exit with error
 def findAllNodeNames(tree):
     names = []
@@ -726,6 +742,7 @@ if __name__ == '__main__':
     parser.add_argument('-c','--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
     parser.add_argument('-s', '--common_schema', required=False, help='schema file')
+    parser.add_argument('-sc', '--common_scope', required=False, help='scope of dialog, e.g. type-local')
     parser.add_argument('-of', '--common_outputs_directory', required=False, help='directory where the otputs will be stored (outputs is default)')
     parser.add_argument('-od', '--common_outputs_dialogs', required=False, help='name of generated file (dialogs.xml is the default)')
     #CF parameters are specific to Cloud Functions Credentials placement from config file and will be replaced in the future by a separate script
@@ -767,6 +784,9 @@ if __name__ == '__main__':
 
     # remove all comments
     removeAllComments(dialogTree)
+
+    # remove nodes which are out of specified scope
+    removeOutOfScopeNodes(dialogTree)
 
     # find all node names
     names = findAllNodeNames(dialogTree)

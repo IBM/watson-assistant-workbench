@@ -663,6 +663,13 @@ def printNodes(root, parent, dialogJSON):
         # PREVIOUS SIBLING
         if previousSibling is not None:
             nodeJSON['previous_sibling'] = previousSibling.find('name').text
+        # DIGRESSION SETTINGS
+        if nodeXML.find('digress_in') is not None:
+            nodeJSON['digress_in'] = nodeXML.find('digress_in').text
+        if nodeXML.find('digress_out') is not None:
+            nodeJSON['digress_out'] = nodeXML.find('digress_out').text
+        if nodeXML.find('digress_out_slots') is not None:
+            nodeJSON['digress_out_slots'] = nodeXML.find('digress_out_slots').text
 
         # CLOSE NODE
         previousSibling = nodeXML

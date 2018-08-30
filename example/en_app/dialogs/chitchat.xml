@@ -12,6 +12,8 @@
                 <age type="number">21</age>
             </botInfo>
         </context>
+        <digress_in>returns</digress_in>
+        <digress_out>allow_all</digress_out>
     </node>
     <node name="ALL_ABOUT_ME_WHAT_DO_YOU_LIKE_TO_DO_FOR_FUN_">
         <condition>#ALL_ABOUT_ME_WHAT_DO_YOU_LIKE_TO_DO_FOR_FUN_</condition>
@@ -140,6 +142,7 @@
         <output>
             <text>I will find some friend for you, $name.</text>
         </output>
+        <digress_out_slots>allow_returning</digress_out_slots>
     </node>
     <node name="anything_else_chitchat">
         <condition>anything_else</condition>

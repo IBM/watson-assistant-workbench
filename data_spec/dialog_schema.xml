@@ -42,6 +42,9 @@
         <xs:element name="handlers" type="handlersSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="slots" type="slotsSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="actions" type="actionsSchema" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="digress_in" type="digressInSchema" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="digress_out" type="digressOutSchema" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="digress_out_slots" type="digressOutSlotsSchema" minOccurs="0" maxOccurs="1"/>
     </xs:all>
     <xs:attribute name="name" type="xs:string"/>
     <xs:attribute name="scope" type="xs:string"/>
@@ -182,9 +185,23 @@
         <xs:element name="context" type="contextSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="output" type="outputSchema" minOccurs="0" maxOccurs="1"/>
     </xs:all>
-    <xs:attribute name="eventName" use="required" type="xs:string"/>
+    <xs:attribute name="eventName" use="required" type="eventNameSchema"/>
     <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
+
+<xs:simpleType name="eventNameSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="focus"/>
+        <xs:enumeration value="input"/>
+        <xs:enumeration value="filled"/>
+        <xs:enumeration value="validate"/>
+        <xs:enumeration value="filled_multiple"/>
+        <xs:enumeration value="generic"/>
+        <xs:enumeration value="nomatch"/>
+        <xs:enumeration value="nomatch_responses_depleted"/>
+        <xs:enumeration value="digression_return_prompt"/>
+    </xs:restriction>
+</xs:simpleType>
 
 <xs:complexType name="slotSchema">
     <xs:all>
@@ -235,6 +252,30 @@
     </xs:sequence>
     <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
+
+<xs:simpleType name="digressInSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="not_available"/>
+        <xs:enumeration value="returns"/>
+        <xs:enumeration value="does_not_return"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="digressOutSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="allow_returning"/>
+        <xs:enumeration value="allow_all"/>
+        <xs:enumeration value="allow_all_never_return"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="digressOutSlotsSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="not_allowed"/>
+        <xs:enumeration value="allow_returning"/>
+        <xs:enumeration value="allow_all"/>
+    </xs:restriction>
+</xs:simpleType>
 
 <xs:complexType name="resultVariableSchema">
     <xs:simpleContent>

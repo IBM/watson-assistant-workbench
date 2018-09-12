@@ -12,11 +12,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import print_function
 
 import os, json, sys, argparse, requests, configparser
 from wawCommons import printf, eprintf
 from cfgCommons import Cfg
 import datetime
+
+try:
+    unicode        # Python 2
+except NameError:
+    unicode = str  # Python 3
+
 
 if __name__ == '__main__':
     print('STARTING: ' + os.path.basename(__file__) + '\n')

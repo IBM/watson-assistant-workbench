@@ -74,6 +74,7 @@ if __name__ == '__main__':
 
     # run tests
     url = workspacesUrl + '/message?version=' + version
+    receivedOutputJson = []
     try:
         with open(args.inputFileName, "r") as inputFile:
             try:

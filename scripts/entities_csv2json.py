@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import print_function
 
 import json,sys,argparse,os
 
@@ -117,7 +118,7 @@ if __name__ == '__main__':
             outputFile.write(json.dumps(entitiesJSON, indent=4).encode('utf8'))
         if VERBOSE: printf("Entities json '%s' was successfully created\n", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')))
     else:
-        print json.dumps(entitiesJSON, indent=4, ensure_ascii=False).encode('utf8')
+        print(json.dumps(entitiesJSON, indent=4, ensure_ascii=False).encode('utf8'))
         if VERBOSE: printf("Entities json was successfully created\n", os.path.basename(__file__))
 
     printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')

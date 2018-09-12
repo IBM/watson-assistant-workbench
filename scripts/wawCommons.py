@@ -90,13 +90,13 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
             for replacementPair in userReplacements:
                 #special case
                 if replacementPair[0].startswith('$'):
-                    if replacementPair[1] == '\L':
+                    if replacementPair[1] == r'\L':
                         uNewIntentSubnameUser = uIntentSubnameUser.lower()
                         triggeredUserRegexToAppend = "intent name should be lowercase"
-                    elif replacementPair[1] == '\U':
+                    elif replacementPair[1] == r'\U':
                         uNewIntentSubnameUser = uIntentSubnameUser.upper()
                         triggeredUserRegexToAppend = "intent name should be uppercase"
-                    elif replacementPair[1] == '\A':
+                    elif replacementPair[1] == r'\A':
                         uNewIntentSubnameUser = unidecode.unidecode(uIntentSubnameUser)
                         triggeredUserRegexToAppend = "intent name cannot contain accented letters"
                     else:
@@ -154,13 +154,13 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
         for replacementPair in userReplacements:
             #special case
             if replacementPair[0].startswith('$'):
-                if replacementPair[1] == '\L':
+                if replacementPair[1] == r'\L':
                     uNewEntityNameUser = uEntityNameUser.lower()
                     triggeredUserRegexToAppend = "entity name should be lowercase"
-                elif replacementPair[1] == '\U':
+                elif replacementPair[1] == r'\U':
                     uNewEntityNameUser = uEntityNameUser.upper()
                     triggeredUserRegexToAppend = "entity name should be uppercase"
-                elif replacementPair[1] == '\A':
+                elif replacementPair[1] == r'\A':
                     uNewIntentSubnameUser = unidecode.unidecode(uEntityNameUser)
                     triggeredUserRegexToAppend = "entity name cannot contain accented letters"
                 else:

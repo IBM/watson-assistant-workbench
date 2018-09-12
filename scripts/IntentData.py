@@ -129,7 +129,7 @@ class IntentData(object):
 
         if isinstance(channel, str):
             channel = channel.decode('utf-8')
-        if unicode.isdigit(channel[0]):
+        if channel[0].isdigit():
             channelName = channel[0]
             channelValue = channel[1:]
         self.addChannelOutput(channelName, channelValue)

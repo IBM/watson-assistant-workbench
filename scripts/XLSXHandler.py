@@ -12,7 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 import os, re
 import unidecode
 from openpyxl import load_workbook
@@ -67,18 +66,25 @@ class XLSXHandler(object):
         if not os.path.exists(filename):
             eprintf('Error: File does not exist: %s\n', filename)
             return {}
-    
+
         try:
-            domainName = unicode(toIntentName(NAME_POLICY, None, os.path.splitext(os.path.split(filename)[1])[0]), 'utf-8')
+            domainName = toIntentName(NAME_POLICY, None, os.path.splitext(os.path.split(filename)[1])[0])
+            try:
+                domainName = unicode(domainName, 'utf-8')  # Python 2
+            except NameError:
+                domainName = str(domainName)               # Python 3
             workbook = load_workbook(filename=filename, read_only=True)
         except (IOError, BadZipfile):
             eprintf('Error: File does not seem to be a valid Excel spreadsheet: %s\n', filename)
             return {}
-    
+
         # Process all the tabs of the file
         for sheet in workbook.worksheets:
             printf(' Sheet: %s\n', sheet.title)
-            prefix = unicode(sheet.title, 'utf-8')
+            try:
+                prefix = unicode(sheet.title, 'utf-8')  # Python 2
+            except NameError:
+                prefix = str(sheet.title)               # Python 3
             currentBlock = []
 
             # Separate all data blocks in the sheet, if the currentBlock starts with header, it is considered to be part of currentBlock
@@ -216,4 +222,3 @@ class XLSXHandler(object):
                 intentData.addIntentAlternative(row[0])  # Collect intent definition
             if row[1]:
                 intentData.addRawOutput(row[1:], self._labelsMap)  # Collect text output
-

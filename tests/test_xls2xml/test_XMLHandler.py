@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import print_function
 import unittest
 from scripts.XMLHandler import XMLHandler
 import scripts.DialogData as Dialog
@@ -134,8 +135,8 @@ class XMLHandlerTest(unittest.TestCase):
         actual = self._handler.printXml(xmlDocument, False)
         expected = (u'<nodes><node name="HELP_2"><condition>#HELP_2</condition><output><textValues>'
                     u'<values>Sorry, cannot help you.</values></textValues></output></node></nodes>')
-        print actual
-        print expected
+        print(actual)
+        print(expected)
         self.assertEquals(actual, expected)
 
 

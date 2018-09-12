@@ -17,6 +17,11 @@ import json, sys, argparse, requests, os, time, datetime, re
 import lxml.etree as LET
 from wawCommons import printf, eprintf
 
+try:
+    basestring            # Python 2
+except NameError:
+    basestring = (str, )  # Python 3
+
 
 def areSame(expectedOutputJson, receivedOutputJson, failureData, parentPath):
 
@@ -161,9 +166,13 @@ if __name__ == '__main__':
 
             line = 0
             dialogId = 0
+            nTestsinDialog = 0
+            nFailuresInDialog = 0
+            timeDialogStart = time.time()
+
             # for every line
             while expectedJsonLine:
-                line += 1;
+                line += 1
                 if not receivedJsonLine: # no more received line
                     eprintf('ERROR: Missing output JSON in file %s, line %d', args.receivedFileName, line)
                     sys.exit(1)
@@ -233,7 +242,7 @@ if __name__ == '__main__':
 
             # end for each line
 
-            if receivedJsonLine: eprintf('ERROR: More than expected lines in file %s, line %d', receivedFileName, line)
+            if receivedJsonLine: eprintf('ERROR: More than expected lines in file %s, line %d', args.receivedFileName, line)
 
         # close files
 

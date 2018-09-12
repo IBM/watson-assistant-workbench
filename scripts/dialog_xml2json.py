@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import print_function
 
 import json,sys,argparse,os,re,csv,io,copy
 import lxml.etree as LET
@@ -20,6 +21,11 @@ from cfgCommons import Cfg
 from wawCommons import printf, eprintf
 import time
 import datetime
+
+try:
+    unicode        # Python 2
+except NameError:
+    unicode = str  # Python 3
 
 # CONSTANTS (care it is not real constant)
 DEFAULT_SELECTOR = 'user_input'
@@ -816,7 +822,7 @@ if __name__ == '__main__':
             outputFile.write(json.dumps(dialogNodes, indent=4))
         printf("File %s created\n", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')))
     else:
-        print json.dumps(dialogNodes, indent=4)
+        print(json.dumps(dialogNodes, indent=4))
 
     if hasattr(config, 'common_output_config'):
         config.saveConfiguration(getattr(config, 'common_output_config'))

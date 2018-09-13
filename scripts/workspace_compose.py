@@ -15,6 +15,7 @@ limitations under the License.
 from __future__ import print_function
 
 import os, json, sys, argparse, codecs
+import io
 from cfgCommons import Cfg
 from wawCommons import printf, eprintf
 
@@ -95,7 +96,7 @@ if __name__ == '__main__':
         print('outputs_counterexamples not specified, omitting counterexamples.')
 
     if hasattr(config, 'common_outputs_workspace'):
-        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace')), 'w', encoding='utf8') as outputFile:
+        with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace')), 'w', encoding='utf8') as outputFile:
             outputFile.write(json.dumps(workspace, indent=4, ensure_ascii=False, encoding='utf8'))
     else:
         print('output_workspace not specified, generating to console.')

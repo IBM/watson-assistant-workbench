@@ -15,7 +15,7 @@ limitations under the License.
 from __future__ import print_function
 
 import json,sys,argparse,os
-
+import io
 from cfgCommons import Cfg
 from wawCommons import printf, eprintf, toEntityName, getFilesAtPath
 
@@ -34,7 +34,6 @@ if __name__ == '__main__':
     args = parser.parse_args(sys.argv[1:])
     config = Cfg(args);
     VERBOSE = hasattr(config, 'common_verbose')
-
     if args.common_soft: NAME_POLICY = 'soft'
     else: NAME_POLICY = 'hard'
 
@@ -56,7 +55,7 @@ if __name__ == '__main__':
     filesAtPath = getFilesAtPath(pathList)
     for entityFileName in sorted(filesAtPath):
 
-        with open(entityFileName, "r") as entityFile:
+        with io.open(entityFileName, mode='r', encoding='utf8') as entityFile:
 
             entityName = os.path.splitext(os.path.basename(entityFileName))[0]
 
@@ -114,8 +113,8 @@ if __name__ == '__main__':
         if not os.path.exists(getattr(config, 'common_outputs_directory')):
             os.makedirs(getattr(config, 'common_outputs_directory'))
             print('Created new output directory ' + getattr(config, 'common_outputs_entities'))
-        with open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), 'w') as outputFile:
-            outputFile.write(json.dumps(entitiesJSON, indent=4).encode('utf8'))
+        with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), mode='w', encoding='utf-8') as outputFile:
+            outputFile.write(json.dumps(entitiesJSON, indent=4, ensure_ascii=False, encoding='utf8'))
         if VERBOSE: printf("Entities json '%s' was successfully created\n", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')))
     else:
         print(json.dumps(entitiesJSON, indent=4, ensure_ascii=False).encode('utf8'))

@@ -218,7 +218,7 @@ def importNodes(root, config):
 
                 #eprintf('    Appending node: %s\n', importChild) 
             """
-            root.append(importChild)
+            root.insert(root.index(node) + 1, importChild)
 
     if defaultNode is not None:
         # MOVE DEFAULT_NODE TO THE END

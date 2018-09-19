@@ -15,6 +15,7 @@ limitations under the License.
 
 import lxml.etree as XML
 from wawCommons import eprintf, toIntentName
+NAME_POLICY = 'soft'
 
 # Watson Assistant limits number of options currently to 5, we cut the end of the list of options if it is longer
 MAX_OPTIONS = 50
@@ -31,12 +32,13 @@ class XMLHandler(object):
             if not intentData.generateNodes():
                 continue
 
-            normName = toIntentName('soft', None, intent)
+            normName = toIntentName(NAME_POLICY, None, intent)
             # construct the XML structure for each intent
             nodeXml = XML.Element('node', name=normName.decode('utf-8'))
 
             conditionXml = XML.Element('condition')
-            conditionXml.text = intent.decode('utf-8') if intent.decode('utf-8').startswith(u'#') else u'#' + intent.decode('utf-8')
+            #conditionXml.text = intent.decode('utf-8') if intent.decode('utf-8').startswith(u'#') else u'#' + intent.decode('utf-8')
+            conditionXml.text = intent
             nodeXml.append(conditionXml)
 
             nodeXml.append(self._createOutputElement(intentData.getChannelOutputs(), intentData.getButtons(), intentData.getFoldable()))

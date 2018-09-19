@@ -51,7 +51,9 @@ class IntentData(object):
         return self._variables
 
     def setJumpTo(self, target, selector):
-        self._jumptoTarget = target
+        target_name = target[1:] if target.startswith(u'#') else target
+
+        self._jumptoTarget = target_name
         self._jumptoSelector = selector
 
     def getJumpToTarget(self):
@@ -78,21 +80,25 @@ class IntentData(object):
         self._rawOutputs.append(rawOutputs)
         if not isinstance(rawOutputs, tuple) or len(rawOutputs) < 1:
             eprintf('Warning: rawOutput does not contain any data: %s\n', rawOutputs)
-        
-        for item in re.split('%%', rawOutputs[0]):
-            if not item: continue
-            if item.startswith(u'$'):
-                self.__handleVariableDefinition(item[1:])
-            elif item.startswith(u'B'):
-                self.__handleButtonDefinition(item[1:])
-            elif item.startswith(u'F'):
-                self.__handleFoldableDefinition(item[1:])
-            elif item.startswith(u':'):
-                self.__handleJumpToDefinition(item[1:], labelsMap)
-            else:
-                self.__handleChannelDefinition(item)
 
-        if len(rawOutputs) >= 3:
+        if len(rawOutputs) >= 1 and (isinstance(rawOutputs[0], str) or isinstance(rawOutputs[0], unicode)):
+            items = re.split('%%', rawOutputs[0])
+            self.__handleChannelDefinition('1'+items[0])
+            for item_i in range(1, len(items)):
+                item = items[item_i]
+                if not item: continue
+                if item.startswith(u'$'):
+                    self.__handleVariableDefinition(item[1:])
+                elif item.startswith(u'B'):
+                    self.__handleButtonDefinition(item[1:])
+                elif item.startswith(u'F'):
+                    self.__handleFoldableDefinition(item[1:])
+                elif item.startswith(u':'):
+                    self.__handleJumpToDefinition(item[1:], labelsMap)
+                else:
+                    self.__handleChannelDefinition(item)
+
+        if len(rawOutputs) >= 2:
             if rawOutputs[1]:
                 self.__handleButtonDefinition(rawOutputs[1])
             if rawOutputs[2]:
@@ -124,15 +130,18 @@ class IntentData(object):
             self.setJumpTo(labelsMap[label], selector)
 
     def __handleChannelDefinition(self, channel):
-        channelName = '1'
         channelValue = channel
 
-        if isinstance(channel, str):
-            channel = channel.decode('utf-8')
-        if channel[0].isdigit():
+        if len(channel) > 0 and isinstance(channel, str) or isinstance(channel, unicode):
+            #channel = channel.decode('utf-8')
             channelName = channel[0]
             channelValue = channel[1:]
         self.addChannelOutput(channelName, channelValue)
+            if unicode.isdigit(channelName):
+                channelName = channel[0]
+                channelValue = channel[1:]
+            self.addChannelOutput(channelName, channelValue)
+
 
     def __handleButtonDefinition(self, buttons):
         for button in re.split(';', buttons):

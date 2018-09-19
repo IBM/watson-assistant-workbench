@@ -41,7 +41,9 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
 
     for intent, intentData in dialogData.getAllIntents().iteritems():
         if len(intentData.getIntentAlternatives()) > 0:
-            with open(os.path.join(getattr(config, 'common_generated_intents')[0], intent.decode('utf8') + '.csv'), 'w') as intentFile:
+            intent_name = intent[1:] if intent.startswith(u'#') else intent
+
+            with open(os.path.join(getattr(config, 'common_generated_intents')[0], intent_name + '.csv'), 'w') as intentFile:
                 for alternative in intentData.getIntentAlternatives():
                     intentFile.write(alternative.encode('utf8') + '\n')
 
@@ -89,7 +91,7 @@ if __name__ == '__main__':
     for fileOrFolder in getattr(config, 'common_xls'):
         if VERBOSE: printf('INFO: Searching in path: %s\n', fileOrFolder)
         if os.path.isdir(fileOrFolder):
-            xlsDirList = os.listdir(fileOrFolder);
+            xlsDirList = os.listdir(fileOrFolder)
             for xlsFile in xlsDirList:
                 if os.path.isfile(os.path.join(fileOrFolder, xlsFile)) and xlsFile.endswith('.xlsx') and \
                         not(xlsFile.startswith('~')) and not(xlsFile.startswith('.')):

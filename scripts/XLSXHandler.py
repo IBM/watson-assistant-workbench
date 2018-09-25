@@ -21,17 +21,17 @@ from xml.sax.saxutils import escape
 import DialogData as Dialog
 from DialogData import DialogData
 
-NAME_POLICY = 'soft'
-
 class XLSXHandler(object):
     """ Converts Excel speadsheet into T2C data structures. """
 
 
-    def __init__(self):
+    def __init__(self, config):
         self._dataBlocks = []             #internal representatiom of XLS split to blocks
         self._labelsMap = {}              #lable-intent translation table
         self._dialogData = DialogData()   #internal representation of the workspace
-
+        self._config= config              #we need config to get NAME_POLICY, verbosity,..
+        self._VERBOSE = hasattr(config, 'common_verbose')
+        self._NAME_POLICY = 'soft'
 
     def getDataBlocks(self):
         """ Return map with GoTo labels as keys and target Dialog intents as values. 
@@ -60,15 +60,20 @@ class XLSXHandler(object):
 
 
     def parseXLSXIntoDataBlocks(self, filename):
-        """ Read Excel spreadsheet in T2C format. Stores the data as tuples (domain, prefix, intent, rawBlock) into private field. """
+        """ Reads Excel spreadsheet in T2C format. Splits it to blocks and
+            stores the data as tuples (domain, prefix, intent, rawBlock) in _dataBlocks,
+            creates _labelsMap  (lable- node_name translation table)
+            dialogData  (internal representation of the workspace)
+        """
 
         printf('Processing xlsx file: %s\n', filename)
         if not os.path.exists(filename):
             eprintf('Error: File does not exist: %s\n', filename)
             return {}
 
+        # derive domain name from file name (the same translation policy as for intents)
         try:
-            domainName = toIntentName(NAME_POLICY, None, os.path.splitext(os.path.split(filename)[1])[0])
+            domainName = toIntentName(self._NAME_POLICY, None, os.path.splitext(os.path.split(filename)[1])[0])
             try:
                 domainName = unicode(domainName, 'utf-8')  # Python 2
             except NameError:
@@ -80,6 +85,7 @@ class XLSXHandler(object):
 
         # Process all the tabs of the file
         for sheet in workbook.worksheets:
+            # get prefix is a sheet title
             printf(' Sheet: %s\n', sheet.title)
             try:
                 prefix = unicode(sheet.title, 'utf-8')  # Python 2
@@ -87,7 +93,7 @@ class XLSXHandler(object):
                 prefix = str(sheet.title)               # Python 3
             currentBlock = []
 
-            # Separate all data blocks in the sheet, if the currentBlock starts with header, it is considered to be part of currentBlock
+            # Separate all data blocks in the sheet, if the currentBlock starts with header, the header is considered to be part of currentBlock
             for row in sheet.iter_rows(max_col=4):
                 validRow = False
                 # Check if the row is valid. Row is valid if it contains at least one column not empty and different from comment
@@ -127,6 +133,8 @@ class XLSXHandler(object):
 
 
     def __createBlock(self, domain, prefix, block):
+        """ process a single block, separate label, get name ... -> populate dialogData and dataBlocks"""
+
         if not block or not block[0][0]:
             printf('WARNING: First cell of the data block does not contain any data. (domain=%s, prefix=%s)\n', domain, prefix)
             return
@@ -138,25 +146,26 @@ class XLSXHandler(object):
             label = firstCell[1:]
             if label in self._labelsMap:
                 printf('WARNING: Found a label that has already been assigned to an intent and will be overwritten. Label: %s\n', label)
-            del block[0]
+            del block[0] #delete line with label
             if not block or not block[0][0]:
                 printf('WARNING: First cell of the goto block does not contain any data. (domain=%s, prefix=%s, label=%s)\n', domain, prefix, label)
                 return
             firstCell = block[0][0]
 
-        # If it's entity block, load the entity
-        # ToDo: If complex condition starts with @ - it can be still a condition, not an intent definition
-        if firstCell.startswith(u'@'):
-            self.__handleEntityBlock(block)
-            return
-
         # Check the intent name
         conditionHasX = Dialog.X_PLACEHOLDER in firstCell
         intentName = firstCell
 
+        # If it's entity block, load the entity (label is ignored as entity block does not generate a node)
+        if firstCell.startswith(u'@') and not self.__isConditionBlock(firstCell):
+            if label:
+                printf('WARNING: Label defined before entiy block. The label is ignored as entity block does not generate any code. (domain=%s, prefix=%s, label=%s)\n',  domain, prefix, label)
+            self.__handleEntityBlock(block)
+            return
+
         if self.__isConditionBlock(firstCell):
             if conditionHasX and block[1][0]:
-                fullIntentName = re.sub(Dialog.X_PLACEHOLDER, block[1][0], firstCell)
+                fullIntentName = re.sub(Dialog.X_PLACEHOLDER, block[1][0], firstCell) #replace X_PLACEHOLDER by first example
             else: # condition statement without <x>
                 fullIntentName = firstCell
         else:
@@ -166,10 +175,12 @@ class XLSXHandler(object):
             else:
                 # Create intent name from first sentence by replacing all spaces with underscores and removing accents, commas and slashes
                 intentName = re.sub("[/,?']", '', re.sub(' ', '_', unidecode.unidecode(intentName), re.UNICODE))
-                fullIntentName = '#'+ toIntentName(NAME_POLICY, None, domain, prefix, intentName)
+                fullIntentName = '#'+ toIntentName(self._NAME_POLICY, None, domain, prefix, intentName)
             # check intent name
 
+        fullIntentName = toIntentName(self._NAME_POLICY, None, fullIntentName)
 
+        # Extends domains by fullIntentName name and intents by intent data
         self._dialogData.getIntentData(fullIntentName, domain)
         self._dataBlocks.append((domain, prefix, fullIntentName, block))
         if label:
@@ -177,7 +188,7 @@ class XLSXHandler(object):
 
 
     def __isConditionBlock(self, firstCell):
-        """ Returns tru if first cell contains X_PLACEHOLDER or mor then 1 condition indicator (one is jus a header)"""
+        """ Returns tru if first cell contains X_PLACEHOLDER or mor then 1 condition indicator (one is just a header)"""
         a=len(re.sub('[^#$@&|]', '', firstCell))
         return Dialog.X_PLACEHOLDER in firstCell or len(re.sub('[^#$@&|]', '', firstCell)) > 1
 

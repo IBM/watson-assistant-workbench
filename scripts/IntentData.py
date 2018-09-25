@@ -18,17 +18,36 @@ from wawCommons import eprintf
 from collections import OrderedDict
 
 class IntentData(object):
-    """ Represents a data structure containing all necessary information for a single Dialog intent. """
+    """ Represents a data structure containing all necessary information for a single dialog node or intent.
+        We use his structure both for representing definition
+            intents - not affilated necessairly to a dialog node
+            dialog nodes - not defining any intent
+            both intents and outputs - if intent definition is together with response
+    """
 
     def __init__(self):
-        self._alternatives = []  # list of all text alternatives of intent
-        self._channels = {}  # key: channel name, value: list of all outputs for the channel
-        self._variables = {}  # key: variable name, value: variable value
+        self._alternatives = []         # list of all text alternatives of intent
+        self._channels = {}             # key: channel name, value: list of all outputs for the channel
+        self._variables = {}            # key: variable name, value: variable value
         self._jumptoTarget = None
         self._jumptoSelector = None
-        self._rawOutputs = []  # list of all outputs from the right column of the Excel source
-        self._buttons = OrderedDict()  # key: button label, value: full button value, MUST BE ORDERED!
-        self._foldables = OrderedDict()  # key: short text, value: long text
+        self._rawOutputs = []           # list of all outputs from the right column of the Excel source
+        self._buttons = OrderedDict()   # key: button label, value: full button value, MUST BE ORDERED!
+        self._foldables = OrderedDict() # key: short text, value: long text
+        self._node_name = ""            # Name of the node
+        self._node_condition=""         # text of the condition
+
+    def setNodeName(self, node_name):
+        self._node_name = node_name
+
+    def getNodeName(self):
+        return  self._node_name
+
+    def setNodeCondition(self, node_condition):
+        self._node_condition = node_condition
+
+    def getNodeCondition(self):
+        return self._node_condition
 
     def addIntentAlternative(self, intentAlternative):
         self._alternatives.append(intentAlternative)
@@ -136,7 +155,6 @@ class IntentData(object):
             #channel = channel.decode('utf-8')
             channelName = channel[0]
             channelValue = channel[1:]
-        self.addChannelOutput(channelName, channelValue)
             if unicode.isdigit(channelName):
                 channelName = channel[0]
                 channelValue = channel[1:]

@@ -18,26 +18,25 @@ from IntentData import IntentData
 X_PLACEHOLDER = '<x>'
 
 class DialogData(object):
-    """ Represents complete Dialog data structure. """
-
+    """ Represents complete Dialog data structure (intents, entities, dialog). """
 
     def __init__(self):
         self._intents = {}  # key: intent name, value: IntentData object
-        self._entities = {}  # key: entity name, value: list of all Dialog entity options
-        self._domains = {}  # key: domain name, value: list of all associated Dialog intents
-
+        self._entities = {} # key: entity name, value: list of all Dialog entity options
+        self._domains = {}  # key: domain name, value: list of all associated dialog nodes
 
     def getEntity(self, entityName):
+    # return entity of a name (if it does not exist - create it )
         if entityName not in self._entities:
             self._entities[entityName] = []
         return self._entities[entityName]
 
-
     def getAllEntities(self):
         return self._entities
 
-
     def getIntentData(self, intentName, domainName=None):
+    # Extends self._domains by intent name and self._intents by intent data
+    # Returns nodes with given condition
         if domainName is not None:
             if domainName not in self._domains:
                 self._domains[domainName] = []
@@ -48,10 +47,8 @@ class DialogData(object):
             self._intents[intentName] = IntentData()
         return self._intents[intentName]
 
-
     def getAllIntents(self):
         return self._intents
-
 
     def getDomains(self):
         return self._domains

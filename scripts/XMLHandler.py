@@ -32,6 +32,9 @@ class XMLHandler(object):
             if not intentData.generateNodes():
                 continue
 
+            # TM: This is error. We get normName from Intent without checking if it exists,
+            #   if it exists, we should create alternative norm_name to make sure that node names are unique
+            #   norm name should be also mapped back properly to labels -> therefor we need to do the bussiness better in XLSXHandler
             normName = toIntentName(NAME_POLICY, None, intent)
             # construct the XML structure for each intent
             nodeXml = XML.Element('node', name=normName.decode('utf-8'))

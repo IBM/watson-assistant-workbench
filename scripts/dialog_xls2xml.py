@@ -24,10 +24,11 @@ from XMLHandler import XMLHandler
 from wawCommons import printf, eprintf
 
 def saveDialogDataToFileSystem(dialogData, handler, config):
+    # Create directory for dialogs (if it does not exist already)
     if hasattr(config, 'common_generated_dialogs') and not os.path.exists(getattr(config, 'common_generated_dialogs')):
         os.makedirs(getattr(config, 'common_generated_dialogs'))
         print('Created new directory ' + getattr(config, 'common_generated_dialogs'))
-
+    # Generate xml file per dialog domain (original xls workbook (all its sheets).
     domains = dialogData.getDomains()
     for domain in domains:
         filename = getattr(config, 'common_generated_dialogs') + '/' + domain + '.xml'
@@ -35,10 +36,11 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
             xmlData = handler.convertDialogData(dialogData, domains[domain])
             dialogFile.write(handler.printXml(xmlData))
 
+    # Create directory for intents (if it does not exist already)
     if hasattr(config, 'common_generated_intents') and not os.path.exists(getattr(config, 'common_generated_intents')[0]):
         os.makedirs(getattr(config, 'common_generated_intents')[0])
         print('Created new directory ' + getattr(config, 'common_generated_intents')[0])
-
+    # One file per intent
     for intent, intentData in dialogData.getAllIntents().iteritems():
         if len(intentData.getIntentAlternatives()) > 0:
             intent_name = intent[1:] if intent.startswith(u'#') else intent
@@ -47,10 +49,11 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
                 for alternative in intentData.getIntentAlternatives():
                     intentFile.write(alternative.encode('utf8') + '\n')
 
+    # Create directory for entities (if it does not exist already)
     if hasattr(config, 'common_generated_entities') and not os.path.exists(getattr(config, 'common_generated_entities')[0]):
         os.makedirs(getattr(config, 'common_generated_entities')[0])
         print('Created new directory ' + getattr(config, 'common_generated_entities')[0])
-
+    # One file per entity
     entities = dialogData.getAllEntities()
     for entity in entities:
         with open(os.path.join(getattr(config, 'common_generated_entities')[0], entity.encode('ascii', 'ignore') + '.csv'), 'w') as entityFile:
@@ -69,7 +72,7 @@ if __name__ == '__main__':
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
     parser.add_argument('-v', '--common_verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(sys.argv[1:])
-    config = Cfg(args);
+    config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
 
     if hasattr(config, 'common_verbose') and getattr(config, 'common_verbose'):
@@ -84,7 +87,7 @@ if __name__ == '__main__':
     if not hasattr(config, 'common_generated_entities'):
         if VERBOSE: printf('INFO: generated_entities parameter is not defined\n')
 
-    xlsxHandler = XLSXHandler()
+    xlsxHandler = XLSXHandler(config)
     allDataBlocks = {}  # map of datablocks, key: Excel sheet name, value: list of all block in the sheet
 
     print(getattr(config, 'common_xls'))
@@ -104,7 +107,7 @@ if __name__ == '__main__':
             xlsxHandler.parseXLSXIntoDataBlocks(fileOrFolder)
 
     xlsxHandler.convertBlocksToDialogData()
-    saveDialogDataToFileSystem(xlsxHandler.getDialogData(), XMLHandler(), config)
+    saveDialogDataToFileSystem(xlsxHandler.getDialogData(), XMLHandler())
 
     printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
 

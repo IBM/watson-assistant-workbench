@@ -17,15 +17,15 @@ import re
 from wawCommons import eprintf
 from collections import OrderedDict
 
-class IntentData(object):
-    """ Represents a single intent.    """
+class EntityData(object):
+    """ Represents a single entity.    """
 
     def __init__(self):
-        self._examples = []         # list of all text alternatives of intent
+        self._values = []         # list of all text alternatives of intent
 
-    def addExample(self, example):
-        self._examples.append(example)
+    def addValue(self, value):
+        self._values.append(value)
 
-    def getExamples(self):
-        return self._examples
+    def getValues(self):
+        return self._values
 

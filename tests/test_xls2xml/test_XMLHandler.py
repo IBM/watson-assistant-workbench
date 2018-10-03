@@ -27,8 +27,8 @@ class XMLHandlerTest(unittest.TestCase):
         labels = {}
         dialogData = Dialog.DialogData()
         intentData = dialogData.getIntentData(u'HELP_①', DOMAIN)
-        intentData.addIntentAlternative(u'I need help.')
-        intentData.addIntentAlternative(u'Can you help me?')
+        intentData.addExample(u'I need help.')
+        intentData.addExample(u'Can you help me?')
         intentData.addRawOutput([u'Sure.①'], labels)
         intentData.addRawOutput([u'Sorry, cannot help you.'], labels)
         intentData.addRawOutput([u'Let us see, what is your problem?'], labels)
@@ -47,8 +47,8 @@ class XMLHandlerTest(unittest.TestCase):
         labels = {}
         dialogData = Dialog.DialogData()
         intentData = dialogData.getIntentData(u'HELP_①', DOMAIN)
-        intentData.addIntentAlternative(u'I need help.')
-        intentData.addIntentAlternative(u'Can you help me?')
+        intentData.addExample(u'I need help.')
+        intentData.addExample(u'Can you help me?')
         intentData.addRawOutput([u'Sure.①'], labels)
         intentData.addRawOutput([u'Sorry, cannot help you.%%260 seconds'], labels)
         intentData.addRawOutput([u'Let us see, what is your problem?%%7image.png%%8some URL'], labels)
@@ -99,8 +99,8 @@ class XMLHandlerTest(unittest.TestCase):
         labels = {}
         dialogData = Dialog.DialogData()
         intentData = dialogData.getIntentData(u'HELP_①', DOMAIN)
-        intentData.addIntentAlternative(u'I need help.')
-        intentData.addIntentAlternative(u'Can you help me?')
+        intentData.addExample(u'I need help.')
+        intentData.addExample(u'Can you help me?')
         intentData.addRawOutput([u'Sure.①'], labels)
         intentData.addRawOutput([u'Sorry, cannot help you.%%360 seconds'], labels)
         intentData.addRawOutput([u'Let us see, what is your problem?%%7image.jpg%%8my_URL'], labels)
@@ -124,10 +124,10 @@ class XMLHandlerTest(unittest.TestCase):
         labels = {}
         dialogData = Dialog.DialogData()
         intentData = dialogData.getIntentData(u'HELP_1', DOMAIN)
-        intentData.addIntentAlternative(u'I need help.')
+        intentData.addExample(u'I need help.')
         intentData.addRawOutput(u'Sure.', labels)
         intentData = dialogData.getIntentData(u'HELP_2', DOMAIN)
-        intentData.addIntentAlternative(u'Can you help me?')
+        intentData.addExample(u'Can you help me?')
         intentData.addRawOutput([u'Sorry, cannot help you.'], labels)
         intents = [u'HELP_2']
 

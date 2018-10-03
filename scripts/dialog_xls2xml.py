@@ -29,11 +29,11 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
         os.makedirs(getattr(config, 'common_generated_dialogs'))
         print('Created new directory ' + getattr(config, 'common_generated_dialogs'))
     # Generate xml file per dialog domain (original xls workbook (all its sheets).
-    domains = dialogData.getDomains()
-    for domain in domains:
-        filename = getattr(config, 'common_generated_dialogs') + '/' + domain + '.xml'
+    domains = dialogData.getAllDomains()
+    for domain_name in domains:   # For all domains
+        filename = getattr(config, 'common_generated_dialogs') + '/' + domain_name + '.xml'
         with codecs.open(filename, 'w', encoding='utf8') as dialogFile:
-            xmlData = handler.convertDialogData(dialogData, domains[domain])
+            xmlData = handler.convertDialogData(dialogData, domains[domain_name]) #process all nodes of the domain
             dialogFile.write(handler.printXml(xmlData))
 
     # Create directory for intents (if it does not exist already)
@@ -41,23 +41,22 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
         os.makedirs(getattr(config, 'common_generated_intents')[0])
         print('Created new directory ' + getattr(config, 'common_generated_intents')[0])
     # One file per intent
-    for intent, intentData in dialogData.getAllIntents().iteritems():
-        if len(intentData.getIntentAlternatives()) > 0:
+    for intent, intentData in dialogData.getAllIntents().items():
+        if len(intentData.getExamples()) > 0:
             intent_name = intent[1:] if intent.startswith(u'#') else intent
 
-            with open(os.path.join(getattr(config, 'common_generated_intents')[0], intent_name + '.csv'), 'w') as intentFile:
-                for alternative in intentData.getIntentAlternatives():
-                    intentFile.write(alternative.encode('utf8') + '\n')
+            with open(os.path.join(getattr(config, 'common_generated_intents')[0], intent_name.encode('ascii', 'ignore') + '.csv'), 'w') as intentFile:
+                for example in intentData.getExamples():
+                    intentFile.write(example.encode('utf8') + '\n')
 
     # Create directory for entities (if it does not exist already)
     if hasattr(config, 'common_generated_entities') and not os.path.exists(getattr(config, 'common_generated_entities')[0]):
         os.makedirs(getattr(config, 'common_generated_entities')[0])
         print('Created new directory ' + getattr(config, 'common_generated_entities')[0])
     # One file per entity
-    entities = dialogData.getAllEntities()
-    for entity in entities:
-        with open(os.path.join(getattr(config, 'common_generated_entities')[0], entity.encode('ascii', 'ignore') + '.csv'), 'w') as entityFile:
-            for entityList in entities[entity]:
+    for entity_name, entityData in dialogData.getAllEntities().items():
+        with open(os.path.join(getattr(config, 'common_generated_entities')[0], entity_name.encode('ascii', 'ignore') + '.csv'), 'w') as entityFile:
+            for entityList in entityData.getValues():
                 entityFile.write(entityList.encode('utf8') + '\n')
 
 if __name__ == '__main__':
@@ -106,8 +105,8 @@ if __name__ == '__main__':
         elif os.path.exists(fileOrFolder):
             xlsxHandler.parseXLSXIntoDataBlocks(fileOrFolder)
 
-    xlsxHandler.convertBlocksToDialogData()
-    saveDialogDataToFileSystem(xlsxHandler.getDialogData(), XMLHandler())
+    xlsxHandler.convertBlocksToDialogData() # Blocks-> DialogData
+    xlsxHandler.updateReferences()          # Resolving cross references
+    saveDialogDataToFileSystem(xlsxHandler.getDialogData(), XMLHandler(), config)
 
     printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
-

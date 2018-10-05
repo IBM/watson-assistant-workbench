@@ -196,6 +196,7 @@ def importNodes(root, config):
             validate(importTree)
 
         importRoot = importTree.getroot()
+        childIndex = 1
         for importChild in importRoot.findall('node'):
             #eprintf('  Importing node: %s\n', importChild)
             nodeWithTheSameCondition = getNodeWithTheSameCondition(root, importChild)
@@ -218,7 +219,9 @@ def importNodes(root, config):
 
                 #eprintf('    Appending node: %s\n', importChild) 
             """
-            root.insert(root.index(node) + 1, importChild)
+            root.insert(root.index(node) + childIndex, importChild)
+            childIndex += 1
+
 
     if defaultNode is not None:
         # MOVE DEFAULT_NODE TO THE END

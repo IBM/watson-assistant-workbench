@@ -16,6 +16,7 @@ limitations under the License.
 from IntentData import IntentData
 from EntityData import EntityData
 from NodeData import NodeData
+import unicodedata, unidecode
 from wawCommons import printf, eprintf, toIntentName
 X_PLACEHOLDER = u'&lt;x&gt;'
 
@@ -132,7 +133,7 @@ class DialogData(object):
                     nodeData._jumptoTarget= node_target
                     printf('INFO: Resolving cross reference label:%s -> node_name:%s)\n', label, node_name)
                 else:
-                    printf('INFO: Label:%s is not resolved. Expecting that it is an external node_name\n', label)
+                    printf('INFO: Label:%s not resolve, expecting tahat label is external node_name\n', label)
 
 #   DOMAINS
 #******************************************
@@ -150,15 +151,16 @@ class DialogData(object):
               :returns unique intent_name or None if not able to create
         """
         #Normalize the string
-        unique_intent_name = toIntentName( self._NAME_POLICY, None, intent_name).decode('utf-8')
+        unaccented_name=unicodedata.normalize('NFKD', intent_name).encode('ASCII', 'ignore')  # remove accents
+        unique_intent_name = toIntentName( self._NAME_POLICY, None, unaccented_name).decode('utf-8')
         if unique_intent_name not in self._intents:
             return unique_intent_name
         #try to modify by a number
         for modifier in range(0, 10000):
-            unique_intent_name=intent_name+repr(modifier)  #create a modified one
+            new_unique_intent_name=unique_intent_name+repr(modifier)  #create a modified one
             # Check if the name exists
-            if unique_intent_name not in self._intents:
-                return unique_intent_name
+            if new_unique_intent_name not in self._intents:
+                return new_unique_intent_name
         return None
 
     def createUniqueEntityName(self, entity_name):
@@ -170,15 +172,16 @@ class DialogData(object):
               :returns unique intent_name or None if not able to create
         """
         #Normalize the string
-        unique_entity_name = toIntentName(self._NAME_POLICY, None, entity_name).decode('utf-8')
+        unaccented_name=unicodedata.normalize('NFKD', entity_name).encode('ASCII', 'ignore')  # remove accents
+        unique_entity_name = toIntentName(self._NAME_POLICY, None, unaccented_name).decode('utf-8')
         if unique_entity_name not in self._entities:
             return unique_entity_name
         #try to modify by a number
         for modifier in range(0, 10000):
-            unique_entity_name= entity_name + repr(modifier)  #create a modified one
+            new_unique_entity_name= unique_entity_name + repr(modifier)  #create a modified one
             # Check if the name exists
-            if unique_entity_name not in self._intents:
-                return unique_entity_name
+            if new_unique_entity_name not in self._intents:
+                return new_unique_entity_name
         return None
 
     def createUniqueNodeName(self, node_name):
@@ -190,13 +193,14 @@ class DialogData(object):
               :returns unique node_name or None if not able to create
         """
         # Normalize the string
-        unique_node_name = toIntentName(self._NAME_POLICY, None, node_name).decode('utf-8').upper()
+        unaccented_name=unicodedata.normalize('NFKD', node_name).encode('ASCII', 'ignore')  # remove accents
+        unique_node_name = toIntentName(self._NAME_POLICY, None, unaccented_name).decode('utf-8').upper()
         if unique_node_name not in self._nodes:
             return unique_node_name
         # try to modify by a number
         for modifier in range(0, 10000):
-            unique_node_name = unique_node_name + '_' + repr(modifier)  # create a modified one
+            new_unique_node_name = unique_node_name + '_' + repr(modifier)  # create a modified one
             # Check if the name exists
-            if unique_node_name not in self._nodes:
-                return unique_node_name
+            if new_unique_node_name not in self._nodes:
+                return new_unique_node_name
         return None

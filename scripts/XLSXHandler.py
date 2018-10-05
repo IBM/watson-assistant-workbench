@@ -35,7 +35,7 @@ limitations under the License.
        - they should be unique across all node names, if already exists - we ad _xxx where xxx is a unique number
 """
 import os, re
-import unidecode
+import unicodedata, unidecode
 from openpyxl import load_workbook
 from wawCommons import printf, eprintf, toIntentName
 from zipfile import BadZipfile

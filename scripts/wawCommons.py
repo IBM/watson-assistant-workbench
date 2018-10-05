@@ -79,6 +79,7 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
         uIntentSubname = intentSubname.decode('utf-8') if isinstance(intentSubname, str) else intentSubname
         # apply WA restrictions (https://console.bluemix.net/docs/services/conversation/intents.html#defining-intents)
         uIntentSubnameWA = re.sub(' ', '_', uIntentSubname, re.UNICODE) # replace space by underscore
+        uIntentSubnameWA = re.sub(';', '_', uIntentSubname, re.UNICODE) # replace ; by underscore
         uIntentSubnameWA = re.sub(u'[^\wÀ-ÖØ-öø-ÿĀ-ž-\.]', '', uIntentSubnameWA, re.UNICODE) # remove everything that is not unicode letter, hyphen or period
         if uIntentSubnameWA != uIntentSubname: # WA restriction triggered
             restrictionTextIntentName.append("The intent name can only contain letters (in Unicode), numbers, underscores, hyphens, and periods.")

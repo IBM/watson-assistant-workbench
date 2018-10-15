@@ -131,7 +131,7 @@ class DialogData(object):
                 if label in self._labelsMap:
                     node_target= self._labelsMap[label]
                     nodeData._jumptoTarget= node_target
-                    #printf('INFO: Resolving cross reference label:%s -> node_name:%s)\n', label, node_name)
+                    printf('INFO: Resolving cross reference label:%s -> node_name:%s)\n', label, node_name)
                 else:
                     printf('INFO: Label:%s not resolve, expecting tahat label is external node_name\n', label)
 

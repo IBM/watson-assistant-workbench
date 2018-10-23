@@ -20,12 +20,12 @@ Currently supported conversation version is 2017-02-03 except:
 - Missing "slot_in_focus" property.
 - Slots are not supported in json to xml conversion scripts.
 
-Scripts use python 2.7, used modules are listed in the `requirements.txt` file. To satisfy all requirements run
+Scripts use python 2.7, used modules are listed in the [requirements.txt](/requirements.txt) file. To satisfy all requirements run
 ```
 pip install -r requirements.txt
 ```
-For brief summary how to run scripts please see `scripts.md`.
+For brief summary how to run scripts please see [scripts.md](/scripts.md).
 
 Description of T2C  and xml/csv WAW formats can be found in `doc` folder.
 
-Release notes can be found in 'release_notes.md'
+Release notes can be found in [release_notes.md](/release_notes.md).

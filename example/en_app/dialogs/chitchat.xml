@@ -28,7 +28,7 @@
         </output>
     </node>
     <node name="ALL_ABOUT_ME_WHAT_IS_YOUR_NAME_">
-        <condition>#ALL_ABOUT_ME_WHAT_IS_YOUR_NAME_</condition>
+        <condition>#ALL_ABOUT_ME_WHAT_IS_YOUR_NAME_ or input.text.contains('name')</condition>
         <output>
             <response>
                 <condition>$botName</condition>

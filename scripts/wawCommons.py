@@ -40,7 +40,7 @@ def toCode(NAME_POLICY, code):
     if isinstance(newCode, str):
         newIntentSubname = newCode.decode('utf-8')
         # use unidecode.unidecode ?
-        newCode = unicodedata.normalize('NFKD', newCode).encode('ASCII', 'ignore')  # remove accents
+        newCode = unicodedata.normalize('NFKD', newCode.decode('utf-8')).encode('ASCII', 'ignore')  # remove accents
     # remove everything that is not unicode letter or hyphen
     newCode = re.sub('[^\w-]', '', newCode, re.UNICODE)
     if newCode != code:

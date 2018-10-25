@@ -38,7 +38,7 @@ if __name__ == '__main__':
     # process all entities
     for entityJSON in entitiesJSON:
         # process system entity
-        if entityJSON["entity"].strip().lower() .startswith("sys-"):
+        if entityJSON["entity"].strip().lower().startswith("sys-"):
             # issue #82: make entity name check parameter-dependent
             #systemEntities.append(toEntityName(NAME_POLICY, entityJSON["entity"]))
             systemEntities.append(entityJSON["entity"])
@@ -48,11 +48,18 @@ if __name__ == '__main__':
             # process all entity values
             for valueJSON in entityJSON["values"]:
                 value = []
-                value.append(valueJSON["value"].strip())
-                # add all synonyms
+                # synonyms entities
                 if 'synonyms' in valueJSON:
+                    value.append(valueJSON["value"].strip().encode("utf-8"))
+                    # add all synonyms
                     for synonym in valueJSON['synonyms']:
-                        value.append(synonym.strip())
+                        value.append(synonym.strip().encode("utf-8"))
+                # for pattern entities add tilde to the value
+                if 'patterns' in valueJSON:
+                    value.append("~" + valueJSON["value"].strip().encode("utf-8"))
+                    # add all synonyms
+                    for pattern in valueJSON["patterns"]:
+                        value.append(pattern.strip().encode("utf-8"))
                 values.append(value)
             # new entity file
             entityFileName = os.path.join(args.entitiesDir, toEntityName(NAME_POLICY, args.common_entities_nameCheck, entityJSON["entity"])) + ".csv"

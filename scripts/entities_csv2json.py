@@ -92,7 +92,7 @@ if __name__ == '__main__':
                         representativeValue = rawSynonyms[0]
                         synonyms = sorted(list(set(rawSynonyms[1:])))
                         valueJSON = {}
-                        if representativeValue[0] is '~':
+                        if representativeValue[0] in '~':
                             # all patterns are represented by the first value without first char (~)
                             valueJSON['type'] = 'patterns'
                             valueJSON['value'] = representativeValue[1:]

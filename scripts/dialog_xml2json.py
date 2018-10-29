@@ -18,7 +18,7 @@ import json,sys,argparse,os,re,csv,io,copy
 import lxml.etree as LET
 from xml.sax.saxutils import unescape
 from cfgCommons import Cfg
-from wawCommons import printf, eprintf
+from wawCommons import printf, eprintf, openFile
 import time
 import datetime
 import io
@@ -777,6 +777,7 @@ if __name__ == '__main__':
 
     # load dialogue from XML
     if hasattr(config, 'common_dialog_main'):
+        #TODO might need UTF-8
         dialogTree = LET.parse(getattr(config, 'common_dialog_main'))
     else:
         dialogTree = LET.parse(sys.stdin)
@@ -790,6 +791,7 @@ if __name__ == '__main__':
     if not os.path.exists(schemaFile):
         eprintf('ERROR: Schema file %s not found.\n', schemaFile)
         exit(1)
+    #TODO might need UTF-8
     schemaTree = LET.parse(schemaFile)
     schema = LET.XMLSchema(schemaTree)
     validate(dialogTree)
@@ -822,11 +824,11 @@ if __name__ == '__main__':
         if not os.path.exists(getattr(config, 'common_outputs_directory')):
             os.makedirs(getattr(config, 'common_outputs_directory'))
             print('Created new output directory ' + getattr(config, 'common_outputs_directory'))
-        with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'w', encoding='utf-8') as outputFile:
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'w', encoding='utf-8') as outputFile:
             outputFile.write(json.dumps(dialogNodes, indent=4, ensure_ascii=False, encoding='utf8'))
         printf("File %s created\n", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')))
     else:
-        print(json.dumps(dialogNodes, indent=4))
+        print(json.dumps(dialogNodes, indent=4, ensure_ascii=False,encoding='utf8'))
 
     if hasattr(config, 'common_output_config'):
         config.saveConfiguration(getattr(config, 'common_output_config'))

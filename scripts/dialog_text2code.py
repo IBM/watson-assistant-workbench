@@ -15,7 +15,7 @@ limitations under the License.
 
 import json,sys,argparse
 import lxml.etree as LET
-from wawCommons import printf, eprintf, toCode
+from wawCommons import printf, eprintf, toCode, openFile
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Replaces sentences in text tags with codes and creates resource file with translations from codes to sentences.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -39,6 +39,7 @@ if __name__ == '__main__':
     PREFIX = toCode(NAME_POLICY, args.prefix)
 
     # load dialog from XML
+    # TODO might need UTF-8
     dialogsXML = LET.parse(args.dialog)
 
     # find all tags with texts to replace
@@ -48,7 +49,7 @@ if __name__ == '__main__':
 
     # LOAD EXISTING RESOURCE FILE (TRANSLATIONS)
     if args.join:
-        with open(args.resource, 'r') as resourceFile:
+        with openFile(args.resource, 'r') as resourceFile:
             translations = json.load(resourceFile)
     else:
         translations = {}
@@ -71,23 +72,23 @@ if __name__ == '__main__':
 
     # OUTPUT NEW DIALOG
     if args.output is not None:
-        with open (args.output, 'w') as outputFile:
+        with openFile(args.output, 'w') as outputFile:
             outputFile.write(LET.tostring(dialogsXML, pretty_print=True, encoding='utf8'))
     elif args.inplace:
-        with open (args.dialog, 'w') as outputFile:
+        with openFile(args.dialog, 'w') as outputFile:
             outputFile.write(LET.tostring(dialogsXML, pretty_print=True, encoding='utf8'))
     else:
         sys.stdout.write(LET.tostring(dialogsXML, pretty_print=True, encoding='utf8'))
 
     # EXTEND RESOURCE FILE
     if args.append:
-        with open(args.resource, 'r') as resourceFile:
+        with openFile(args.resource, 'r') as resourceFile:
             resourceJSON = json.load(resourceFile)
             resourceJSON.update(translations) # add new translations to existing ones (Duplicate codes will be overwritten by new ones.)
             translations = resourceJSON
 
     # CREATE RESOURCE FILE
-    with open (args.resource, 'w') as resourceFile:
-        resourceFile.write(json.dumps(translations, indent=4, ensure_ascii=False).encode('utf8'))
+    with openFile(args.resource, 'w') as resourceFile:
+        resourceFile.write(json.dumps(translations, indent=4, ensure_ascii=False))
 
     if VERBOSE: eprintf('Texts were successfully replaced with codes.\n')

@@ -16,7 +16,7 @@ from __future__ import print_function
 
 import json, sys, argparse, os
 import lxml.etree as LET
-from wawCommons import printf, eprintf
+from wawCommons import printf, eprintf, openFile
 
 try:
     basestring            # Python 2
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     STDOUT = not args.dialogDir
 
     # load dialogs JSON
-    dialogsJSON = json.load(args.dialog)
+    dialogsJSON = json.load(args.dialog, encoding='utf-8')
 
     # convert dialogs
     dialogsXML = convertDialog(dialogsJSON)
@@ -160,7 +160,7 @@ if __name__ == '__main__':
     if args.dialogDir:
         # print to file
         dialogFileName = os.path.join(args.dialogDir, "dialog.xml")
-        with open(dialogFileName, "w") as dialogFile:
+        with openFile(dialogFileName, "w") as dialogFile:
             dialogFile.write(LET.tostring(dialogsXML, pretty_print=True, encoding='utf8'))
     else:
         # print to standard output

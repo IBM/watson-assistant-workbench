@@ -17,7 +17,7 @@ from __future__ import print_function
 import json,sys,argparse,os
 import io
 from cfgCommons import Cfg
-from wawCommons import printf, eprintf, toEntityName, getFilesAtPath
+from wawCommons import printf, eprintf, toEntityName, getFilesAtPath, openFile
 
 if __name__ == '__main__':
     printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     filesAtPath = getFilesAtPath(pathList)
     for entityFileName in sorted(filesAtPath):
 
-        with io.open(entityFileName, mode='r', encoding='utf8') as entityFile:
+        with openFile(entityFileName, mode='r', encoding='utf8') as entityFile:
 
             entityName = os.path.splitext(os.path.basename(entityFileName))[0]
 
@@ -117,7 +117,7 @@ if __name__ == '__main__':
             outputFile.write(json.dumps(entitiesJSON, indent=4, ensure_ascii=False, encoding='utf8'))
         if VERBOSE: printf("Entities json '%s' was successfully created\n", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')))
     else:
-        print(json.dumps(entitiesJSON, indent=4, ensure_ascii=False).encode('utf8'))
+        print(json.dumps(entitiesJSON, indent=4, ensure_ascii=False, encoding='utf-8'))
         if VERBOSE: printf("Entities json was successfully created\n", os.path.basename(__file__))
 
     printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')

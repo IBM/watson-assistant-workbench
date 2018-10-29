@@ -15,7 +15,7 @@ limitations under the License.
 from __future__ import print_function
 
 import logging, configparser, sys
-from wawCommons import printf, eprintf
+from wawCommons import printf, eprintf, openFile, IS_PYTHON_3
 
 class Cfg:
 
@@ -49,7 +49,12 @@ class Cfg:
                     logging.info("Processing config file:" + common_configFilePath)
                     print("Processing config file:" + common_configFilePath)
                     configPart = configparser.ConfigParser()
-                    configPart.read(common_configFilePath)
+                    with openFile(common_configFilePath) as configFile:
+                        if IS_PYTHON_3:
+                            configPart.read_file(openFile(common_configFilePath))                        
+                        else:   
+                            configPart.readfp(openFile(common_configFilePath))    
+                                            
                     # Collect all attributes from all sections
                     for section in configPart.sections():
                         options = configPart.options(section)
@@ -111,7 +116,7 @@ class Cfg:
             else:
                 outputConfig.set(section, option, getattr(self, optionUniqueName))
         try:
-            with open(configFileName, 'w') as configFile:
+            with openFile(configFileName,'w') as configFile:
                 outputConfig.write(configFile)
         except IOError:
             eprintf('ERROR: Cannot save config file %s\n', configFileName)

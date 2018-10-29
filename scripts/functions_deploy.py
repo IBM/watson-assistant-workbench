@@ -16,7 +16,7 @@ limitations under the License.
 import os, json, sys, argparse, requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from cfgCommons import Cfg
-from wawCommons import printf, eprintf, getFilesAtPath
+from wawCommons import printf, eprintf, getFilesAtPath, openFile
 import urllib3
 
 
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     for functionFileName in filesAtPath:
         fname=os.path.basename(functionFileName);
         function_url = 'https://openwhisk.ng.bluemix.net/api/v1/namespaces/' + config.cloudfunctions_namespace + '/actions/' + config.cloudfunctions_package + '/' + fname + '?overwrite=true'
-        code = open(os.path.join(config.common_functions, functionFileName), 'r').read()
+        code = openFile(os.path.join(config.common_functions, functionFileName), 'r').read()
         payload = {"exec": {"kind": "nodejs:default", "code": code}}
 
         response = requests.put(function_url, auth=(config.cloudfunctions_username, config.cloudfunctions_password),

@@ -17,7 +17,7 @@ from __future__ import print_function
 import os, json, sys, argparse, codecs
 import io
 from cfgCommons import Cfg
-from wawCommons import printf, eprintf
+from wawCommons import printf, eprintf, openFile
 
 if __name__ == '__main__':
     printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # process intents
     intentsJSON = {}
     if hasattr(config, 'common_outputs_intents'):
-        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'r', encoding='utf8') as intentsFile:
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'r', encoding='utf8') as intentsFile:
             intentsJSON = json.load(intentsFile)
         workspace['intents'] = intentsJSON
     else:
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     # process entities
     entitiesJSON = {}
     if hasattr(config, 'common_outputs_entities'):
-        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), 'r', encoding='utf8') as entitiesFile:
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), 'r', encoding='utf8') as entitiesFile:
             entitiesJSON = json.load(entitiesFile)
         workspace['entities'] = entitiesJSON
     else:
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     # process dialog
     dialogJSON = {}
     if hasattr(config, 'common_outputs_dialogs'):
-        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'r', encoding='utf8') as dialogFile:
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'r', encoding='utf8') as dialogFile:
             dialogJSON = json.load(dialogFile)
             workspace['dialog_nodes'] = dialogJSON
     else:
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     intentExamplesJSON = {} # counterexamples in "intent format"
     counterexamplesJSON = [] # simple list of counterexamples ("text": "example sentence")
     if hasattr(config, 'common_outputs_counterexamples'):
-        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_counterexamples')), 'r', encoding='utf8') as counterexamplesFile:
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_counterexamples')), 'r', encoding='utf8') as counterexamplesFile:
             intentExamplesJSON = json.load(counterexamplesFile)
             for intentExampleJSON in intentExamplesJSON:
                 counterexamplesJSON.extend(intentExampleJSON['examples'])
@@ -96,7 +96,7 @@ if __name__ == '__main__':
         print('outputs_counterexamples not specified, omitting counterexamples.')
 
     if hasattr(config, 'common_outputs_workspace'):
-        with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace')), 'w', encoding='utf8') as outputFile:
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace')), 'w', encoding='utf8') as outputFile:
             outputFile.write(json.dumps(workspace, indent=4, ensure_ascii=False, encoding='utf8'))
     else:
         print('output_workspace not specified, generating to console.')

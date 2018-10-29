@@ -15,7 +15,7 @@ limitations under the License.
 from __future__ import print_function
 
 import os, json, sys, argparse, requests, configparser
-from wawCommons import printf, eprintf
+from wawCommons import printf, eprintf, openFile
 from cfgCommons import Cfg
 import datetime
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
         exit(1);
     try:
         workspaceFilePath = os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace'))
-        with open(workspaceFilePath, 'r') as workspaceFile:
+        with openFile(workspaceFilePath, 'r') as workspaceFile:
             workspace = json.load(workspaceFile)
     except IOError:
         eprintf('ERROR: Cannot load workspace file %s\n', workspaceFilePath)
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     if hasattr(config, 'common_outputs_client') and getattr(config, 'common_outputs_client'):
         clientFilePath = os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_client'))
         try:
-            with open(clientFilePath, "w") as clientFile:
+            with openFile(clientFilePath, "w") as clientFile:
                 clientFile.write('<meta http-equiv="refresh" content=\"0; url=' + clientv2URL + '\" />')
                 clientFile.write('<p><a href=\"' + clientv2URL + '\">Redirect</a></p>')
             clientFile.close()

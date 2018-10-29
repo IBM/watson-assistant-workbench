@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import json, sys, time, argparse, requests, configparser
-from wawCommons import printf, eprintf
+from wawCommons import printf, eprintf, openFile
 
 CHECK_MESSAGES_TIME_MAX = 5 # in seconds
 CHECK_WORKSPACE_TIME_DELAY = 1 # in seconds
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         else:
             # sleep some time and check messages again
             if checkWorkspaceTime > CHECK_WORKSPACE_TIME_MAX:
-                eprintf('ERROR: Workspace have not become available before timeout, timeout: %d, response:\n%s\n', CHECK_MESSAGES_TIME_MAX, json.dumps(responseJson, indent=4, sort_keys=True, ensure_ascii=False).encode('utf8'))
+                eprintf('ERROR: Workspace have not become available before timeout, timeout: %d, response:\n%s\n', CHECK_MESSAGES_TIME_MAX, json.dumps(responseJson, indent=4, sort_keys=True, ensure_ascii=False))
                 sys.exit(1)
             time.sleep(CHECK_WORKSPACE_TIME_DELAY)
             checkWorkspaceTime = checkWorkspaceTime + CHECK_WORKSPACE_TIME_DELAY
@@ -76,9 +76,9 @@ if __name__ == '__main__':
     url = workspacesUrl + '/message?version=' + version
     receivedOutputJson = []
     try:
-        with open(args.inputFileName, "r") as inputFile:
+        with openFile(args.inputFileName, "r") as inputFile:
             try:
-                with open(args.outputFileName, "w") as outputFile:
+                with openFile(args.outputFileName, "w") as outputFile:
                     first = True
                     dialogId = ""
                     # for every input line
@@ -89,11 +89,11 @@ if __name__ == '__main__':
                             if receivedOutputJson and receivedOutputJson['context']:
                                 inputJson['context'] = receivedOutputJson['context'] # use context from last dialog turn
                         dialogId = loadedJson['dialog_id']
-                        response = requests.post(url, auth=(username, password), headers={'Content-Type': 'application/json'}, data=json.dumps(inputJson, indent=4, ensure_ascii=False).encode('utf8'))
+                        response = requests.post(url, auth=(username, password), headers={'Content-Type': 'application/json'}, data=json.dumps(inputJson, indent=4, ensure_ascii=False, encoding='utf-8'))
                         receivedOutputJson = response.json()
                         if not first:
                             outputFile.write("\n")
-                        outputFile.write(json.dumps(receivedOutputJson, ensure_ascii=False).encode('utf8'))
+                        outputFile.write(json.dumps(receivedOutputJson, ensure_ascii=False, encoding='utf-8'))
                         first = False
             except IOError:
                 eprintf('ERROR: Cannot open test output file %s\n', args.outputFileName)

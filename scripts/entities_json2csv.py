@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import json, sys, argparse, os
-from wawCommons import printf, eprintf, toEntityName
+from wawCommons import printf, eprintf, toEntityName, openFile
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Decompose Bluemix conversation service entities in .json format to entity files in .csv format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     if args.soft: NAME_POLICY = 'soft'
     else: NAME_POLICY = 'hard'
 
-    with open(args.entities, 'r') as entitiesFile:
+    with openFile(args.entities, 'r') as entitiesFile:
         entitiesJSON = json.load(entitiesFile)
 
     systemEntities = []
@@ -50,16 +50,16 @@ if __name__ == '__main__':
                 value = []
                 # synonyms entities
                 if 'synonyms' in valueJSON:
-                    value.append(valueJSON["value"].strip().encode("utf-8"))
+                    value.append(valueJSON["value"].strip())
                     # add all synonyms
                     for synonym in valueJSON['synonyms']:
-                        value.append(synonym.strip().encode("utf-8"))
+                        value.append(synonym.strip())
                 # for pattern entities add tilde to the value
                 if 'patterns' in valueJSON:
-                    value.append("~" + valueJSON["value"].strip().encode("utf-8"))
+                    value.append("~" + valueJSON["value"].strip())
                     # add all synonyms
                     for pattern in valueJSON["patterns"]:
-                        value.append(pattern.strip().encode("utf-8"))
+                        value.append(pattern.strip())
                 values.append(value)
             # new entity file
             entityFileName = os.path.join(args.entitiesDir, toEntityName(NAME_POLICY, args.common_entities_nameCheck, entityJSON["entity"])) + ".csv"
@@ -68,7 +68,7 @@ if __name__ == '__main__':
                     entityFile.write(';'.join(value) + "\n")
 
     # write file with system entities
-    with open(os.path.join(args.entitiesDir, "system_entities.csv"), 'w') as systemEntitiesFile:
+    with openFile(os.path.join(args.entitiesDir, "system_entities.csv"), 'w') as systemEntitiesFile:
         systemEntitiesFile.write("# a special list for the system entities - only one value at each line\n")
         for systemEntity in systemEntities:
             systemEntitiesFile.write(systemEntity + "\n")

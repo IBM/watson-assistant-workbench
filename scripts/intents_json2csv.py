@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import json, sys, argparse, os
-from wawCommons import printf, eprintf, toIntentName
+from wawCommons import printf, eprintf, toIntentName, openFile
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Decompose Bluemix conversation service intents in .json format to intent files in .csv format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     if args.soft: NAME_POLICY = 'soft'
     else: NAME_POLICY = 'hard'
 
-    with open(args.intents, 'r') as intentsFile:
+    with openFile(args.intents, 'r') as intentsFile:
         intentsJSON = json.load(intentsFile)
 
     # process all intents
@@ -42,7 +42,7 @@ if __name__ == '__main__':
             examples.append(exampleJSON["text"].strip().lower())
         # new intent file
         intentFileName = os.path.join(args.intentsDir, toIntentName(NAME_POLICY, args.common_intents_nameCheck, intentJSON["intent"]) + ".csv")
-        with open(intentFileName, "w") as intentFile:
+        with openFile(intentFileName, "w") as intentFile:
             for example in examples:
                 intentFile.write((example + "\n").encode('utf8'))
 

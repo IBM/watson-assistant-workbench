@@ -15,7 +15,7 @@ limitations under the License.
 from __future__ import print_function
 
 import json, sys, argparse, os, glob, codecs
-from wawCommons import printf, eprintf, getFilesAtPath, toIntentName
+from wawCommons import printf, eprintf, getFilesAtPath, toIntentName, openFile
 from cfgCommons import Cfg
 
 if __name__ == '__main__':
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     filesAtPath = getFilesAtPath(pathList)
     for intentFileName in sorted(filesAtPath):
         intentName = toIntentName(NAME_POLICY, args.common_intents_nameCheck, os.path.splitext(os.path.basename(intentFileName))[0])
-        with codecs.open(intentFileName, 'r', encoding='utf8') as intentFile:
+        with openFile(intentFileName, 'r', encoding='utf8') as intentFile:
             intent = {}
             intent['intent'] = intentName
             examples = []
@@ -72,7 +72,7 @@ if __name__ == '__main__':
         if not os.path.exists(getattr(config, 'common_outputs_directory')):
             os.makedirs(getattr(config, 'common_outputs_directory'))
             printf('Created new output directory ' + getattr(config, 'common_outputs_directory'))
-        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'w', encoding='utf8') as outputFile:
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'w', encoding='utf8') as outputFile:
             outputFile.write(json.dumps(intents, indent=4, ensure_ascii=False, encoding='utf8'))
     else:
         print(json.dumps(intents, indent=4, ensure_ascii=False, encoding='utf8'))

@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import sys, argparse, requests, configparser
-from wawCommons import printf, eprintf
+from wawCommons import printf, eprintf, openFile, IS_PYTHON_3
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Deletes Bluemix conversation service workspace and deletes workspace id from config file.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -30,7 +30,11 @@ if __name__ == '__main__':
     conversationSection = 'conversation'
     try:
         config = configparser.ConfigParser()
-        config.read(args.config)
+        with openFile(args.config) as configFile:
+            if IS_PYTHON_3:
+                config.read_file(configFile)
+            else:
+                config.readfp(configFile)
         workspacesUrl = config.get(conversationSection, 'url')
         version = config.get(conversationSection, 'version')
         username = config.get(conversationSection, 'username')
@@ -61,5 +65,5 @@ if __name__ == '__main__':
 
     # delete workspaceId from config file
     config.remove_option(conversationSection, 'workspace_id')
-    with open(args.config, 'wb') as configFile:
+    with openFile(args.config, 'wb') as configFile:
         config.write(configFile)

@@ -15,7 +15,7 @@ limitations under the License.
 
 import json, sys, argparse, requests, os, time, datetime, re
 import lxml.etree as LET
-from wawCommons import printf, eprintf
+from wawCommons import printf, eprintf, openFile
 
 try:
     basestring            # Python 2
@@ -140,9 +140,9 @@ if __name__ == '__main__':
     testName = re.sub(r"\.[^\.]*$", "", os.path.basename(args.expectedFileName))
 
     # expected JSON
-    with open(args.expectedFileName, "r") as expectedJsonFile:
+    with openFile(args.expectedFileName, "r") as expectedJsonFile:
         # received JSON
-        with open(args.receivedFileName, "r") as receivedJsonFile:
+        with openFile(args.receivedFileName, "r") as receivedJsonFile:
 
             # init whole test
             nDialogs = 0
@@ -258,5 +258,5 @@ if __name__ == '__main__':
     outputXml.attrib['timestamp'] = '{0:%Y-%b-%d %H:%M:%S}'.format(datetime.datetime.now())
     outputXml.attrib['time'] = str(time.time() - timeStart)
 
-    with open(args.output, "w") as outputFile:
+    with openFile(args.output, "w") as outputFile:
         outputFile.write(LET.tostring(outputXml, pretty_print=True, encoding='utf8'))

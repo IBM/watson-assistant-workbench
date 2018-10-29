@@ -15,14 +15,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys, re, codecs, os
-import unicodedata, unidecode
+import sys, re, codecs, os, io
+IS_PYTHON_3 = sys.version_info >= (3,0)
+if not IS_PYTHON_3:
+    import unicodedata, unidecode
 import lxml.etree as Xml
+
+
+
+
+
 
 restrictionTextNamePolicy = "NAME_POLICY can be only set to either 'soft', 'soft_verbose' or 'hard'"
 
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 sys.stderr = codecs.getwriter('utf8')(sys.stderr)
+
+def openFile(name, *args, **kwargs):
+    if 'encoding' not in kwargs.keys():
+        kwargs['encoding'] = 'utf-8'
+    return io.open(name,*args, **kwargs)
 
 def printf(format, *args):
     sys.stdout.write(format % args)
@@ -36,11 +48,8 @@ def toCode(NAME_POLICY, code):
     global restrictionTextNamePolicy
     restrictionTextCode = "The code can only contain uppercase letters (in Unicode), numbers, underscores, and hyphens."
     code = code.strip()
-    newCode = re.sub(' ', '_', code, re.UNICODE).upper()
-    if isinstance(newCode, str):
-        newIntentSubname = newCode.decode('utf-8')
-        # use unidecode.unidecode ?
-        newCode = unicodedata.normalize('NFKD', newCode.decode('utf-8')).encode('ASCII', 'ignore')  # remove accents
+    newCode = re.sub(' ', '_', code, re.UNICODE).upper()  
+    newCode = unicodedata.normalize('NFKD', newCode.decode('utf-8')).encode('ASCII', 'ignore')  # remove accents
     # remove everything that is not unicode letter or hyphen
     newCode = re.sub('[^\w-]', '', newCode, re.UNICODE)
     if newCode != code:
@@ -59,6 +68,8 @@ def normalizeIntentName(intentName):
     """Normalizes intent name to uppercase, with no dashes or underscores"""
     return re.sub('[-_]', '', intentName).upper()
 
+
+#TODO uncomplicate
 def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
     """Concatenates intent names with underscores,
     checks if the intent name satisfies all restrictions given by WA and user.
@@ -127,7 +138,7 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
             exit(1)
         uNewIntentName = uNewIntentName + u'_' + uIntentSubnameUser if uNewIntentName else uIntentSubnameUser
     return uNewIntentName.encode('utf-8')
-
+# TODO uncomplicate
 def toEntityName(NAME_POLICY, userReplacements, entityName):
     """Checks if the entity name satisfies all restrictions given by WA and user.
     WA replacements:

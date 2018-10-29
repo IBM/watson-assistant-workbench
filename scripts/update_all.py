@@ -77,9 +77,10 @@ if __name__ == '__main__':
     cmd='python '+scriptsPath+'/workspace_compose.py ' + paramsAll
     if VERBOSE:print(cmd)
     retValue=os.system(cmd)
+        
     cmd='python '+scriptsPath+'/workspace_deploy.py ' + paramsAll
     if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
+    retValue=os.system(cmd)   
     cmd='python '+scriptsPath+'/functions_deploy.py ' + paramsAll
     if VERBOSE:print(cmd)
     retValue=os.system(cmd)

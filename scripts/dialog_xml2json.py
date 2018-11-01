@@ -314,7 +314,7 @@ def isTrue(autogenerate, attributeName):
 def isFalse(autogenerate, attributeName):
         attributeValue = autogenerate.get(attributeName)
         if attributeValue == None or attributeValue == 'true':
-            return False;
+            return False
         elif attributeValue == 'false':
             return True
         else:
@@ -375,7 +375,7 @@ def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parent
             # we want to generate CONTROL nodes before repeat section
             if condition is None or condition.text == 'anything_else' or condition.text.startswith(('anything_else', '$tries')):
                 indexOfInsertion = index
-                break;
+                break
 
     # GENERATE NEW NODES
     if abort:
@@ -769,7 +769,7 @@ if __name__ == '__main__':
     parser.add_argument('-cfa','--cloudfunctions_package', required=False, help='cloud functions package')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(sys.argv[1:])
-    config = Cfg(args);
+    config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
 
     if hasattr(config, 'cloudfunctions_namespace') and hasattr(config, 'cloudfunctions_package'):

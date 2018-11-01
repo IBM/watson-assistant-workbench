@@ -32,7 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('-cfpack', '--cloudfunctions_package', required=False, help='package name')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(sys.argv[1:])
-    config = Cfg(args);
+    config = Cfg(args)
     VERBOSE = args.verbose
 
     intentsJSON = {}
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     filesAtPath = getFilesAtPath(config.common_functions)
 
     for functionFileName in filesAtPath:
-        fname=os.path.basename(functionFileName);
+        fname=os.path.basename(functionFileName)
         function_url = 'https://openwhisk.ng.bluemix.net/api/v1/namespaces/' + config.cloudfunctions_namespace + '/actions/' + config.cloudfunctions_package + '/' + fname + '?overwrite=true'
         code = open(os.path.join(config.common_functions, functionFileName), 'r').read()
         payload = {"exec": {"kind": "nodejs:default", "code": code}}

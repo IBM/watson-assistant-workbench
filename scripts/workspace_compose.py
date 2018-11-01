@@ -35,7 +35,7 @@ if __name__ == '__main__':
     parser.add_argument('-wd','--conversation_description', required=False, help='description')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(sys.argv[1:])
-    config = Cfg(args);
+    config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
 
     workspace = {}

@@ -67,7 +67,7 @@ if __name__ == '__main__':
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
     parser.add_argument('-v', '--common_verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(sys.argv[1:])
-    config = Cfg(args);
+    config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
 
     if hasattr(config, 'common_verbose') and getattr(config, 'common_verbose'):
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     for fileOrFolder in getattr(config, 'common_xls'):
         if VERBOSE: printf('INFO: Searching in path: %s\n', fileOrFolder)
         if os.path.isdir(fileOrFolder):
-            xlsDirList = os.listdir(fileOrFolder);
+            xlsDirList = os.listdir(fileOrFolder)
             for xlsFile in xlsDirList:
                 if os.path.isfile(os.path.join(fileOrFolder, xlsFile)) and xlsFile.endswith('.xlsx') and \
                         not(xlsFile.startswith('~')) and not(xlsFile.startswith('.')):
@@ -105,4 +105,3 @@ if __name__ == '__main__':
     saveDialogDataToFileSystem(xlsxHandler.getDialogData(), XMLHandler(), config)
 
     printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
-

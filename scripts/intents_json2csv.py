@@ -28,8 +28,7 @@ if __name__ == '__main__':
     args = parser.parse_args(sys.argv[1:])
 
     VERBOSE = args.verbose
-    if args.soft: NAME_POLICY = 'soft'
-    else: NAME_POLICY = 'hard'
+    NAME_POLICY = 'soft' if args.soft else 'hard'
 
     with open(args.intents, 'r') as intentsFile:
         intentsJSON = json.load(intentsFile)

@@ -64,11 +64,11 @@ class Cfg:
                             if hasattr(self, optionUniqueName):
                                 warning = "WARNING: '" + optionUniqueName + " already exists. "
                                 if (section == commonSection) and (option in frameworkAppend): # appended
-                                    logging.debug(warning + "Appending '[" + ' '.join(newValue) +"]' to [" + ' '.join(getattr(self, optionUniqueName)) + "]");
+                                    logging.debug(warning + "Appending '[" + ' '.join(newValue) +"]' to [" + ' '.join(getattr(self, optionUniqueName)) + "]")
                                     setattr(self, optionUniqueName, newValue)
                                 else: # replace
                                     oldValue = getattr(self, optionUniqueName)
-                                    logging.debug(warning + "Replacing '" + oldValue + "' by '[" + ' '.join(newValue) +"]'");
+                                    logging.debug(warning + "Replacing '" + oldValue + "' by '[" + ' '.join(newValue) +"]'")
                                     setattr(self, optionUniqueName, newValue)
                             else:
                                 if (section == commonSection) and (option in frameworkAppend): # create list

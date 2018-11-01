@@ -40,16 +40,16 @@ if __name__ == '__main__':
     parser.add_argument('-wn','--conversation_workspace_name', required=False, help='name of the workspace')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(sys.argv[1:])
-    config = Cfg(args);
+    config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
 
     # workspace info
     if not hasattr(config, 'common_outputs_directory') or not getattr(config, 'common_outputs_directory'):
         print('ERROR: common_outputs_directory parameter not defined.')
-        exit(1);
+        exit(1)
     if not hasattr(config, 'common_outputs_workspace') or not getattr(config, 'common_outputs_workspace'):
         print('ERROR: common_outputs_workspace parameter not defined.')
-        exit(1);
+        exit(1)
     try:
         workspaceFilePath = os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace'))
         with open(workspaceFilePath, 'r') as workspaceFile:

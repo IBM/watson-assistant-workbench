@@ -33,8 +33,7 @@ if __name__ == '__main__':
     args = parser.parse_args(sys.argv[1:])
 
     VERBOSE = args.verbose
-    if args.soft: NAME_POLICY = 'soft'
-    else: NAME_POLICY = 'hard'
+    NAME_POLICY = 'soft' if args.soft else 'hard'
 
     domEntMap = defaultdict(dict)
     intEntMap = defaultdict(dict)

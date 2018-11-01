@@ -32,10 +32,9 @@ if __name__ == '__main__':
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('-s', '--common_soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     args = parser.parse_args(sys.argv[1:])
-    config = Cfg(args);
+    config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
-    if args.common_soft: NAME_POLICY = 'soft'
-    else: NAME_POLICY = 'hard'
+    NAME_POLICY = 'soft' if args.common_soft else 'hard'
 
     if not hasattr(config, 'common_entities'):
         print('entities parameter is not defined.')

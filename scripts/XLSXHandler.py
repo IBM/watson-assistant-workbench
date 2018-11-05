@@ -127,7 +127,7 @@ class XLSXHandler(object):
         self._blocks.append((domain, prefix, block))
 
     def __is_condition_block(self, block):
-        """ Returns true if first cell contains X_PLACEHOLDER
+        """ :return: true if first cell contains X_PLACEHOLDER
             or more then 1 condition indicator (one is just a header)
         """
         no_special=len(re.sub('[^#$@&|]', '', block[0][0]))
@@ -138,12 +138,12 @@ class XLSXHandler(object):
         return False
 
     def __is_header(self, block):
-        """ :returns true if the block has a header i.e. first line has col1 but not col2"""
+        """ :return: true if the block has a header i.e. first line has col1 but not col2"""
         return block[0][0] and not (block[0][1])
 
     def __separate_label_from_block(self, block):
         """ If block has a label (starts with : e.g.  :xxxx) it removes it from the block
-            :returns label or None (if no label was found )
+            :return: label or None (if no label was found )
         """
         label = None
         firstCell = block[0][0]  # firstCell is a header, condition
@@ -232,6 +232,9 @@ class XLSXHandler(object):
             node_condition = re.sub(Dialog.X_PLACEHOLDER, row[0], block_header)
             node_name = self._dialogData.createUniqueNodeName(node_condition)  # make it unique
             nodeData = self._dialogData.createNode(node_name, domain)  # create space for new node, remembers node_name
+            if nodeData is None:
+                eprintf('ERROR: Can not create node:%s\n', node_name)
+                exit()
             nodeData.setCondition(node_condition)
             if row[1]:
                 nodeData.addRawOutput(row[1:], self._dialogData.getLabelsMap())
@@ -248,9 +251,14 @@ class XLSXHandler(object):
         if len(block) > 1 and block[1][0]:
             eprintf('ERROR: Format error. condititional block without header shold have just one condition: %s\n', block[0])
             exit()
+        node_condition = re.sub(u"#\$ ", u"", block[0][0])
         node_name = self._dialogData.createUniqueNodeName(block[0][0])  # derive node name from explicit condition and make it unique
-        node_condition = block[0][0]
+        node_condition = node_condition
         nodeData = self._dialogData.createNode(node_name, domain)  # create space for new node, remembers node_name
+        if nodeData is None:
+            eprintf('ERROR: Can not create node:%s\n', node_name)
+            exit()
+
         #nodeData.setName(node_name)
         nodeData.setCondition(node_condition)
 
@@ -280,11 +288,19 @@ class XLSXHandler(object):
             entity_name = self._dialogData.createUniqueEntityName(block[0][0])
 
         entityData = self._dialogData.createEntity(entity_name)  # create space for new entity
+        if entityData is None:
+            eprintf('ERROR: Can not create entity:%s\n', entity_name)
+            exit()
+
 
         first_output= block[1][1] if startsWithHeader else block[0][1]  # if we have a header, the first output is in second row
         if first_output :  # if first otput then any output -> we generate a node, assign label ..
             node_name = self._dialogData.createUniqueNodeName(entity_name)  # derive node name from explicit intent name, make it unique
             nodeData = self._dialogData.createNode(node_name, domain) #create space for new node, remembers node_name
+            if nodeData is None:
+                eprintf('ERROR: Can not create node:%s\n', node_name)
+                exit()
+
             # nodeData.setName(node_name)
             node_condition = entity_name
             nodeData.setCondition(node_condition)
@@ -322,11 +338,17 @@ class XLSXHandler(object):
             intent_name = self._dialogData.createUniqueIntentName(block[0][0])
 
         intentData = self._dialogData.createIntent(intent_name)  # create space for new intent
+        if intentData is None:
+            eprintf('ERROR: Can not create entity:%s\n', intent_name)
+            exit()
 
         first_output= block[1][1] if startsWithHeader else block[0][1]  # if we have a header, the first output is in second row
         if first_output :  # if first otput then any output -> we generate a node, assign label ..
             node_name = self._dialogData.createUniqueNodeName(intent_name)  # derive node name from explicit intent name, make it unique
             nodeData = self._dialogData.createNode(node_name, domain) #create space for new node, remembers node_name
+            if nodeData is None:
+                eprintf('ERROR: Can not create node:%s\n', node_name)
+                exit()
             #nodeData.setName(node_name)  #- not needed- set by createNode
             node_condition = '#'+intent_name
             nodeData.setCondition(node_condition)

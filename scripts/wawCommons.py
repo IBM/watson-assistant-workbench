@@ -74,7 +74,7 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
     """Concatenates intent names with underscores,
     checks if the intent name satisfies all restrictions given by WA and user.
     WA replacements:
-     - replace spaces with uderscores
+     - replace spaces and semicolons with uderscores
      - remove everything that is not unicode letter, hyphen or period
     User defined replacements:
      e.g. userReplacements = [['$special', '\L'], ['-', '_']] which change all letters to lowercase and replace all hyphens for underscores
@@ -89,8 +89,7 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
         intentSubname = intentSubname.strip()
         uIntentSubname = intentSubname.decode('utf-8') if isinstance(intentSubname, str) else intentSubname
         # apply WA restrictions (https://console.bluemix.net/docs/services/conversation/intents.html#defining-intents)
-        uIntentSubnameWA = re.sub(' ', '_', uIntentSubname, re.UNICODE) # replace space by underscore
-        uIntentSubnameWA = re.sub(';', '_', uIntentSubname, re.UNICODE) # replace ; by underscore
+        uIntentSubnameWA = re.sub(' ;', '_', uIntentSubname, re.UNICODE) # replace space and ; by underscore
         uIntentSubnameWA = re.sub(u'[^\wÀ-ÖØ-öø-ÿĀ-ž-\.]', '', uIntentSubnameWA, re.UNICODE) # remove everything that is not unicode letter, hyphen or period
         if uIntentSubnameWA != uIntentSubname: # WA restriction triggered
             restrictionTextIntentName.append("The intent name can only contain letters (in Unicode), numbers, underscores, hyphens, and periods.")
@@ -124,6 +123,18 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
                 uIntentSubnameUser = uNewIntentSubnameUser
             if uIntentSubnameUser != uIntentSubnameWA: # user restriction triggered
                 restrictionTextIntentName.append("User-defined regex: '" + "', '".join(triggeredUserRegex) + "'.")
+
+        if uIntentSubnameUser != uIntentSubname:
+            if NAME_POLICY == 'soft':
+                uIntentSubnameUser=uIntentSubnameUser; #TBD- delete this when logging is fixed
+                #eprintf("WARNING: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
+                #eprintf("WARNING: Intent name \'%s\' changed to: '%s'\n", uIntentSubname, uIntentSubnameUser)
+            elif NAME_POLICY == 'hard':
+                eprintf("ERROR: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
+                exit(1)
+            else:
+                eprintf("ERROR: Unknown value of the NAME_POLICY: '%s'\n%s\n", NAME_POLICY, restrictionTextNamePolicy)
+                exit(1)
 
         #uIntentSubnameNoHash = uIntentSubname[1:] if uIntentSubname.startswith(u'#') else uIntentSubname
         uIntentSubnameNoHash = uIntentSubnameUser[1:] if uIntentSubnameUser.startswith(u'#') else uIntentSubname

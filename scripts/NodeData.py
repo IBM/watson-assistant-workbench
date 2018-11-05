@@ -22,8 +22,8 @@ class NodeData(object):
     """
 
     def __init__(self):
-        self._channels = {}             # key: channel name, value: list of all outputs for the channel
-        self._variables = {}            # key: variable name, value: variable value
+        self._channels = {}             # key: channel name, value: list of all outputs for the channel (channel corresponds to modality)
+        self._variables = {}            # key: variable name, value: variable value (request for changes on context)
         self._jumptoTarget = None
         self._jumptoSelector = None
         self._rawOutputs = []           # list of all outputs from the right column of the Excel source
@@ -111,9 +111,6 @@ class NodeData(object):
                 self.__handleButtonDefinition(rawOutputs[1])
             if rawOutputs[2]:
                 self.__handleJumpToDefinition(rawOutputs[2], labelsMap)
-
-    def generateNodes(self):
-        return self._channels or self._buttons
 
     def __handleVariableDefinition(self, variables):
         for varAssignment in re.split(';', variables):

@@ -26,11 +26,11 @@ class XMLHandler(object):
         pass
 
     def convertDialogData(self, dialogData, nodes):
-        """ Convert Dialog Data of a single domain into XML and return pointer to the root XML element. """
+        """ Converts Dialog Data of a single domain into XML and returns pointer to the root XML element. """
         nodesXml = XML.Element('nodes')
         for node_name in nodes: #for each node in the domain
             nodeData = dialogData.getNode(node_name)
-            if nodeData==None:
+            if nodeData == None:
                 printf("WARNING: Not found a definition for a node name %s \n",node_name)
                 continue
 
@@ -128,7 +128,7 @@ class XMLHandler(object):
 
                     xmlSuggestion = XML.Element('suggestions', structure = 'listItem')
                     xmlLabel = XML.Element('label')
-                    xmlLabel.text = buttonLabel                   
+                    xmlLabel.text = buttonLabel
                     xmlValue = XML.Element('value')
                     xmlValue.text = buttonValue
                     xmlSuggestion.append(xmlLabel)

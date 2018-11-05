@@ -32,11 +32,11 @@ if __name__ == '__main__':
     VERBOSE = args.verbose
 
     #Assemble command line parameters out of parameters or defaults
-    paramsAll=''
-    if hasattr(args, 'config') and args.config!=None: # if config files provided - ignore defaults
+    paramsAll = ''
+    if hasattr(args, 'config') and args.config != None: # if config files provided - ignore defaults
         for strParamsItem in args.config:
             if os.path.isfile(strParamsItem):
-                paramsAll+= ' -c '+strParamsItem
+                paramsAll += ' -c ' + strParamsItem
             else:
                 print('ERROR: Configuration file %s not found.', strParamsItem)
                 exit(1)
@@ -47,41 +47,42 @@ if __name__ == '__main__':
                 paramsAll += ' -c ' + strParamsItem
             else:
                 print('WARNING: Default configuration file %s was not found, ignoring.', strParamsItem)
-    if len(paramsAll)==0:
+    if len(paramsAll) == 0:
         print('ERROR: Please provide at least one configuration file.', strParamsItem)
         exit(1)
     if VERBOSE:
-        paramsAll+=' -v'
+        paramsAll += ' -v'
 
 
     #Execute all steps
-    cmd='python '+scriptsPath+'/clean_generated.py ' + paramsAll
+    cmd = 'python ' + scriptsPath + '/clean_generated.py ' + paramsAll
     if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/dialog_xls2xml.py '+ paramsAll
+    retValue = os.system(cmd)
+    cmd = 'python ' + scriptsPath + '/dialog_xls2xml.py '+ paramsAll
     if VERBOSE:print(cmd)
     print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/dialog_xml2json.py ' + paramsAll
+    retValue = os.system(cmd)
+    cmd = 'python ' + scriptsPath + '/dialog_xml2json.py ' + paramsAll
     if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/entities_csv2json.py ' + paramsAll
+    retValue = os.system(cmd)
+    cmd = 'python ' + scriptsPath + '/entities_csv2json.py ' + paramsAll
     if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/intents_csv2json.py ' + paramsAll
+    retValue = os.system(cmd)
+    cmd = 'python ' + scriptsPath + '/intents_csv2json.py ' + paramsAll
     if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/dialog_xml2json.py ' + paramsAll
+    retValue = os.system(cmd)
+    cmd = 'python ' + scriptsPath + '/dialog_xml2json.py ' + paramsAll
     if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/workspace_compose.py ' + paramsAll
+    retValue = os.system(cmd)
+    cmd = 'python ' + scriptsPath + '/workspace_compose.py ' + paramsAll
     if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/workspace_deploy.py ' + paramsAll
+    retValue = os.system(cmd)
+
+    cmd = 'python ' + scriptsPath + '/workspace_deploy.py ' + paramsAll
     if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/functions_deploy.py ' + paramsAll
+    retValue = os.system(cmd)
+    cmd = 'python ' + scriptsPath + '/functions_deploy.py ' + paramsAll
     if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
+    retValue = os.system(cmd)
 
     printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')

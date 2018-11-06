@@ -17,6 +17,12 @@ import re
 from wawCommons import eprintf
 from collections import OrderedDict
 
+try:
+    unicode        # Python 2
+except NameError:
+    unicode = str  # Python 3
+
+
 class NodeData(object):
     """ Represents a data structure containing all necessary information for a single dialog node
     """
@@ -89,7 +95,7 @@ class NodeData(object):
         if not isinstance(rawOutputs, tuple) or len(rawOutputs) < 1:
             eprintf('Warning: rawOutput does not contain any data: %s\n', rawOutputs)
 
-        if len(rawOutputs) >= 1 and (isinstance(rawOutputs[0], str) or isinstance(rawOutputs[0], unicode)):
+        if len(rawOutputs) >= 1 and (isinstance(rawOutputs[0], (str, unicode))):
             items = re.split('%%', rawOutputs[0])
             self.__handleChannelDefinition('1'+items[0])
             for item_i in range(1, len(items)):
@@ -133,11 +139,11 @@ class NodeData(object):
     def __handleChannelDefinition(self, channel):
         channelValue = channel
 
-        if len(channel) > 0 and isinstance(channel, str) or isinstance(channel, unicode):
+        if len(channel) > 0 and isinstance(channel, (str, unicode)):
             #channel = channel.decode('utf-8')
             channelName = channel[0]
             channelValue = channel[1:]
-            if unicode.isdigit(channelName):
+            if channelName.isdigit():
                 channelName = channel[0]
                 channelValue = channel[1:]
             self.addChannelOutput(channelName, channelValue)

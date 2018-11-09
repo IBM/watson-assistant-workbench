@@ -15,15 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys, re, codecs, os, io
+import sys, re, codecs, os, io, unidecode
 IS_PYTHON_3 = sys.version_info >= (3,0)
 if not IS_PYTHON_3:
-    import unicodedata, unidecode
+    import unicodedata
 import lxml.etree as Xml
-
-
-
-
 
 
 restrictionTextNamePolicy = "NAME_POLICY can be only set to either 'soft', 'soft_verbose' or 'hard'"
@@ -49,7 +45,9 @@ def toCode(NAME_POLICY, code):
     restrictionTextCode = "The code can only contain uppercase letters (in Unicode), numbers, underscores, and hyphens."
     code = code.strip()
     newCode = re.sub(' ', '_', code, re.UNICODE).upper()  
-    newCode = unicodedata.normalize('NFKD', newCode.decode('utf-8')).encode('ASCII', 'ignore')  # remove accents
+    newCode = unidecode.unidecode(newCode) #unicodedata.normalize('NFKD', newCode.decode('utf-8')).encode('ASCII', 'ignore')  # remove accents
+    if not IS_PYTHON_3:
+        newCode = unicode(newCode)
     # remove everything that is not unicode letter or hyphen
     newCode = re.sub('[^\w-]', '', newCode, re.UNICODE)
     if newCode != code:
@@ -87,7 +85,7 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
     for intentSubname in intentSubnames:
         if not intentSubname: continue
         intentSubname = intentSubname.strip()
-        uIntentSubname = intentSubname.decode('utf-8') if isinstance(intentSubname, str) else intentSubname
+        uIntentSubname = intentSubname
         # apply WA restrictions (https://console.bluemix.net/docs/services/conversation/intents.html#defining-intents)
         uIntentSubnameWA = re.sub(' ;', '_', uIntentSubname, re.UNICODE) # replace space and ; by underscore
         uIntentSubnameWA = re.sub(u'[^\wÀ-ÖØ-öø-ÿĀ-ž-\.]', '', uIntentSubnameWA, re.UNICODE) # remove everything that is not unicode letter, hyphen or period
@@ -109,13 +107,15 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
                         triggeredUserRegexToAppend = "intent name should be uppercase"
                     elif replacementPair[1] == r'\A':
                         uNewIntentSubnameUser = unidecode.unidecode(uIntentSubnameUser)
+                        if not IS_PYTHON_3:
+                            uNewIntentSubnameUser = unicode(uNewIntentSubnameUser)
                         triggeredUserRegexToAppend = "intent name cannot contain accented letters"
                     else:
-                        eprintf("ERROR: unsupported special regex opperation '" + replacementPair[1].decode('utf-8') + "'\n")
+                        eprintf("ERROR: unsupported special regex opperation '" + replacementPair[1] + "'\n")
                         exit(1)
                 # use regex
                 else:
-                    uNewIntentSubnameUser = re.sub(replacementPair[0].decode('utf-8'), replacementPair[1].decode('utf-8'), uIntentSubnameUser, re.UNICODE)
+                    uNewIntentSubnameUser = re.sub(replacementPair[0], replacementPair[1], uIntentSubnameUser, re.UNICODE)
                     triggeredUserRegexToAppend = replacementPair[0] + "' should be replaced with '" + replacementPair[1]
                 # this replacement pair triggered
                 if uNewIntentSubnameUser != uIntentSubnameUser:
@@ -127,10 +127,10 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
         if uIntentSubnameUser != uIntentSubname:
             if NAME_POLICY == 'soft':
                 uIntentSubnameUser=uIntentSubnameUser; #TBD- delete this when logging is fixed
-                #eprintf("WARNING: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
+                #eprintf("WARNING: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName))
                 #eprintf("WARNING: Intent name \'%s\' changed to: '%s'\n", uIntentSubname, uIntentSubnameUser)
             elif NAME_POLICY == 'hard':
-                eprintf("ERROR: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
+                eprintf("ERROR: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName))
                 exit(1)
             else:
                 eprintf("ERROR: Unknown value of the NAME_POLICY: '%s'\n%s\n", NAME_POLICY, restrictionTextNamePolicy)
@@ -141,10 +141,10 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
 
         # if uIntentSubnameUser != uIntentSubnameNoHash:
         #     if NAME_POLICY == 'soft_verbose':
-        #         eprintf("WARNING: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
+        #         eprintf("WARNING: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName)
         #         eprintf("WARNING: Intent name \'%s\' changed to: '%s'\n", uIntentSubname, uIntentSubnameUser)
         #     elif NAME_POLICY == 'hard':
-        #         eprintf("ERROR: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
+        #         eprintf("ERROR: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName))
         #         exit(1)
         #     elif NAME_POLICY == 'soft':
         #         exit(1)
@@ -155,7 +155,7 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
             eprintf("ERROR: empty intent name\n")
             exit(1)
         uNewIntentName = uNewIntentName + u'_' + uIntentSubnameUser if uNewIntentName else uIntentSubnameUser
-    return uNewIntentName.encode('utf-8')
+    return uNewIntentName
 # TODO uncomplicate
 def toEntityName(NAME_POLICY, userReplacements, entityName):
     """Checks if the entity name satisfies all restrictions given by WA and user.
@@ -169,7 +169,7 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
     global restrictionTextNamePolicy
     restrictionTextEntityName = []
     entityName = entityName.strip()
-    uEntityName = entityName.decode('utf-8') if isinstance(entityName, str) else entityName
+    uEntityName = entityName
     # apply WA restrictions (https://console.bluemix.net/docs/services/conversation/entities.html#defining-entities)
     uEntityNameWA = re.sub(' ', '_', uEntityName, re.UNICODE) # replace spaces with underscores
     uEntityNameWA = re.sub(u'[^\wÀ-ÖØ-öø-ÿĀ-ž-]', '', uEntityNameWA, re.UNICODE) # remove everything that is not unicode letter or hyphen
@@ -191,13 +191,15 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
                     triggeredUserRegexToAppend = "entity name should be uppercase"
                 elif replacementPair[1] == r'\A':
                     uNewIntentSubnameUser = unidecode.unidecode(uEntityNameUser)
+                    if not IS_PYTHON_3:
+                        uNewIntentSubnameUser = unicode(uNewIntentSubnameUser)
                     triggeredUserRegexToAppend = "entity name cannot contain accented letters"
                 else:
-                    eprintf("ERROR: unsupported special regex opperation '" + replacementPair[1].decode('utf-8') + "'\n")
+                    eprintf("ERROR: unsupported special regex opperation '" + replacementPair[1] + "'\n")
                     exit(1)
             # use regex
             else:
-                uNewEntityNameUser = re.sub(replacementPair[0].decode('utf-8'), replacementPair[1].decode('utf-8'), uEntityNameUser, re.UNICODE)
+                uNewEntityNameUser = re.sub(replacementPair[0], replacementPair[1], uEntityNameUser, re.UNICODE)
                 triggeredUserRegexToAppend = replacementPair[0] + "' should be replaced with '" + replacementPair[1]
             # this replacement pair triggered
             if uNewEntityNameUser != uEntityNameUser:
@@ -208,10 +210,10 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
     # return error or name
     if uEntityNameUser != uEntityName: # allowed name differs from the given one
         if NAME_POLICY == 'soft':
-            eprintf("WARNING: Illegal value of the entity name: '%s'\n%s\n", uEntityName, " ".join(restrictionTextEntityName).decode('utf-8'))
+            eprintf("WARNING: Illegal value of the entity name: '%s'\n%s\n", uEntityName, " ".join(restrictionTextEntityName))
             eprintf("WARNING: Entity name \'%s\' was changed to: '%s'\n", uEntityName, uEntityNameUser)
         elif NAME_POLICY == 'hard':
-            eprintf("ERROR: Illegal value of the entity name: '%s'\n%s\n", uEntityName, " ".join(restrictionTextEntityName).decode('utf-8'))
+            eprintf("ERROR: Illegal value of the entity name: '%s'\n%s\n", uEntityName, " ".join(restrictionTextEntityName))
             exit(1)
         else:
             eprintf("ERROR: Unknown value of the NAME_POLICY: '%s'\n%s\n", NAME_POLICY, restrictionTextNamePolicy)
@@ -219,7 +221,7 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
     if not uEntityNameUser:
         eprintf("ERROR: empty entity name\n")
         exit(1)
-    return uEntityNameUser.encode('utf-8')
+    return uEntityNameUser
 
 def getFilesAtPath(pathList):
     filesAtPath = []

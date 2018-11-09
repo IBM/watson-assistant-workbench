@@ -52,9 +52,9 @@ class XMLHandler(object):
     def printXml(self, xmlDocument, prettyPrint=True):
         """ Converts xmlDocument to string. """
         if prettyPrint:
-            return XML.tostring(xmlDocument, pretty_print=prettyPrint, encoding='unicode')
+            return XML.tostring(xmlDocument, pretty_print=prettyPrint, encoding='utf-8')
         else:
-            return XML.tostring(xmlDocument, method='c14n').decode('utf-8')
+            return XML.tostring(xmlDocument, method='c14n', encoding='utf-8')
 
     def _createOutputElement(self, channels, buttons, foldables):
         """ Converts output channels into XML structure. """

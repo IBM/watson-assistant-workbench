@@ -228,8 +228,8 @@ if __name__ == '__main__':
                     if firstFailedLine is None:
                         firstFailedLine = line
 
-                    printf('EXPECTED OUTPUT: ' + json.dumps(expectedJson, indent=4, ensure_ascii=False).encode('utf8') + '\n')
-                    printf('RECEIVED OUTPUT: ' + json.dumps(receivedJson, indent=4, ensure_ascii=False).encode('utf8') + '\n')
+                    printf('EXPECTED OUTPUT: ' + json.dumps(expectedJson, indent=4, ensure_ascii=False) + '\n')
+                    printf('RECEIVED OUTPUT: ' + json.dumps(receivedJson, indent=4, ensure_ascii=False) + '\n')
                     resultText = 'FAILED'
 
                 else:

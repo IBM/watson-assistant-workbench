@@ -43,6 +43,6 @@ if __name__ == '__main__':
         intentFileName = os.path.join(args.intentsDir, toIntentName(NAME_POLICY, args.common_intents_nameCheck, intentJSON["intent"]) + ".csv")
         with openFile(intentFileName, "w") as intentFile:
             for example in examples:
-                intentFile.write((example + "\n").encode('utf8'))
+                intentFile.write((example + "\n"))
 
     if VERBOSE: printf("Intents from file '%s' were successfully extracted\n", args.intents)

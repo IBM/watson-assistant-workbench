@@ -17,7 +17,7 @@ from __future__ import print_function
 # coding: utf-8
 import sys, argparse, os, codecs
 from cfgCommons import Cfg
-from wawCommons import printf
+from wawCommons import printf, openFile
 from XLSXHandler import XLSXHandler
 from XMLHandler import XMLHandler
 
@@ -32,7 +32,7 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
     domains = dialogData.getAllDomains()
     for domain_name in domains:   # For all domains
         filename = getattr(config, 'common_generated_dialogs') + '/' + domain_name + '.xml'
-        with codecs.open(filename, 'w', encoding='utf8') as dialogFile:
+        with openFile(filename, 'w', encoding='utf8') as dialogFile:
             xmlData = handler.convertDialogData(dialogData, domains[domain_name]) #process all nodes of the domain
             dialogFile.write(handler.printXml(xmlData))
 
@@ -45,9 +45,9 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
         if len(intentData.getExamples()) > 0:
             intent_name = intent[1:] if intent.startswith(u'#') else intent
 
-            with open(os.path.join(getattr(config, 'common_generated_intents')[0], intent_name.encode('ascii', 'ignore') + '.csv'), 'w') as intentFile:
+            with openFile(os.path.join(getattr(config, 'common_generated_intents')[0], intent_name + '.csv'), 'w') as intentFile:
                 for example in intentData.getExamples():
-                    intentFile.write(example.encode('utf8') + '\n')
+                    intentFile.write(example + '\n')
 
     # Create directory for entities (if it does not exist already)
     if hasattr(config, 'common_generated_entities') and not os.path.exists(getattr(config, 'common_generated_entities')[0]):
@@ -55,9 +55,9 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
         print('Created new directory ' + getattr(config, 'common_generated_entities')[0])
     # One file per entity
     for entity_name, entityData in dialogData.getAllEntities().items():
-        with open(os.path.join(getattr(config, 'common_generated_entities')[0], entity_name.encode('ascii', 'ignore') + '.csv'), 'w') as entityFile:
+        with openFile(os.path.join(getattr(config, 'common_generated_entities')[0], entity_name+ '.csv'), 'w') as entityFile:
             for entityList in entityData.getValues():
-                entityFile.write(entityList.encode('utf8') + '\n')
+                entityFile.write(entityList + '\n')
 
 if __name__ == '__main__':
     printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')

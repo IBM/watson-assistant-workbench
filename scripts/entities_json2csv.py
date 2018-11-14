@@ -62,7 +62,7 @@ if __name__ == '__main__':
                 values.append(value)
             # new entity file
             entityFileName = os.path.join(args.entitiesDir, toEntityName(NAME_POLICY, args.common_entities_nameCheck, entityJSON["entity"])) + ".csv"
-            with open(entityFileName, "w") as entityFile:
+            with openFile(entityFileName, "w") as entityFile:
                 for value in values:
                     entityFile.write(';'.join(value) + "\n")
 

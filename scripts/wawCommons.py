@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys, re, codecs, os, io, unidecode
+import sys, re, codecs, os, io, unidecode, types
 IS_PYTHON_3 = sys.version_info >= (3,0)
 if not IS_PYTHON_3:
     import unicodedata
@@ -30,7 +30,14 @@ sys.stderr = codecs.getwriter('utf8')(sys.stderr)
 def openFile(name, *args, **kwargs):
     if 'encoding' not in kwargs.keys():
         kwargs['encoding'] = 'utf-8'
-    return io.open(name,*args, **kwargs)
+    f = io.open(name,*args, **kwargs) 
+
+    if not IS_PYTHON_3:
+        f.oldWrite = f.write
+        f.write = lambda x: f.oldWrite(unicode(x))
+        f.oldwritelines = f.writelines
+        f.writelines = lambda x: f.oldwritelines([s for s in map(unicode, x)])
+    return f
 
 def printf(format, *args):
     sys.stdout.write(format % args)

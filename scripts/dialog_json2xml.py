@@ -161,7 +161,7 @@ if __name__ == '__main__':
         # print to file
         dialogFileName = os.path.join(args.dialogDir, "dialog.xml")
         with openFile(dialogFileName, "w") as dialogFile:
-            dialogFile.write(LET.tostring(dialogsXML, pretty_print=True, encoding='utf8'))
+            dialogFile.write(LET.tostring(dialogsXML, pretty_print=True, encoding='unicode'))
     else:
         # print to standard output
-        print(LET.tostring(dialogsXML, pretty_print=True, encoding='utf8'))
+        print(LET.tostring(dialogsXML, pretty_print=True, encoding='unicode'))

@@ -9,7 +9,7 @@ Hallo <first_name>Hans</first_name>.
 ```
 **Recommendation:** Intents files are typically placed to a separate directory `<app_root>/intents` or directories.
 
-###Naming conventions
+### Naming conventions
 **Only english letters, numbers, hyphens and underscores are allowed in intent and domain names.**
 
 _Following are only recommendations, intent name has no impact on the behavior of the conversation._

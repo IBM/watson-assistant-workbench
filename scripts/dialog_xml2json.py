@@ -191,7 +191,7 @@ def importNodes(root, config):
         importTree = LET.parse(os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*importPath))
         importText(importTree, config)
         replace_config_variables(importTree)
-        
+
         if schema is not None:
             validate(importTree)
 
@@ -217,7 +217,7 @@ def importNodes(root, config):
             else:
                 # INSERT NODE
 
-                #eprintf('    Appending node: %s\n', importChild) 
+                #eprintf('    Appending node: %s\n', importChild)
             """
             root.insert(root.index(node) + childIndex, importChild)
             childIndex += 1
@@ -534,7 +534,7 @@ def generateRepeatNodes(root, parent, settings):
     maxAttempts = int(settings.find('attempts').text) if settings is not None and settings.find('attempts') is not None else DEFAULT_REPEAT_ATTEMPTS
     if VERBOSE: eprintf('maxAttempts: %s\n', maxAttempts)
     # output sentences
-    outputs = settings.find('outputs').findall('output') if settings.find('outputs') is not None and len(settings.find('outputs').findall('output')) > 0 else DEFAULT_REPEAT_MESS_TEMPLATES['default'] 
+    outputs = settings.find('outputs').findall('output') if settings.find('outputs') is not None and len(settings.find('outputs').findall('output')) > 0 else DEFAULT_REPEAT_MESS_TEMPLATES['default']
     if VERBOSE: eprintf('nOutputs: %s\n', len(outputs))
     # LAST NODE (RETURNING TO THE MAIN MENU)
     generateRepeatNode(parent, root, outputs[-1], maxAttempts-1, repeatVarName, 0, settings.find('goto'))
@@ -646,10 +646,13 @@ def printNodes(root, parent, dialogJSON):
             if outputNodeXML.find('textValues') is not None: #rename textValues element to text
                 outputNodeTextXML = outputNodeXML.find('textValues')
                 outputNodeTextXML.tag = 'text'
-            convertAll(nodeJSON, outputNodeXML)
+            if len(outputNodeXML.getchildren()) == 0:
+                nodeXML.remove(outputNodeXML)
+            else:
+                convertAll(nodeJSON, outputNodeXML)
         # CONTEXT
         if nodeXML.find('context') is not None:
-            convertAll(nodeJSON, nodeXML.find('context')) 
+            convertAll(nodeJSON, nodeXML.find('context'))
         # ACTIONS
         if nodeXML.find('actions') is not None:
             actionsXML = nodeXML.find('actions')
@@ -726,7 +729,7 @@ def convertAll(upperNodeJson, nodeXml):
                 upperNodeJson[key] = unescape(nodeXml.text.strip())
 
         else:
-            upperNodeJson[key] = None
+            upperNodeJson[key] = ''
     else:
         #if there is an array of subelements within elemnt - separate elements of each tag value to a separate nodeNameMap field
         upperNodeJson[key] = {}

@@ -71,8 +71,16 @@ def convertNode(nodeJSON):
         convertAll(nodeXML, nodeJSON, 'output')
         if 'text' in nodeJSON['output'] and not isinstance(nodeJSON['output']['text'], basestring):
           outputXML = nodeXML.find('output').find('text').tag = 'textValues'
-        if 'generic' in nodeJSON['output']: # generic structure is always a list
-            nodeXML.find('output').find('generic').find('values').attrib['structure'] = 'listItem'
+        if 'generic' in nodeJSON['output']: # generic nodes has to be of type array
+            if len(nodeXML.find('output').findall('generic')) == 1:
+                nodeXML.find('output').find('generic').attrib['structure'] = 'listItem'
+            for genericItemXML in nodeXML.find('output').findall('generic'):
+                if genericItemXML.find('response_type').text == 'text': # TODO check other response_types
+                    if genericItemXML.findall('values') is not None: # values has to be of type array
+                        if len(genericItemXML.findall('values')) == 1:
+                            genericItemXML.find('values').attrib['structure'] = 'listItem'
+                        elif len(genericItemXML.findall('values')) == 0: # if there is no value we should remove the generic output
+                            nodeXML.find('output').remove(genericItemXML)
     #goto
     if 'next_step' in nodeJSON and nodeJSON['next_step']:
         nodeGoToXML = LET.Element('goto')

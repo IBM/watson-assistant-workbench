@@ -646,7 +646,7 @@ def printNodes(root, parent, dialogJSON):
             if outputNodeXML.find('textValues') is not None: #rename textValues element to text
                 outputNodeTextXML = outputNodeXML.find('textValues')
                 outputNodeTextXML.tag = 'text'
-            if len(outputNodeXML.getchildren()) == 0:
+            if len(outputNodeXML.getchildren()) == 0: # remove empy output ("output": Null cannot be uploaded to WA)
                 nodeXML.remove(outputNodeXML)
             else:
                 convertAll(nodeJSON, outputNodeXML)
@@ -729,7 +729,7 @@ def convertAll(upperNodeJson, nodeXml):
                 upperNodeJson[key] = unescape(nodeXml.text.strip())
 
         else:
-            upperNodeJson[key] = ''
+            upperNodeJson[key] = '' # empty string
     else:
         #if there is an array of subelements within elemnt - separate elements of each tag value to a separate nodeNameMap field
         upperNodeJson[key] = {}

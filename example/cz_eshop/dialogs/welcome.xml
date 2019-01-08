@@ -1,0 +1,14 @@
+<nodes>
+  <node name="welcome">
+    <condition>welcome</condition>
+    <output>
+      <generic structure="listItem">
+        <values structure="listItem">
+          <text>Dobrý den, jak vám mohu pomoci?</text>
+        </values>
+        <response_type>text</response_type>
+        <selection_policy>sequential</selection_policy>
+      </generic>
+    </output>
+  </node>
+</nodes>

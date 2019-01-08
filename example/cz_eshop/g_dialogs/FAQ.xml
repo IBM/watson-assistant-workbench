@@ -1,0 +1,26 @@
+<nodes>
+  <node name="JAKEJEDODACIDOBA">
+    <condition>#Jakejedodacidoba</condition>
+    <output>
+      <textValues>
+        <values structure="listItem">Do 5 pracovních dnů.</values>
+      </textValues>
+    </output>
+  </node>
+  <node name="PODMINKYVRACENIZBOZI">
+    <condition>#podminkyvracenizbozi</condition>
+    <output>
+      <textValues>
+        <values structure="listItem">Zboží můžete vrátit do 14 dní od nákupu bez udání důvodu.</values>
+      </textValues>
+    </output>
+  </node>
+  <node name="KAMENNEPRODEJNY">
+    <condition>#kamenneprodejny</condition>
+    <output>
+      <textValues>
+        <values structure="listItem">Kamennou prodejnu bohužel nemáme.</values>
+      </textValues>
+    </output>
+  </node>
+</nodes>

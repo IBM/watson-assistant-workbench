@@ -1,0 +1,221 @@
+<nodes>
+  <node name="busket">
+    <condition>#SHOP_PAY</condition>
+    <output>
+      <generic structure="listItem">
+        <values structure="listItem">
+          <text>Pro dokončení objednávky potřebuji tvé inciály, typ dopravy a platby.</text>
+        </values>
+        <response_type>text</response_type>
+        <selection_policy>sequential</selection_policy>
+      </generic>
+    </output>
+    <goto>
+      <target>first_name</target>
+      <selector>condition</selector>
+    </goto>
+    <nodes>
+      <node name="first_name">
+        <condition>not $first_name</condition>
+        <output>
+          <generic structure="listItem">
+            <values structure="listItem">
+              <text>Jaké je tvé křestní jméno?</text>
+            </values>
+            <response_type>text</response_type>
+            <selection_policy>sequential</selection_policy>
+          </generic>
+        </output>
+        <nodes>
+          <node name="first_name_fill">
+            <condition>input.text</condition>
+            <context>
+              <first_name>&lt;? input.text ?&gt;</first_name>
+            </context>
+            <output>
+              <generic structure="listItem">
+                <values structure="listItem">
+                  <text>Ok, $first_name.</text>
+                </values>
+                <response_type>text</response_type>
+                <selection_policy>sequential</selection_policy>
+              </generic>
+            </output>
+            <goto>
+              <target>last_name</target>
+              <selector>condition</selector>
+            </goto>
+            <nodes>
+              <node name="last_name">
+                <condition>not $last_name</condition>
+                <output>
+                  <generic structure="listItem">
+                    <values structure="listItem">
+                      <text>Jaké je tvé příjmení?</text>
+                    </values>
+                    <response_type>text</response_type>
+                    <selection_policy>sequential</selection_policy>
+                  </generic>
+                </output>
+                <nodes>
+                  <node name="first_name_reset">
+                    <condition>#CONTROL_NO or #CONTROL_CHANGE</condition>
+                    <context>
+                      <first_name></first_name>
+                    </context>
+                    <goto>
+                      <target>first_name</target>
+                      <selector>body</selector>
+                    </goto>
+                  </node>
+                  <node name="last_name_fill">
+                    <condition>input.text</condition>
+                    <context>
+                      <last_name>&lt;? input.text ?&gt;</last_name>
+                    </context>
+                    <output>
+                      <generic structure="listItem">
+                        <values structure="listItem">
+                          <text>Dobře, $first_name $last_name</text>
+                        </values>
+                        <response_type>text</response_type>
+                        <selection_policy>sequential</selection_policy>
+                      </generic>
+                    </output>
+                    <goto>
+                      <target>transport_type</target>
+                      <selector>condition</selector>
+                    </goto>
+                    <nodes>
+                      <node name="transport_type">
+                        <condition>not $transport_type</condition>
+                        <output>
+                          <generic structure="listItem">
+                            <values structure="listItem">
+                              <text>Jak chceš objednávku zaslat?</text>
+                            </values>
+                            <response_type>text</response_type>
+                            <selection_policy>sequential</selection_policy>
+                          </generic>
+                        </output>
+                        <nodes>
+                          <node name="transport_type_fill">
+                            <condition>@transport_type</condition>
+                            <context>
+                              <transport_type>@transport_type</transport_type>
+                            </context>
+                            <output>
+                              <generic structure="listItem">
+                                <values structure="listItem">
+                                  <text>Dobrá, $transport_type</text>
+                                </values>
+                                <response_type>text</response_type>
+                                <selection_policy>sequential</selection_policy>
+                              </generic>
+                            </output>
+                            <goto>
+                              <target>payment_type</target>
+                              <selector>condition</selector>
+                            </goto>
+                            <nodes>
+                              <node name="payment_type">
+                                <condition>not $payment_type</condition>
+                                <output>
+                                  <generic structure="listItem">
+                                    <values structure="listItem">
+                                      <text>Jak chceš zaplatit?</text>
+                                    </values>
+                                    <response_type>text</response_type>
+                                    <selection_policy>sequential</selection_policy>
+                                  </generic>
+                                </output>
+                                <nodes>
+                                  <node name="payment_type_fill">
+                                    <condition>@payment_type</condition>
+                                    <context>
+                                      <payment_type>@payment_type</payment_type>
+                                    </context>
+                                    <output>
+                                      <generic structure="listItem">
+                                        <values structure="listItem">
+                                          <text>Ano, $payment_type</text>
+                                        </values>
+                                        <response_type>text</response_type>
+                                        <selection_policy>sequential</selection_policy>
+                                      </generic>
+                                    </output>
+                                    <goto>
+                                      <target>confirmation</target>
+                                      <selector>body</selector>
+                                    </goto>
+                                  </node>
+                                  <node name="confirmation">
+                                    <output>
+                                      <generic structure="listItem">
+                                        <values structure="listItem">
+                                          <text>Výborně, máme od Vás všechny potřebné údaje. Jméno: $first_name, příjmení: $last_name, typ dopravy: $transport_type, typ platby: $payment_type.</text>
+                                        </values>
+                                        <response_type>text</response_type>
+                                        <selection_policy>sequential</selection_policy>
+                                      </generic>
+                                    </output>
+                                    <goto>
+                                      <target>last</target>
+                                      <selector>body</selector>
+                                    </goto>
+                                  </node>
+                                  <node name="last">
+                                    <output>
+                                      <generic structure="listItem">
+                                        <values structure="listItem">
+                                          <text>Mohu ti ještě s něčím pomoci?</text>
+                                        </values>
+                                        <response_type>text</response_type>
+                                        <selection_policy>sequential</selection_policy>
+                                      </generic>
+                                    </output>
+                                  </node>
+                                </nodes>
+                              </node>
+                              <node name="payment_type_already_filled">
+                                <condition>$payment_type</condition>
+                                <goto>
+                                  <target>confirmation</target>
+                                  <selector>body</selector>
+                                </goto>
+                              </node>
+                            </nodes>
+                          </node>
+                        </nodes>
+                      </node>
+                      <node name="transport_type_already_filled">
+                        <condition>$transport_type</condition>
+                        <goto>
+                          <target>payment_type</target>
+                          <selector>condition</selector>
+                        </goto>
+                      </node>
+                    </nodes>
+                  </node>
+                </nodes>
+              </node>
+              <node name="last_name_already_filled">
+                <condition>$last_name</condition>
+                <goto>
+                  <target>transport_type</target>
+                  <selector>condition</selector>
+                </goto>
+              </node>
+            </nodes>
+          </node>
+        </nodes>
+      </node>
+      <node name="first_name_already_filled">
+        <goto>
+          <target>last_name</target>
+          <selector>condition</selector>
+        </goto>
+      </node>
+    </nodes>
+  </node>
+</nodes>

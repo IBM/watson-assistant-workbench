@@ -1,0 +1,20 @@
+<nodes>
+  <node name="anything_else">
+    <condition>anything_else</condition>
+    <output>
+      <generic structure="listItem">
+        <values>
+          <text>Nerozumím. Zkuste přeformulovat váš dotaz.</text>
+        </values>
+        <values>
+          <text>Mohl byste se zeptat ještě jednou a trochu jinak? Neporozuměl jsem.</text>
+        </values>
+        <values>
+          <text>Zcela jsem neporozuměl tomu, na co se ptáte.</text>
+        </values>
+        <response_type>text</response_type>
+        <selection_policy>sequential</selection_policy>
+      </generic>
+    </output>
+  </node>
+</nodes>

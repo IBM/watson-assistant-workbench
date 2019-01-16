@@ -52,7 +52,9 @@ if __name__ == '__main__':
                     value.append(valueJSON["value"].strip().encode("utf-8"))
                     # add all synonyms
                     for synonym in valueJSON['synonyms']:
-                        value.append(synonym.strip().encode("utf-8"))
+                        # empty-string synonyms are ignored when exported from WA json
+                        if synonym.strip().encode("utf-8") != '':
+                            value.append(synonym.strip().encode("utf-8"))
                 # for pattern entities add tilde to the value
                 if 'patterns' in valueJSON:
                     value.append("~" + valueJSON["value"].strip().encode("utf-8"))

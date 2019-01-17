@@ -598,6 +598,9 @@ def printNodes(root, parent, dialogJSON):
 
         children = []
 
+        # TITLE
+        if nodeXML.get('title') is not None:
+            nodeJSON['title'] = nodeXML.get('title')
         # TYPE
         if nodeXML.find('type') is not None:
             nodeJSON['type'] = nodeXML.find('type').text

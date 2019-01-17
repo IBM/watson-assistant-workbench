@@ -45,6 +45,7 @@
         <xs:element name="digress_in" type="digressInSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="digress_out" type="digressOutSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="digress_out_slots" type="digressOutSlotsSchema" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="metadata" type="metadataSchema" minOccurs="0" maxOccurs="1" nillable="true"/>
     </xs:all>
     <xs:attribute name="name" type="xs:string"/>
     <xs:attribute name="title" type="xs:string"/>
@@ -135,7 +136,8 @@
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
                       <xs:enumeration value="listItem"/>
-                      <xs:enumeration value="emptyArray"/>
+                      <xs:enumeration value="emptyList"/>
+                      <xs:enumeration value="emptyDict"/>
                     </xs:restriction>
                 </xs:simpleType>
             </xs:attribute>
@@ -172,6 +174,22 @@
         <xs:element name="slot" type="slotSchema" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
     <xs:attribute name="scope" type="xs:string"/>
+</xs:complexType>
+
+<xs:complexType name="metadataSchema">
+    <xs:sequence minOccurs="1" maxOccurs="1">
+        <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="scope" type="xs:string"/>
+    <xs:attribute name="structure">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="listItem"/>
+              <xs:enumeration value="emptyList"/>
+              <xs:enumeration value="emptyDict"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
 </xs:complexType>
 
 <xs:simpleType name="behaviorSchema">

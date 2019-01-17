@@ -657,6 +657,9 @@ def printNodes(root, parent, dialogJSON):
         # CONTEXT
         if nodeXML.find('context') is not None:
             convertAll(nodeJSON, nodeXML.find('context'))
+        # METADATA
+        if nodeXML.find('metadata') is not None:
+            convertAll(nodeJSON, nodeXML.find('metadata'))
         # ACTIONS
         if nodeXML.find('actions') is not None:
             actionsXML = nodeXML.find('actions')
@@ -725,8 +728,11 @@ def convertAll(upperNodeJson, nodeXml):
         key = len(upperNodeJson) - 1
 
     if not list(nodeXml): # it has no children (subtags) - it is a terminal
-        if nodeXml.get('structure') is not None and nodeXml.get('structure') == 'emptyArray':
-            upperNodeJson[key] = []
+        if nodeXml.get('structure') is not None:
+            if nodeXml.get('structure') == 'emptyList':
+                upperNodeJson[key] = []
+            elif nodeXml.get('structure') == 'emptyDict':
+                upperNodeJson[key] = {}
         elif nodeXml.text is None:
             upperNodeJson[key] = None
         elif nodeXml.text:  # if a single element with text - terminal (string, number or none)

@@ -63,7 +63,6 @@ def convertNode(nodeJSON):
     if 'title' in nodeJSON:
         if nodeJSON['title'] != nodeJSON['dialog_node']: # WA adds title to all uploaded workspaces equal to dialog_name, this is cleanup TODO: remove the conditions when upgrading to new version of WA API
             nodeXML.attrib['title'] = nodeJSON['title']
-
     #condition
     if 'conditions' in nodeJSON:
         conditionXML = LET.Element('condition')
@@ -129,6 +128,28 @@ def convertNode(nodeJSON):
                     nodeGoToSelectorXML.text = nodeJSON['next_step']['selector']
         # cant use this because target != dialog_node
         #convertAll(nodeXML, nodeJSON, 'go_to')
+    #digression
+    if 'digress_in' in nodeJSON:
+        digressInXML = LET.Element('digress_in')
+        nodeXML.append(digressInXML)
+        if nodeJSON['digress_in'] is None: # null value
+            digressInXML.attrib[XSI+'nil'] = "true"
+        else:
+            digressInXML.text = nodeJSON['digress_in']
+    if 'digress_out' in nodeJSON:
+        digressOutXML = LET.Element('digress_out')
+        nodeXML.append(digressOutXML)
+        if nodeJSON['digress_out'] is None: # null value
+            digressOutXML.attrib[XSI+'nil'] = "true"
+        else:
+            digressOutXML.text = nodeJSON['digress_out']
+    if 'digress_out_slots' in nodeJSON:
+        digressOutSlotsXML = LET.Element('digress_out_slots')
+        nodeXML.append(digressOutSlotsXML)
+        if nodeJSON['digress_out_slots'] is None: # null value
+            digressOutSlotsXML.attrib[XSI+'nil'] = "true"
+        else:
+            digressOutSlotsXML.text = nodeJSON['digress_out_slots']
     #metadata
     if 'metadata' in nodeJSON:
         metadataXML = LET.Element('metadata')

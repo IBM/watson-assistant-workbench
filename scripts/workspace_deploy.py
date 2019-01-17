@@ -94,7 +94,10 @@ if __name__ == '__main__':
 
     # check errors during upload
     if 'error' in responseJson:
-        eprintf('Cannot upload conversation workspace\nERROR: %s\n', responseJson['error'])
+        eprintf('Cannot upload conversation workspace\nERROR: %s (code %s)\n', responseJson['error'], responseJson['code'])
+        if 'errors' in responseJson:
+            for errorJson in responseJson['errors']:
+                eprintf('\t path: \'%s\' - %s\n', errorJson['path'], errorJson['message'])
         if VERBOSE: eprintf("INFO: RESPONSE: %s\n", responseJson)
 #        if VERBOSE: eprintf("INFO: WORKSPACE: %s\n", json.dumps(workspace, indent=4))
         sys.exit(1)

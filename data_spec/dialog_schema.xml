@@ -120,7 +120,7 @@
 
 <xs:complexType name="textValuesSchema">
     <xs:sequence minOccurs="1" maxOccurs="1">
-        <xs:element name="values" type="valuesSchema" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="values" type="valuesSchema" minOccurs="0" maxOccurs="unbounded" nillable="true"/>
         <xs:element name="append" type="trueFalseSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="selection_policy" type="selectionPolicySchema" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
@@ -133,7 +133,8 @@
             <xs:attribute name="structure">
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
-                        <xs:enumeration value="listItem"/>
+                      <xs:enumeration value="listItem"/>
+                      <xs:enumeration value="emptyArray"/>
                     </xs:restriction>
                 </xs:simpleType>
             </xs:attribute>

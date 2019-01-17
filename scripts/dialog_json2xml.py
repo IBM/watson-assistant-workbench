@@ -25,7 +25,9 @@ except NameError:
 
 
 def convertDialog(dialogNodesJSON):
-    dialogXML = LET.Element("nodes")
+
+    dialogXML = LET.Element("nodes", nsmap=NSMAP)
+
     #print dialogNodesJSON
     # find root
     rootJSON = findNode(dialogNodesJSON, None, None)
@@ -59,40 +61,61 @@ def convertNode(nodeJSON):
     nodeXML.attrib['name'] = nodeJSON['dialog_node']
 
     #condition
-    if 'conditions' in nodeJSON and nodeJSON['conditions']:
-        condition = LET.Element('condition')
-        condition.text = nodeJSON['conditions']
-        nodeXML.append(condition)
+    if 'conditions' in nodeJSON:
+        conditionXML = LET.Element('condition')
+        nodeXML.append(conditionXML)
+        if nodeJSON['conditions'] is None: # null value
+            conditionXML.attrib[XSI+'nil'] = "true"
+        else:
+            conditionXML.text = nodeJSON['conditions']
     #context
     if 'context' in nodeJSON and nodeJSON['context']:
-        convertAll(nodeXML, nodeJSON, 'context')
+        if nodeJSON['context'] is None: # null value
+            contextXML = LET.Element('context')
+            nodeXML.append(contextXML)
+            contextXML.attrib[XSI+'nil'] = "true"
+        else:
+            convertAll(nodeXML, nodeJSON, 'context')
     #output
     if 'output' in nodeJSON and nodeJSON['output']:
-        convertAll(nodeXML, nodeJSON, 'output')
-        if 'text' in nodeJSON['output'] and not isinstance(nodeJSON['output']['text'], basestring):
-          outputXML = nodeXML.find('output').find('text').tag = 'textValues'
-        if 'generic' in nodeJSON['output']: # generic nodes has to be of type array
-            if len(nodeXML.find('output').findall('generic')) == 1:
-                nodeXML.find('output').find('generic').attrib['structure'] = 'listItem'
-            for genericItemXML in nodeXML.find('output').findall('generic'):
-                if genericItemXML.find('response_type').text == 'text': # TODO check other response_types
-                    if genericItemXML.findall('values') is not None: # values has to be of type array
-                        if len(genericItemXML.findall('values')) == 1:
-                            genericItemXML.find('values').attrib['structure'] = 'listItem'
-                        elif len(genericItemXML.findall('values')) == 0: # if there is no value we should remove the generic output
-                            nodeXML.find('output').remove(genericItemXML)
+        if nodeJSON['output'] is None: # null value
+            outputXML = LET.Element('output')
+            nodeXML.append(outputXML)
+            outputXML.attrib[XSI+'nil'] = "true"
+        else:
+            convertAll(nodeXML, nodeJSON, 'output')
+            if 'text' in nodeJSON['output'] and not isinstance(nodeJSON['output']['text'], basestring):
+              outputXML = nodeXML.find('output').find('text').tag = 'textValues'
+            if 'generic' in nodeJSON['output']: # generic nodes has to be of type array
+                if len(nodeXML.find('output').findall('generic')) == 1:
+                    nodeXML.find('output').find('generic').attrib['structure'] = 'listItem'
+                for genericItemXML in nodeXML.find('output').findall('generic'):
+                    if genericItemXML.find('response_type').text == 'text': # TODO check other response_types
+                        if genericItemXML.findall('values') is not None: # values has to be of type array
+                            if len(genericItemXML.findall('values')) == 1:
+                                if not 'structure' in genericItemXML.find('values').attrib: # structure is not specified yet
+                                    genericItemXML.find('values').attrib['structure'] = 'listItem'
     #goto
-    if 'next_step' in nodeJSON and nodeJSON['next_step']:
+    if 'next_step' in nodeJSON:
         nodeGoToXML = LET.Element('goto')
         nodeXML.append(nodeGoToXML)
-        if 'dialog_node' in nodeJSON['next_step']:
-            nodeGoToTargetXML = LET.Element('target')
-            nodeGoToTargetXML.text = nodeJSON['next_step']['dialog_node']
-            nodeGoToXML.append(nodeGoToTargetXML)
-        if 'selector' in nodeJSON['next_step']:
-            nodeGoToSelectorXML = LET.Element('selector')
-            nodeGoToSelectorXML.text = nodeJSON['next_step']['selector']
-            nodeGoToXML.append(nodeGoToSelectorXML)
+        if nodeJSON['next_step'] is None: # null value
+            nodeGoToXML.attrib[XSI+'nil'] = "true"
+        else:
+            if 'dialog_node' in nodeJSON['next_step']:
+                nodeGoToTargetXML = LET.Element('target')
+                nodeGoToXML.append(nodeGoToTargetXML)
+                if nodeJSON['next_step']['dialog_node'] is None:
+                    nodeGoToTargetXML.attrib[XSI+'nil'] = "true"
+                else:
+                    nodeGoToTargetXML.text = nodeJSON['next_step']['dialog_node']
+            if 'selector' in nodeJSON['next_step']:
+                nodeGoToSelectorXML = LET.Element('selector')
+                nodeGoToXML.append(nodeGoToSelectorXML)
+                if nodeJSON['next_step']['selector'] is None:
+                    nodeGoToSelectorXML.attrib[XSI+'nil'] = "true"
+                else:
+                    nodeGoToSelectorXML.text = nodeJSON['next_step']['selector']
         # cant use this because target != dialog_node
         #convertAll(nodeXML, nodeJSON, 'go_to')
     if 'actions' in nodeJSON and nodeJSON['actions']:
@@ -111,26 +134,51 @@ def convertNode(nodeJSON):
 # nodeJSON: node, whose tag is converted
 # keyJSON: name of tag to convert
 def convertAll(upperNodeXML, nodeJSON, keyJSON, nameXML = None):
+
     if nameXML is None:
-      nameXML = keyJSON
-    if isinstance(nodeJSON[keyJSON], basestring):
+        nameXML = keyJSON
+
+    # None
+    if nodeJSON[keyJSON] is None:
         nodeXML = LET.Element(str(nameXML))
-        nodeXML.text = nodeJSON[keyJSON]
         upperNodeXML.append(nodeXML)
+        nodeXML.attrib[XSI+'nil'] = "true"
+    # list
     elif isinstance(nodeJSON[keyJSON], list):
-        for i in range(len(nodeJSON[keyJSON])):
-            listItemJSON = nodeJSON[keyJSON][i]
-            convertAll(upperNodeXML, nodeJSON[keyJSON], i, keyJSON)
+        if len(nodeJSON[keyJSON]) == 0:
+            nodeXML = LET.Element(str(nameXML))
+            upperNodeXML.append(nodeXML)
+            nodeXML.attrib['structure'] = "emptyArray"
+        else:
+            if upperNodeXML.tag != "output" and upperNodeXML.tag != "context":
+                upperNodeXML.attrib['structure'] = "listItem"
+            for i in range(len(nodeJSON[keyJSON])):
+                listItemJSON = nodeJSON[keyJSON][i]
+                convertAll(upperNodeXML, nodeJSON[keyJSON], i, keyJSON)
+    # dict
     elif isinstance(nodeJSON[keyJSON], dict):
         nodeXML = LET.Element(str(nameXML))
         upperNodeXML.append(nodeXML)
         for subKeyJSON in nodeJSON[keyJSON]:
             convertAll(nodeXML, nodeJSON[keyJSON], subKeyJSON)
-    elif nodeJSON[keyJSON] is not None:
-        # int, long, float, complex, boolean?
+    # string
+    elif isinstance(nodeJSON[keyJSON], basestring):
         nodeXML = LET.Element(str(nameXML))
-        nodeXML.text = str(nodeJSON[keyJSON])
         upperNodeXML.append(nodeXML)
+        nodeXML.text = nodeJSON[keyJSON]
+    # bool
+    elif isinstance(nodeJSON[keyJSON], bool):
+        nodeXML = LET.Element(str(nameXML))
+        upperNodeXML.append(nodeXML)
+        nodeXML.text = str(nodeJSON[keyJSON])
+    # int, long, float, complex, boolean?
+    elif isNumber(nodeJSON[keyJSON]):
+        nodeXML = LET.Element(str(nameXML))
+        upperNodeXML.append(nodeXML)
+        nodeXML.text = str(nodeJSON[keyJSON])
+        nodeXML.attrib['type'] = "number"
+    else:
+        eprintf("ERROR: Unknown value type")
 
 # find and return node with specific parent and previous sibling
 # removing it from the list
@@ -148,6 +196,13 @@ def getValue(dict, key):
     else:
         return None
 
+def isNumber(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Decompose Bluemix conversation service dialog in .json format to dialog files in .xml format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
@@ -159,6 +214,11 @@ if __name__ == '__main__':
 
     VERBOSE = args.verbose
     STDOUT = not args.dialogDir
+
+    # XML namespaces
+    XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
+    XSI = "{%s}" % XSI_NAMESPACE
+    NSMAP = {"xsi" : XSI_NAMESPACE}
 
     # load dialogs JSON
     dialogsJSON = json.load(args.dialog)

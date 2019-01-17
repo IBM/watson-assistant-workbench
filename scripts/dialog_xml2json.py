@@ -719,18 +719,25 @@ def convertAll(upperNodeJson, nodeXml):
     if type(upperNodeJson) is list:  # or an index of the last element of the array
         key = len(upperNodeJson) - 1
 
-    if not list(nodeXml):
-        if nodeXml.text:  # if a single element with text - terminal (string, number or none)
-            if nodeXml.text.strip().lower() == 'null':
-                upperNodeJson[key] = None
-            elif nodeXml.get('type') is not None and nodeXml.get('type') == 'number':
-                upperNodeJson[key] = float(nodeXml.text)
+    if not list(nodeXml): # it has no children (subtags) - it is a terminal
+        if nodeXml.get('structure') is not None and nodeXml.get('structure') == 'emptyArray':
+            upperNodeJson[key] = []
+        elif nodeXml.text is None:
+            upperNodeJson[key] = None
+        elif nodeXml.text:  # if a single element with text - terminal (string, number or none)
+            if nodeXml.get('type') is not None and nodeXml.get('type') == 'number':
+                    try:
+                        upperNodeJson[key] = int(nodeXml.text)
+                    except ValueError:
+                        try:
+                            upperNodeJson[key] = float(nodeXml.text)
+                        except ValueError:
+                            eprintf("ERROR: Unable to parse number " + nodeXml.text)
             else:
                 upperNodeJson[key] = unescape(nodeXml.text.strip())
-
         else:
             upperNodeJson[key] = '' # empty string
-    else:
+    else: # it has subtags
         #if there is an array of subelements within elemnt - separate elements of each tag value to a separate nodeNameMap field
         upperNodeJson[key] = {}
 

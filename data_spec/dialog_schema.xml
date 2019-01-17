@@ -153,6 +153,7 @@
 
 <xs:complexType name="gotoSchema">
     <xs:sequence minOccurs="1" maxOccurs="1">
+        <xs:element name="behavior" type="behaviorSchema" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element name="target" type="xs:string" minOccurs="1" maxOccurs="1"/>
         <xs:element name="selector" type="selectorSchema" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
@@ -173,11 +174,23 @@
     <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
 
+<xs:simpleType name="behaviorSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="skip_user_input"/>
+        <xs:enumeration value="get_user_input"/>
+        <xs:enumeration value="jump_to"/>
+        <xs:enumeration value="reprompt"/>
+        <xs:enumeration value="skip_slot"/>
+        <xs:enumeration value="skip_all_slots"/>
+    </xs:restriction>
+</xs:simpleType>
+
 <xs:simpleType name="selectorSchema">
     <xs:restriction base="xs:string">
         <xs:enumeration value="user_input"/>
         <xs:enumeration value="condition"/>
         <xs:enumeration value="body"/>
+        <xs:enumeration value="client"/>
     </xs:restriction>
 </xs:simpleType>
 

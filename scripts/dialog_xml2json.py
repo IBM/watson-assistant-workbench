@@ -29,6 +29,7 @@ except NameError:
     unicode = str  # Python 3
 
 # CONSTANTS (care it is not real constant)
+DEFAULT_BEHAVIOR = 'jump_to'
 DEFAULT_SELECTOR = 'user_input'
 
 DEFAULT_REPEAT_ATTEMPTS = 3
@@ -671,8 +672,9 @@ def printNodes(root, parent, dialogJSON):
             elif nodeXML.find('goto').find('target').text == '::FIRST_SIBLING':
                 nodeXML.find('goto').find('target').text = next(x for x in root if x.tag == 'node').find('name').text
             gotoJson = {'dialog_node':nodeXML.find('goto').find('target').text}
+            gotoJson['behavior'] = nodeXML.find('goto').find('behavior').text if nodeXML.find('goto').find('behavior') is not None else DEFAULT_BEHAVIOR
             gotoJson['selector'] = nodeXML.find('goto').find('selector').text if nodeXML.find('goto').find('selector') is not None else DEFAULT_SELECTOR
-            nodeJSON['go_to'] = gotoJson
+            nodeJSON['next_step'] = gotoJson
         # PARENT
         if parent is not None:
             nodeJSON['parent'] = parent.find('name').text

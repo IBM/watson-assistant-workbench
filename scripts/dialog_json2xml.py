@@ -106,6 +106,13 @@ def convertNode(nodeJSON):
         if nodeJSON['next_step'] is None: # null value
             nodeGoToXML.attrib[XSI+'nil'] = "true"
         else:
+            if 'behavior' in nodeJSON['next_step']:
+                nodeGoToBehaviorXML = LET.Element('behavior')
+                nodeGoToXML.append(nodeGoToBehaviorXML)
+                if nodeJSON['next_step']['behavior'] is None:
+                    nodeGoToBehaviorXML.attrib[XSI+'nil'] = "true"
+                else:
+                    nodeGoToBehaviorXML.text = nodeJSON['next_step']['behavior']
             if 'dialog_node' in nodeJSON['next_step']:
                 nodeGoToTargetXML = LET.Element('target')
                 nodeGoToXML.append(nodeGoToTargetXML)

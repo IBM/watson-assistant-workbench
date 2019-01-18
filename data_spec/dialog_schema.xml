@@ -35,6 +35,7 @@
 <xs:complexType name="nodeSchema">
     <xs:all>
         <xs:element name="condition" type="conditionSchema" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="type" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="context" type="contextSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="output" type="outputSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="goto" type="gotoSchema" minOccurs="0" maxOccurs="1"/>

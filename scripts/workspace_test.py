@@ -86,7 +86,7 @@ if __name__ == '__main__':
                         loadedJson = json.loads(inputLine)
                         inputJson = loadedJson['input_message'] # input json for tests
                         if dialogId and dialogId == loadedJson['dialog_id']:
-                            if receivedOutputJson and receivedOutputJson['context']:
+                            if receivedOutputJson and 'context' in receivedOutputJson and receivedOutputJson['context']:
                                 inputJson['context'] = receivedOutputJson['context'] # use context from last dialog turn
                         dialogId = loadedJson['dialog_id']
                         response = requests.post(url, auth=(username, password), headers={'Content-Type': 'application/json'}, data=json.dumps(inputJson, indent=4, ensure_ascii=False).encode('utf8'))

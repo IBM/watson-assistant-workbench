@@ -224,7 +224,8 @@ def convertAll(upperNodeXML, nodeJSON, keyJSON, nameXML = None):
         nodeXML = LET.Element(str(nameXML))
         upperNodeXML.append(nodeXML)
         nodeXML.text = str(nodeJSON[keyJSON])
-    # int, long, float, complex, boolean?
+        nodeXML.attrib['type'] = "boolean"
+    # int, long, float, complex
     elif isNumber(nodeJSON[keyJSON]):
         nodeXML = LET.Element(str(nameXML))
         upperNodeXML.append(nodeXML)

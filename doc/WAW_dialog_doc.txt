@@ -148,6 +148,7 @@
 	This tag allows adding custom variables.
 	Child elements names are taken as variable names and their inside texts as their values. (e. g. <agentName>Volvord</agentName> creates the variable named "agentName" with the value "Volvord")
 	If an attribute "type" with the value "number" is present, the variable is considered as numeric and no '"' are added (e. g. <attempts type="number">5</attempts> creates the numeric variable named "attempts" with the value 5)
+    If an attribute "type" with the value "boolean" is present, the variable is considered as boolean and no '"' are added (e. g. <filledIn type="boolean">True</filledIn> creates a boolean value named "filledIn" with the value true)
 	To expand variable values inside other variables, glue strings, add numbers, and add items to a list, use expression evaluation in string values of the JSON update structures. https://www.ibm.com/watson/developercloud/doc/conversation/expression-language.html
 	'<' and '>' signs have to be replaced with '&lt;' and '&gt;' respectively.
 	Default value: null (no context)
@@ -293,9 +294,9 @@
 			<append>false</append>
 			<selection_policy>random</selection_policy>
 		</textValues>
-	
-	Note: use the attribute structure=listItem for <values>    
-	e.g 
+
+	Note: use the attribute structure=listItem for <values>
+	e.g
 	structure="listItem"
 	if only one <values> item is specified
 

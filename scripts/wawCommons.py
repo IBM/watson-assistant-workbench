@@ -23,9 +23,9 @@ import lxml.etree as Xml
 
 
 restrictionTextNamePolicy = "NAME_POLICY can be only set to either 'soft', 'soft_verbose' or 'hard'"
-
-sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-sys.stderr = codecs.getwriter('utf8')(sys.stderr)
+if not IS_PYTHON_3:   
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+    sys.stderr = codecs.getwriter('utf8')(sys.stderr)
 
 def openFile(name, *args, **kwargs):
     if 'encoding' not in kwargs.keys():

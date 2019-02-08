@@ -73,7 +73,7 @@ if __name__ == '__main__':
             os.makedirs(getattr(config, 'common_outputs_directory'))
             printf('Created new output directory ' + getattr(config, 'common_outputs_directory'))
         with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'w', encoding='utf8') as outputFile:
-            outputFile.write(json.dumps(intents, indent=4, ensure_ascii=False, encoding='utf8'))
+            outputFile.write(json.dumps(intents, indent=4, ensure_ascii=False))
     else:
         print(json.dumps(intents, indent=4, ensure_ascii=False, encoding='utf8'))
 

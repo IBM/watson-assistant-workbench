@@ -112,8 +112,8 @@ if __name__ == '__main__':
         if not os.path.exists(getattr(config, 'common_outputs_directory')):
             os.makedirs(getattr(config, 'common_outputs_directory'))
             print('Created new output directory ' + getattr(config, 'common_outputs_entities'))
-        with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), mode='w', encoding='utf-8') as outputFile:
-            outputFile.write(json.dumps(entitiesJSON, indent=4, ensure_ascii=False, encoding='utf8'))
+        with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), mode='w',encoding='utf8') as outputFile:
+            outputFile.write(json.dumps(entitiesJSON, indent=4, ensure_ascii=False))
         if VERBOSE: printf("Entities json '%s' was successfully created\n", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')))
     else:
         print(json.dumps(entitiesJSON, indent=4, ensure_ascii=False, encoding='utf-8'))

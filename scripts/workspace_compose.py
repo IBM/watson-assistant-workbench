@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     if hasattr(config, 'common_outputs_workspace'):
         with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace')), 'w', encoding='utf8') as outputFile:
-            outputFile.write(json.dumps(workspace, indent=4, ensure_ascii=False, encoding='utf8'))
+            outputFile.write(json.dumps(workspace, indent=4, ensure_ascii=False))
     else:
         print('output_workspace not specified, generating to console.')
 

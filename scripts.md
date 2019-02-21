@@ -73,7 +73,7 @@ python scripts/workspace_delete.py example/en_app/private.cfg -v
 ```
 
 ## Decompose workspace
-Decomposes WCS .json workspace to intents, entities, dialogs and counterexamples files in WCS .json format 
+Decomposes WCS .json workspace to intents, entities, dialogs and counterexamples files in WCS .json format
 
 ```
 python scripts/workspace_decompose.py example/en_app/outputs/workspace.json -i example/en_app/outputs/intentsNew.json -e example/en_app/outputs/entitiesNew.json -d example/en_app/outputs/dialogNew.json -c counterexamplesNew.json -v
@@ -138,5 +138,5 @@ cd example/en_app/
 _Don't forget to create an example/en\_app/private.cfg file with your WCS credentials (you can use example/en\_app/private.cfg.template file as a template). You will probably need to change paths in your config files to not contain "example/en\_app/" part._
 
 ```
-python ../../scripts/update_all.py -c common.cfg -c private.cfg
+python ../../scripts/update_all.py -c common.cfg -c private.cfg - c build.cfg
 ```

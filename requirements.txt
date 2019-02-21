@@ -1,5 +1,5 @@
 configparser
 lxml
-openpyxl
+openpyxl==2.5.14
 requests
 unidecode

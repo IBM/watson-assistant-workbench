@@ -94,14 +94,21 @@ def convertNode(nodeJSON):
             convertAll(nodeXML, nodeJSON, 'output')
             if 'text' in nodeJSON['output'] and not isinstance(nodeJSON['output']['text'], basestring):
               outputXML = nodeXML.find('output').find('text').tag = 'textValues'
-            if 'generic' in nodeJSON['output']: # generic nodes has to be of type array
+            if 'generic' in nodeJSON['output']:
+                if nodeJSON['output']['generic'] is None or len(nodeXML.find('output').findall('generic')) == 0:
+                    return
                 if len(nodeXML.find('output').findall('generic')) == 1:
+                     # generic nodes has to be of type array
                     nodeXML.find('output').find('generic').attrib['structure'] = 'listItem'
+                # generic is not none or empty
                 for genericItemXML in nodeXML.find('output').findall('generic'):
-                    if genericItemXML.find('response_type').text == 'text': # TODO check other response_types
-                        if genericItemXML.findall('values') is not None: # values has to be of type array
+                    if genericItemXML.find('response_type') is None:
+                        eprintf("ERROR: 'response_type' is missing in the output of the node " + nodeJSON['dialog_node'] + "\n")
+                    elif genericItemXML.find('response_type').text == 'text': # TODO check other response_types
+                        if genericItemXML.findall('values') is not None:
                             if len(genericItemXML.findall('values')) == 1:
                                 if not 'structure' in genericItemXML.find('values').attrib: # structure is not specified yet
+                                    # values has to be of type array
                                     genericItemXML.find('values').attrib['structure'] = 'listItem'
     #goto
     if 'next_step' in nodeJSON:

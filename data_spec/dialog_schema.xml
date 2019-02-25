@@ -268,6 +268,7 @@
         <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
         <xs:element name="parameters" type="parametersSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="result_variable" type="resultVariableSchema" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="credentials" type="credentialsSchema" minOccurs="0" maxOccurs="1"/>
     </xs:all>
     <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
@@ -312,6 +313,14 @@
 </xs:simpleType>
 
 <xs:complexType name="resultVariableSchema">
+    <xs:simpleContent>
+        <xs:extension base="xs:string">
+            <xs:attribute name="scope" type="xs:string"/>
+        </xs:extension>
+    </xs:simpleContent>
+</xs:complexType>
+
+<xs:complexType name="credentialsSchema">
     <xs:simpleContent>
         <xs:extension base="xs:string">
             <xs:attribute name="scope" type="xs:string"/>

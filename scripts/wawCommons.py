@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys, re, codecs, os
+import sys, re, codecs, os, fnmatch
 import unicodedata, unidecode, requests
 import lxml.etree as Xml
 
@@ -210,24 +210,32 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
         exit(1)
     return uEntityNameUser.encode('utf-8')
 
-def getFilesAtPath(pathList):
+def getFilesAtPath(pathList, patterns=['*']):
     filesAtPath = []
     for pathItem in pathList:
         # is it a directory? - take all files in it
         if os.path.isdir(pathItem):
-            filesAtPath.extend(absoluteFilePaths(pathItem))
+            filesAtPath.extend(absoluteFilePaths(pathItem, patterns))
         # is it a file? - take it
         elif os.path.exists(pathItem):
-            filesAtPath.append(os.path.abspath(pathItem))
+            if _fileMatchesPatterns(os.path.basename(pathItem), patterns):
+                filesAtPath.append(os.path.abspath(pathItem))
         # is it NONE? - ignore it
         else:
             pass
     return filesAtPath
 
-def absoluteFilePaths(directory):
-   for dirpath,_,filenames in os.walk(directory):
-       for f in filenames:
-           yield os.path.abspath(os.path.join(dirpath, f))
+def absoluteFilePaths(directory, patterns=['*']):
+    for dirpath,_,filenames in os.walk(directory):
+        for f in filenames:
+            if _fileMatchesPatterns(f, patterns):
+                yield os.path.abspath(os.path.join(dirpath, f))
+           
+def _fileMatchesPatterns(filename, patterns):
+    for pattern in patterns:
+        if fnmatch.fnmatchcase(filename, pattern):
+            return True
+    return False
 
 def getWorkspaceId(config, workspacesUrl, version, username, password):
     if hasattr(config, 'conversation_workspace_id') and getattr(config, 'conversation_workspace_id'):

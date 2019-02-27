@@ -13,7 +13,7 @@
 # export TRAVIS_PULL_REQUEST=
 # export TRAVIS_EVENT_TYPE=
 
-stopIfFailed() 
+stopIfFailed()
 {
     if [ "$1" -ne "0" ]; then
         echo "--------------------------------------------------------------------------------";
@@ -116,7 +116,7 @@ echo "username = ${WA_USERNAME}" >> tests/tmp.cfg;
 echo "password = ${WA_PASSWORD}" >> tests/tmp.cfg;
 echo "workspace_id = ${WA_WORKSPACE_ID_TEST}" >> tests/tmp.cfg;
 mkdir -p outputs/dialog
-python scripts/workspace_test.py tests/tmp.cfg tests/test_more_outputs.test outputs/test_more_outputs.out -v
+python scripts/workspace_test.py tests/test_more_outputs.test outputs/test_more_outputs.out -c tests/tmp.cfg -v
 stopIfFailed $?;
 ./ci/artifactory-deploy.sh outputs/test_more_outputs.out
 rm -f tests/tmp.cfg;

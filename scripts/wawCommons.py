@@ -16,7 +16,7 @@ limitations under the License.
 """
 
 import sys, re, codecs, os
-import unicodedata, unidecode
+import unicodedata, unidecode, requests
 import lxml.etree as Xml
 
 restrictionTextNamePolicy = "NAME_POLICY can be only set to either 'soft', 'soft_verbose' or 'hard'"
@@ -228,3 +228,83 @@ def absoluteFilePaths(directory):
    for dirpath,_,filenames in os.walk(directory):
        for f in filenames:
            yield os.path.abspath(os.path.join(dirpath, f))
+
+def getWorkspaceId(config, workspacesUrl, version, username, password):
+    if hasattr(config, 'conversation_workspace_id') and getattr(config, 'conversation_workspace_id'):
+        printf('INFO: conversation_workspace_id defined.\n')
+        workspaceId = getattr(config, 'conversation_workspace_id')
+    else:
+        printf('INFO: conversation_workspace_id parameter not defined.\n')
+        workspaceId = ""
+
+        # workspace name unique
+        if hasattr(config, 'conversation_workspace_name_unique') and getattr(config, 'conversation_workspace_name_unique') in ["true", "True"]:
+            if hasattr(config, 'conversation_workspace_name') and getattr(config, 'conversation_workspace_name'):
+                printf('INFO: conversation_workspace_name set to unique\n')
+                workspaceName = getattr(config, 'conversation_workspace_name')
+
+                # get all workspaces with this name
+                requestUrl = workspacesUrl + '?version=' + version
+                printf("request url: %s\n", requestUrl)
+                response = requests.get(workspacesUrl + '?version=' + version, auth=(username, password))
+                responseJson = response.json()
+                printf("\nINFO: response: %s\n", responseJson)
+                if not errorsInResponse(responseJson):
+                    printf('INFO: Workspaces successfully retrieved.\n')
+                else:
+                    eprintf('ERROR: Cannot retrieve workspaces.\n')
+                    sys.exit(1)
+
+                sameNameWorkspace = None
+                for workspace in responseJson['workspaces']:
+                    print("workspace name: " + workspace['name'] + "\n")
+                    if workspace['name'] == workspaceName:
+                        if sameNameWorkspace is None:
+                            sameNameWorkspace = workspace
+                        else:
+                            # if there is more than one workspace with the same name -> error
+                            eprintf('ERROR: There are more than one workspace with this name, do not know which one to update.\n')
+                            exit(1)
+                if sameNameWorkspace is None:
+                    # workspace with the same name not found
+                    printf('WARNING: There is no workspace with this name.\n')
+                else:
+                    # just one workspace with this name -> get its id
+                    workspaceId = sameNameWorkspace['workspace_id']
+
+            else: # workspace name unique and not defined or empty
+                eprintf('ERROR: conversation_workspace_name set to unique and not defined.\n')
+                exit(1)
+
+        else: # workspace name not unique
+            printf("INFO: Workspace name doesn't have to be unique\n")
+
+    return workspaceId
+
+def errorsInResponse(responseJson):
+    # check errors
+    if 'error' in responseJson:
+        eprintf('ERROR: %s (code %s)\n', responseJson['error'], responseJson['code'])
+        if 'errors' in responseJson:
+            for errorJson in responseJson['errors']:
+                eprintf('\t path: \'%s\' - %s\n', errorJson['path'], errorJson['message'])
+#        if VERBOSE: eprintf("INFO: WORKSPACE: %s\n", json.dumps(workspace, indent=4))
+        return True
+    else:
+        return False
+
+def getOptionalParameter(config, parameterName):
+    if hasattr(config, parameterName) and getattr(config, parameterName):
+        parameterValue = getattr(config, parameterName)
+        return parameterValue
+    else:
+        printf("WARNING: '%s' parameter not defined\n", parameterName)
+        return None
+
+def getRequiredParameter(config, parameterName):
+    if hasattr(config, parameterName) and getattr(config, parameterName):
+        parameterValue = getattr(config, parameterName)
+        return parameterValue
+    else:
+        eprintf("ERROR: required '%s' parameter not defined\n", parameterName)
+        exit(1)

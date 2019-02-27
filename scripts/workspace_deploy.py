@@ -15,7 +15,7 @@ limitations under the License.
 from __future__ import print_function
 
 import os, json, sys, argparse, requests, configparser
-from wawCommons import printf, eprintf
+from wawCommons import printf, eprintf, getWorkspaceId, errorsInResponse, getOptionalParameter, getRequiredParameter
 from cfgCommons import Cfg
 import datetime
 
@@ -23,7 +23,6 @@ try:
     unicode        # Python 2
 except NameError:
     unicode = str  # Python 3
-
 
 if __name__ == '__main__':
     print('STARTING: ' + os.path.basename(__file__) + '\n')
@@ -57,54 +56,39 @@ if __name__ == '__main__':
     except IOError:
         eprintf('ERROR: Cannot load workspace file %s\n', workspaceFilePath)
         sys.exit(1)
-    if hasattr(config, 'conversation_workspace_name'):
-        workspace['name'] = getattr(config, 'conversation_workspace_name')
+    # workspace name
+    workspaceName = getOptionalParameter(config, 'conversation_workspace_name')
+    if workspaceName: workspace['name'] = workspaceName
+    # workspace language
+    workspaceLanguage = getOptionalParameter(config, 'conversation_language')
+    if workspaceLanguage: workspace['language'] = workspaceLanguage
+
+    # credentials (required)
+    username = getRequiredParameter(config, 'conversation_username')
+    password = getRequiredParameter(config, 'conversation_password')
+    # url (required)
+    workspacesUrl = getRequiredParameter(config, 'conversation_url')
+    # version (required)
+    version = getRequiredParameter(config, 'conversation_version')
+    # workspace id
+    workspaceId = getWorkspaceId(config, workspacesUrl, version, username, password)
+    if workspaceId:
+        printf("INFO: Updating existing workspace.\n")
     else:
-        print('WARNING: conversation_workspace_name parameter not defined')
+        printf("INFO: Creating new workspace.\n")
 
-    # credentials
-    if not hasattr(config, 'conversation_username') or not getattr(config, 'conversation_username'):
-        print('ERROR: con_username parameter not defined.')
-        exit(1)
-    username = getattr(config, 'conversation_username')
-    if not hasattr(config, 'conversation_password') or not getattr(config, 'conversation_password'):
-        print('ERROR: con_password parameter not defined.')
-        exit(1)
-    password = getattr(config, 'conversation_password')
-
-    if not hasattr(config, 'conversation_url') or not getattr(config, 'conversation_url'):
-        print('ERROR: con_url parameter not defined.')
-        exit(1)
-    workspacesUrl = getattr(config, 'conversation_url')
-    if not hasattr(config, 'conversation_workspace_id') or not getattr(config, 'conversation_workspace_id'):
-        print('INFO: converstion_workspace_id parameter not defined, creating new workspace')
-    else:
-        workspacesUrl += '/' + getattr(config, 'conversation_workspace_id')
-        print('INFO: conversation_workspace_id defined, updating existing workspace')
-
-    if not hasattr(config, 'conversation_version') or not getattr(config, 'conversation_version'):
-        print('ERROR: conversation_version parameter not defined.')
-        exit(1)
-    version = getattr(config, 'conversation_version')
-    workspacesUrl += '?version=' + version
+    requestUrl = workspacesUrl + '/' + workspaceId + '?version=' + version
 
     # create/update workspace
-    response = requests.post(workspacesUrl, auth=(username, password), headers={'Content-Type': 'application/json'}, data=json.dumps(workspace, indent=4))
+    response = requests.post(requestUrl, auth=(username, password), headers={'Content-Type': 'application/json'}, data=json.dumps(workspace, indent=4))
     responseJson = response.json()
 
-    # check errors during upload
-    if 'error' in responseJson:
-        eprintf('Cannot upload conversation workspace\nERROR: %s (code %s)\n', responseJson['error'], responseJson['code'])
-        if 'errors' in responseJson:
-            for errorJson in responseJson['errors']:
-                eprintf('\t path: \'%s\' - %s\n', errorJson['path'], errorJson['message'])
-        if VERBOSE: eprintf("INFO: RESPONSE: %s\n", responseJson)
-#        if VERBOSE: eprintf("INFO: WORKSPACE: %s\n", json.dumps(workspace, indent=4))
-        sys.exit(1)
+    if VERBOSE: printf("\nINFO: response: %s\n", responseJson)
+    if not errorsInResponse(responseJson):
+        printf('INFO: Workspace successfully uploaded.\n')
     else:
-        printf('Workspace successfully uploaded\n')
-
-    if VERBOSE: printf("%s", responseJson)
+        printf('ERROR: Cannot upload workspace.\n')
+        sys.exit(1)
 
     if not hasattr(config, 'conversation_workspace_id') or not getattr(config, 'conversation_workspace_id'):
         setattr(config, 'conversation_workspace_id', responseJson['workspace_id'])

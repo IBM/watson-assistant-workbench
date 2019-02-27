@@ -69,7 +69,10 @@ if __name__ == '__main__':
                         entityJSON = {}
                         entityJSON['entity'] = line
                         entityJSON['values'] = []
-                        entitiesJSON.append(entityJSON)
+                        if entityJSON not in entitiesJSON: #we do not want system entities duplicated, e.g., when composing more projects together
+                            entitiesJSON.append(entityJSON)
+                        else:
+                            printf("Skipping duplicated '%s' system entity.\n", line)
 
             # other entities
             else:

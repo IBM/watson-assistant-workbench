@@ -24,6 +24,35 @@ stopIfFailed()
 }
 
 echo "--------------------------------------------------------------------------------";
+echo "-- Testing conversion from JSON to XML and back again";
+echo "--------------------------------------------------------------------------------";
+
+mkdir -p outputs/test_dialog
+
+for i in 1 2 3
+do
+    echo "--------------------------------------------------------------------------------";
+    echo "-- Test-dialog $i from JSON to XML";
+    echo "--------------------------------------------------------------------------------";
+    python scripts/dialog_json2xml.py tests/test_data/dialog_$i.json  > outputs/test_dialog/dialog_$i.xml
+    stopIfFailed $?;
+
+    echo "--------------------------------------------------------------------------------";
+    echo "-- Test-dialog $i from XML to JSON";
+    echo "--------------------------------------------------------------------------------";
+    python scripts/dialog_xml2json.py -dm outputs/test_dialog/dialog_$i.xml -of outputs/test_dialog -od dialog_$i.json -s ../data_spec/dialog_schema.xml -c "tests/data/build.cfg";
+    stopIfFailed $?;
+
+    echo "--------------------------------------------------------------------------------";
+    echo "-- Compare test-dialog $i";
+    echo "--------------------------------------------------------------------------------";
+    python scripts/compare_dialogs.py tests/test_data/dialog_$i.json outputs/test_dialog/dialog_$i.json -v;
+    stopIfFailed $?;
+done
+
+./ci/artifactory-deploy.sh "outputs/test_dialog/*";
+
+echo "--------------------------------------------------------------------------------";
 echo "-- Dialog, intents from XLS to XML, CSV";
 echo "--------------------------------------------------------------------------------";
 mkdir -p tests/data/dialog/g_dialogs;

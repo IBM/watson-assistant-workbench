@@ -22,8 +22,8 @@ limitations under the License.
 
   The second pass: (processing all files together)
        - populating DialogData by Intent definitions (IntentData), Node definitions (NodeData) and entity definitions (EntityData).
-       - populating node_names and mapping label-nodeName  
-  The third pass:  Generating XML, CSV  - XML per original document - this is done in XMLHandler 
+       - populating node_names and mapping label-nodeName
+  The third pass:  Generating XML, CSV  - XML per original document - this is done in XMLHandler
        - generate jump-to based on label map
 
   Rational: what are the dependences
@@ -60,6 +60,7 @@ class XLSXHandler(object):
         self._blocks.append(dataBlock)
 
     def getDialogData(self):
+        """ Return DialogData. This map is global across all processed Excel source files. """
         return self._dialogData
 
     def parseXLSXIntoDataBlocks(self, filename):

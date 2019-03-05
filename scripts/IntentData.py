@@ -28,4 +28,3 @@ class IntentData(object):
 
     def getExamples(self):
         return self._examples
-

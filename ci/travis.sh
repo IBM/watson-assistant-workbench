@@ -62,16 +62,33 @@ done
 echo "--------------------------------------------------------------------------------";
 echo "-- Dialog, intents from XLS to XML, CSV";
 echo "--------------------------------------------------------------------------------";
-mkdir -p tests/data/dialog/g_dialogs;
-python scripts/dialog_xls2xml.py -x tests/data/xls/E_EN_master.xlsx -gd tests/data/dialog/g_dialogs -gi "tests/data/intents" -ge "tests/data/entities" -v;
+mkdir -p "tests/data/dialog/g_dialogs";
+python scripts/dialog_xls2xml.py -x "tests/data/xls/E_EN_master.xlsx" -gd "tests/data/dialog/g_dialogs" -gi "tests/data/intents" -ge "tests/data/entities" -v;
 stopIfFailed $?;
-python scripts/dialog_xls2xml.py -x tests/data/xls/E_EN_tests.xlsx -gd tests/data/dialog/g_dialogs -gi "tests/data/intents" -ge "tests/data/entities" -v;
+python scripts/dialog_xls2xml.py -x "tests/data/xls/E_EN_tests.xlsx" -gd "tests/data/dialog/g_dialogs" -gi "tests/data/intents" -ge "tests/data/entities" -v;
 stopIfFailed $?;
-python scripts/dialog_xls2xml.py -x tests/data/xls/E_EN_T2C_authoring.xlsx -gd tests/data/dialog/g_dialogs -gi "tests/data/intents" -ge "tests/data/entities" -v;
+python scripts/dialog_xls2xml.py -x "tests/data/xls/E_EN_T2C_authoring.xlsx" -gd "tests/data/dialog/g_dialogs" -gi "tests/data/intents" -ge "tests/data/entities" -v;
 stopIfFailed $?;
-python scripts/dialog_xls2xml.py -x tests/data/xls/E_CZ_T2C_authoring.xlsx -gd tests/data/dialog/g_dialogs -gi "tests/data/intents" -ge "tests/data/entities" -v;
+python scripts/dialog_xls2xml.py -x "tests/data/xls/E_CZ_T2C_authoring.xlsx" -gd "tests/data/dialog/g_dialogs" -gi "tests/data/intents" -ge "tests/data/entities" -v;
+stopIfFailed $?;
+python scripts/dialog_xls2xml.py -x "tests/data/xls/cond_x_test.xlsx" -gd "tests/data/dialog/g_dialogs" -gi "tests/data/intents" -ge "tests/data/entities" -v;
 stopIfFailed $?;
 ./ci/artifactory-deploy.sh "tests/data/dialog/g_dialogs/*";
+
+echo "--------------------------------------------------------------------------------";
+echo "-- Testing entities in T2C (@entity:(<x>) blocks)";
+echo "--------------------------------------------------------------------------------";
+
+echo "TEST @entity:(<x>) blocks"
+grep "\#CO_JE.*@PREDMET:(Z.vada)" "tests/data/dialog/g_dialogs/cond_x_test.xml"
+stopIfFailed $?;
+grep "\#CO_JE.*@PREDMET:(V.stra.n. stav)" "tests/data/dialog/g_dialogs/cond_x_test.xml"
+stopIfFailed $?;
+grep "\#CO_JE.*@PREDMET:(Vyrovn.vac. trh)" "tests/data/dialog/g_dialogs/cond_x_test.xml"
+stopIfFailed $?;
+echo "TEST buttons in @entity:(<x>) blocks"
+grep "\#CO_JE.*@PREDMET:(Buttons do not belong here)" "tests/data/dialog/g_dialogs/cond_x_test.xml"
+stopIfFailed $?;
 
 echo "--------------------------------------------------------------------------------";
 echo "-- Dialog from XML to JSON";

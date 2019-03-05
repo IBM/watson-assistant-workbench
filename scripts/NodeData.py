@@ -89,18 +89,23 @@ class NodeData(object):
         return self._foldables
 
     def addRawOutput(self, rawOutputs, labelsMap):
-        """ Read the raw output and store all data from it - 
+        """ Read the raw output and store all data from it -
             channel outputs, context variables and jumpto definitions. """
         self._rawOutputs.append(rawOutputs)
-        if not isinstance(rawOutputs, tuple) or len(rawOutputs) < 1:
+        if not isinstance(rawOutputs, tuple) or sum([1 if x else 0 for x in rawOutputs]) == 0:
+        # @marek-danel: This checks for an empty output. Changed from length to scan
+        # of all items in array. An empty output can also be an array of 3 Nones.
             eprintf('Warning: rawOutput does not contain any data: %s\n', rawOutputs)
 
-        if len(rawOutputs) >= 1 and (isinstance(rawOutputs[0], (str, unicode))):
+        if len(rawOutputs) >= 1 and isinstance(rawOutputs[0], (str, unicode)):
             items = re.split('%%', rawOutputs[0])
             self.__handleChannelDefinition('1'+items[0])
-            for item_i in range(1, len(items)):
-                item = items[item_i]
+            for item in items[1:]:
                 if not item: continue
+                # @marek-danel: Original behavior: process 'B', '$' modifiers
+                # for all chunks separated by %%. New behavior: process them
+                # only for second and later chunks. Original behavior caused
+                # simple text outputs that begin with B to not appear in the result xml file.
                 if item.startswith(u'$'):
                     self.__handleVariableDefinition(item[1:])
                 elif item.startswith(u'B'):

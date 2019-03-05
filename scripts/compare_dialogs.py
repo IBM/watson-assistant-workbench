@@ -37,11 +37,11 @@ if __name__ == '__main__':
     outputpath = args.outputDialogFileName
 
     if not os.path.isfile(inputpath):
-        eprintf("ERROR: Input dialog json '%s' does not exist.", inputpath)
+        eprintf("ERROR: Input dialog json '%s' does not exist.\n", inputpath)
         exit(1)
 
     if not os.path.isfile(outputpath):
-        eprintf("ERROR: Output dialog json '%s' does not exist.", outputpath)
+        eprintf("ERROR: Output dialog json '%s' does not exist.\n", outputpath)
         exit(1)
 
     with open(inputpath) as f:
@@ -65,11 +65,11 @@ if __name__ == '__main__':
 
     result = json.dumps(DeepDiff(dialogInputDict,dialogOutputDict), indent=4)
     if VERBOSE:
-        printf("result: %s", result)
+        printf("result: %s\n", result)
 
     if result == '{}':
-        printf('Dialog JSONs are same.')
+        printf("Dialog JSONs are same.\n")
         exit(0)
     else:
-        printf('Dialog JSONs differ.')
+        printf("Dialog JSONs differ.\n")
         exit(1)

@@ -211,6 +211,26 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
     return uEntityNameUser.encode('utf-8')
 
 def getFilesAtPath(pathList, patterns=['*']):
+    """
+    Obtains list of files (filtered by patterns) that are present in specified paths.
+
+    This function processes paths supplied in first parameters. If the path is regular file then this file is addded
+    to output list if matches one of supplied patterns. If path is directory then all files files from this directory
+    (even these in subdirectories) are taken if they match one of supplied patterns.
+
+    Parameters
+    ----------
+    pathList : list
+        List of paths that will be searched
+    patterns : list
+        List of file patterns, each file in output list must match at least to one these pattern; i.e. this pattern list
+        behaves like there is OR operator between patterns; patters supported only "*" and "?" as wildcard symbols
+
+    Returns
+    -------
+    list
+        List of file paths (in absloute form) found in specified paths and matching to specified patterns
+    """
     filesAtPath = []
     for pathItem in pathList:
         # is it a directory? - take all files in it
@@ -226,12 +246,17 @@ def getFilesAtPath(pathList, patterns=['*']):
     return filesAtPath
 
 def absoluteFilePaths(directory, patterns=['*']):
+    """
+    Returns generator which yields all files in specified directory (and subdirectories) that match
+    one of the patterns.
+    """
     for dirpath,_,filenames in os.walk(directory):
         for f in filenames:
             if _fileMatchesPatterns(f, patterns):
                 yield os.path.abspath(os.path.join(dirpath, f))
            
 def _fileMatchesPatterns(filename, patterns):
+    """Helper function which checks if file matches one the patterns."""
     for pattern in patterns:
         if fnmatch.fnmatchcase(filename, pattern):
             return True

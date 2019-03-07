@@ -212,31 +212,33 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
 
 def getFilesAtPath(pathList, patterns=['*']):
     """
-    Obtains list of files (filtered by patterns) that are present in specified paths.
+    Obtains list of absolute file paths (while filenames are filtered by patterns) that are present in specified paths.
 
     This function processes paths supplied in first parameters. If the path is regular file then this file is addded
-    to output list if matches one of supplied patterns. If path is directory then all files files from this directory
-    (even these in subdirectories) are taken if they match one of supplied patterns.
+    to output list if matches one of supplied patterns. If path is directory then all files from this directory
+    (even the files contained in subdirectories) are taken (but for every file is checked if it matches one of
+    supplied patterns). Note that the patterns are applied on the filenames only!
 
     Parameters
     ----------
     pathList : list
-        List of paths that will be searched
+        List of paths that will be searched (each item can be either regular file or directory)
     patterns : list
-        List of file patterns, each file in output list must match at least to one these pattern; i.e. this pattern list
-        behaves like there is OR operator between patterns; patters supported only "*" and "?" as wildcard symbols
+        List of file patterns, each file name in output list must match at least to one these pattern;
+        i.e. this pattern list behaves like there is OR operator between patterns;
+        patterns format is described here https://docs.python.org/2.7/library/fnmatch.html
 
     Returns
     -------
     list
-        List of file paths (in absloute form) found in specified paths and matching to specified patterns
+        List of file paths (in absolute form) found in specified paths and matching to specified patterns
     """
     filesAtPath = []
     for pathItem in pathList:
-        # is it a directory? - take all files in it
+        # is it a directory? - take all files in it (if they match one of the patterns)
         if os.path.isdir(pathItem):
             filesAtPath.extend(absoluteFilePaths(pathItem, patterns))
-        # is it a file? - take it
+        # is it a file? - take it (if it matches one of the patterns)
         elif os.path.exists(pathItem):
             if _fileMatchesPatterns(os.path.basename(pathItem), patterns):
                 filesAtPath.append(os.path.abspath(pathItem))

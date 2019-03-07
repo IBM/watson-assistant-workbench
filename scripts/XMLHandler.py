@@ -63,7 +63,6 @@ class XMLHandler(object):
             for channelName, channelValues in channels.iteritems():
                 if channelName == '1':
                     textValuesXml = XML.Element('textValues')
-
                     for item in channelValues:
                         textValuesXml.append(self._createXmlElement('values', item))
                         outputXml.append(textValuesXml)
@@ -72,25 +71,18 @@ class XMLHandler(object):
                 output = self._concatenateOutputs(channelValues)
                 if channelName == '2':
                     outputXml.append(self._createXmlElement('timeout', output))
-
                 elif channelName == '3':
                     outputXml.append(self._createXmlElement('sound', output))
-
                 elif channelName == '4':
                     outputXml.append(self._createXmlElement('tts', output))
-
                 elif channelName == '5':
                     outputXml.append(self._createXmlElement('talking_head', output))
-
                 elif channelName == '6':
                     outputXml.append(self._createXmlElement('paper_head', output))
-
                 elif channelName == '7':
                     outputXml.append(self._createXmlElement('graphics', output))
-
                 elif channelName == '8':
                     outputXml.append(self._createXmlElement('url', output))
-
                 else:
                     eprintf('WARNING: Unrecognized channel: %s, value: %s\n', channelName, output)
 

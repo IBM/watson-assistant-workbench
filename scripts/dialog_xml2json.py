@@ -263,7 +263,7 @@ def findAllNodeNames(tree):
     nodesWithNames = tree.xpath('//node[@name]')
     for nodeWithName in nodesWithNames:
         if nodeWithName.get('name') in names:
-            eprintf('ERROR: Duplicit node name found: %s\n', nodeWithName.get('name'))
+            eprintf("ERROR: Duplicit node name found: '%s'\n", nodeWithName.get('name'))
             exit(1)
         else:
             names.append(nodeWithName.get('name'))

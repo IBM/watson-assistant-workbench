@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys, re, codecs, os
+import sys, re, codecs, os, fnmatch
 import unicodedata, unidecode, requests
 import lxml.etree as Xml
 
@@ -210,24 +210,59 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
         exit(1)
     return uEntityNameUser.encode('utf-8')
 
-def getFilesAtPath(pathList):
+def getFilesAtPath(pathList, patterns=['*']):
+    """
+    Obtains list of absolute file paths (while filenames are filtered by patterns) that are present in specified paths.
+
+    This function processes paths supplied in first parameters. If the path is regular file then this file is addded
+    to output list if matches one of supplied patterns. If path is directory then all files from this directory
+    (even the files contained in subdirectories) are taken (but for every file is checked if it matches one of
+    supplied patterns). Note that the patterns are applied on the filenames only!
+
+    Parameters
+    ----------
+    pathList : list
+        List of paths that will be searched (each item can be either regular file or directory)
+    patterns : list
+        List of file patterns, each file name in output list must match at least to one these pattern;
+        i.e. this pattern list behaves like there is OR operator between patterns;
+        patterns format is described here https://docs.python.org/2.7/library/fnmatch.html
+
+    Returns
+    -------
+    list
+        List of file paths (in absolute form) found in specified paths and matching to specified patterns
+    """
     filesAtPath = []
     for pathItem in pathList:
-        # is it a directory? - take all files in it
+        # is it a directory? - take all files in it (if they match one of the patterns)
         if os.path.isdir(pathItem):
-            filesAtPath.extend(absoluteFilePaths(pathItem))
-        # is it a file? - take it
+            filesAtPath.extend(absoluteFilePaths(pathItem, patterns))
+        # is it a file? - take it (if it matches one of the patterns)
         elif os.path.exists(pathItem):
-            filesAtPath.append(os.path.abspath(pathItem))
+            if _fileMatchesPatterns(os.path.basename(pathItem), patterns):
+                filesAtPath.append(os.path.abspath(pathItem))
         # is it NONE? - ignore it
         else:
             pass
     return filesAtPath
 
-def absoluteFilePaths(directory):
-   for dirpath,_,filenames in os.walk(directory):
-       for f in filenames:
-           yield os.path.abspath(os.path.join(dirpath, f))
+def absoluteFilePaths(directory, patterns=['*']):
+    """
+    Returns generator which yields all files in specified directory (and subdirectories) that match
+    one of the patterns.
+    """
+    for dirpath,_,filenames in os.walk(directory):
+        for f in filenames:
+            if _fileMatchesPatterns(f, patterns):
+                yield os.path.abspath(os.path.join(dirpath, f))
+           
+def _fileMatchesPatterns(filename, patterns):
+    """Helper function which checks if file matches one the patterns."""
+    for pattern in patterns:
+        if fnmatch.fnmatchcase(filename, pattern):
+            return True
+    return False
 
 def getWorkspaceId(config, workspacesUrl, version, username, password):
     if hasattr(config, 'conversation_workspace_id') and getattr(config, 'conversation_workspace_id'):

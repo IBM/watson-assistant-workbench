@@ -1,0 +1,16 @@
+{
+    "keyAdiff": null,
+    "keyB": "valueB",
+    "keyC": {
+        "keyCA": null,
+        "keyCB": "valueCB",
+        "keyCC": {},
+        "keyCD": []
+    },
+    "keyD": [
+        null,
+        "valueD",
+        {},
+        []
+    ]
+}

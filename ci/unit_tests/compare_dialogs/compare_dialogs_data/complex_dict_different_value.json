@@ -1,6 +1,6 @@
 {
-    "keyAdiff": null,
-    "keyB": "valueB",
+    "keyA": null,
+    "keyB": "valueBdiff",
     "keyC": {
         "keyCA": null,
         "keyCB": "valueCB",

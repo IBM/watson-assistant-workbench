@@ -126,6 +126,20 @@ mkdir -p example/en_app/outputs/dialog
 python scripts/dialog_json2xml.py example/en_app/outputs/dialogNew.json -d example/en_app/outputs/dialog/ -v
 ```
 
+## Add additional json to the workspace dialog_nodes part
+The `workspace_addjson.py` script takes the workspace as the -w parameter, directory with the workspace as the -d parameter, JSON file to be added as the -j parameter, and the target key as the -t parameter. The script finds all occurrences of the target key in the workspace["dialog_nodes"] and adds the JSON file there.
+
+```
+python scripts/workspace_addjson.py -w workspace.json -d ./outputs/ -j complex_context_object.json -t my_context_data_object
+```
+
+It can be also used in the update_all.py script. The `[includejsondata]` section has to be added to the common.cfg where the JSON file and the target key are defined as follows (the workspace is the one defined in the `[outputs]` section):
+```
+[includejsondata]
+jsonfile = complex_context_object.json
+targetkey = my_context_data_object
+```
+
 ## Update all
 Cleans folders for generated and output files, converts dialogs from T2C and WAW xml format and intents and entities from csv format to WCS .json workspace and deploys it to the Watson Conversation Service (Cleans folders specified in config files as "outputs" and "generated" and runs all scripts from `dialog_xls2xml.py` to `workspace_deploy.py`)
 

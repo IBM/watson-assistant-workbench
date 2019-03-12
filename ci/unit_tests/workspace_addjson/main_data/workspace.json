@@ -1,0 +1,59 @@
+{
+    "stuff": [
+        {
+            "parent": "CONTROL_NO",
+            "examples": [
+
+                {
+                    "text": "you got that wrong."
+                }
+            ]
+        }
+    ],
+    "dialog_nodes": [
+        {
+            "conditions": " now().before('12:00:00')",
+            "dialog_node": "node_7",
+            "type": "parent",
+            "parent": "WELCOME",
+            "output": {
+                "text": [
+                    "Good morning. $welcome_msg",
+                    "$capabilities_msg"
+                ],
+                "emtpyarray": [],
+                "empydictionary": {},
+                "number": 1,
+                "bool": false,
+                "null": null
+            }
+        },
+        {
+            "parent": "WELCOME",
+            "conditions": " now().after('12:00:00')",
+            "dialog_node": "node_8",
+            "previous_sibling": "node_7",
+            "output": {
+                "parent": [
+                    "Good afternoon. $welcome_msg",
+                    "$capabilities_msg"
+                ]
+            },
+            "emtpyarray": [],
+            "empydictionary": {},
+            "number": 1,
+            "bool": false,
+            "null": null,
+            "type": "response_condition"
+        },
+        {
+            "dialog_node": "musicPlayingSong",
+            "conditions": "$as:as-musicPlayingSong"
+        },
+        {
+            "previous_sibling": "musicPlayingSong",
+            "dialog_node": "musicPlayingAlbum",
+            "conditions": "$as:as-musicPlayingAlbum"
+        }
+    ]
+}

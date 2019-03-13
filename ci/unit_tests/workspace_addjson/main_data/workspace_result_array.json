@@ -1,0 +1,97 @@
+{
+    "dialog_nodes": [
+        {
+            "dialog_node": "node_7", 
+            "output": {
+                "text": [
+                    "Good morning. $welcome_msg", 
+                    "$capabilities_msg"
+                ], 
+                "number": 1, 
+                "bool": false, 
+                "empydictionary": {}, 
+                "emtpyarray": [], 
+                "null": null
+            }, 
+            "conditions": " now().before('12:00:00')", 
+            "parent": [
+                {
+                    "example data": [
+                        {
+                            "first item": 7, 
+                            "second item": 9
+                        }, 
+                        {
+                            "first item": 890, 
+                            "second item": 1298793
+                        }
+                    ], 
+                    "something_more": false
+                }
+            ], 
+            "type": "parent"
+        }, 
+        {
+            "null": null, 
+            "parent": [
+                {
+                    "example data": [
+                        {
+                            "first item": 7, 
+                            "second item": 9
+                        }, 
+                        {
+                            "first item": 890, 
+                            "second item": 1298793
+                        }
+                    ], 
+                    "something_more": false
+                }
+            ], 
+            "type": "response_condition", 
+            "dialog_node": "node_8", 
+            "number": 1, 
+            "previous_sibling": "node_7", 
+            "empydictionary": {}, 
+            "output": {
+                "parent": [
+                    {
+                        "example data": [
+                            {
+                                "first item": 7, 
+                                "second item": 9
+                            }, 
+                            {
+                                "first item": 890, 
+                                "second item": 1298793
+                            }
+                        ], 
+                        "something_more": false
+                    }
+                ]
+            }, 
+            "emtpyarray": [], 
+            "bool": false, 
+            "conditions": " now().after('12:00:00')"
+        }, 
+        {
+            "conditions": "$as:as-musicPlayingSong", 
+            "dialog_node": "musicPlayingSong"
+        }, 
+        {
+            "dialog_node": "musicPlayingAlbum", 
+            "conditions": "$as:as-musicPlayingAlbum", 
+            "previous_sibling": "musicPlayingSong"
+        }
+    ], 
+    "stuff": [
+        {
+            "examples": [
+                {
+                    "text": "you got that wrong."
+                }
+            ], 
+            "parent": "CONTROL_NO"
+        }
+    ]
+}

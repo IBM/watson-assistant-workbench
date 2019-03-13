@@ -70,6 +70,7 @@ class DialogData(object):
         else:
             printf('INFO: Entity of given name already exists. entity_name=\n', entity_name)
             return None
+
     def getAllEntities(self):
         return self._entities
 

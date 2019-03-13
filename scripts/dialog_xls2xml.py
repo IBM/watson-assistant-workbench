@@ -55,7 +55,7 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
         print('Created new directory ' + getattr(config, 'common_generated_entities')[0])
     # One file per entity
     for entity_name, entityData in dialogData.getAllEntities().items():
-        with openFile(os.path.join(getattr(config, 'common_generated_entities')[0], entity_name+ '.csv'), 'w') as entityFile:
+        with openFile(os.path.join(getattr(config, 'common_generated_entities')[0], entity_name + '.csv'), 'w') as entityFile:
             for entityList in entityData.getValues():
                 entityFile.write(entityList + '\n')
 

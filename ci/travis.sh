@@ -13,7 +13,7 @@
 # export TRAVIS_PULL_REQUEST=
 # export TRAVIS_EVENT_TYPE=
 
-stopIfFailed() 
+stopIfFailed()
 {
     if [ "$1" -ne "0" ]; then
         echo "--------------------------------------------------------------------------------";
@@ -24,18 +24,71 @@ stopIfFailed()
 }
 
 echo "--------------------------------------------------------------------------------";
+echo "-- Unit Testing";
+echo "--------------------------------------------------------------------------------";
+
+PYTHONPATH=./scripts:$PYTHONPATH pytest ci/unit_tests
+stopIfFailed $?;
+
+echo "--------------------------------------------------------------------------------";
+echo "-- Testing conversion from JSON to XML and back again";
+echo "--------------------------------------------------------------------------------";
+
+mkdir -p outputs/test_dialog
+
+for i in 1 2 3
+do
+    echo "--------------------------------------------------------------------------------";
+    echo "-- Test-dialog $i from JSON to XML";
+    echo "--------------------------------------------------------------------------------";
+    python scripts/dialog_json2xml.py tests/test_data/dialog_$i.json  > outputs/test_dialog/dialog_$i.xml
+    stopIfFailed $?;
+
+    echo "--------------------------------------------------------------------------------";
+    echo "-- Test-dialog $i from XML to JSON";
+    echo "--------------------------------------------------------------------------------";
+    python scripts/dialog_xml2json.py -dm outputs/test_dialog/dialog_$i.xml -of outputs/test_dialog -od dialog_$i.json -s ../data_spec/dialog_schema.xml -c "tests/data/build.cfg";
+    stopIfFailed $?;
+
+    echo "--------------------------------------------------------------------------------";
+    echo "-- Compare test-dialog $i";
+    echo "--------------------------------------------------------------------------------";
+    python scripts/compare_dialogs.py tests/test_data/dialog_$i.json outputs/test_dialog/dialog_$i.json -v;
+    stopIfFailed $?;
+done
+
+./ci/artifactory-deploy.sh "outputs/test_dialog/*";
+
+echo "--------------------------------------------------------------------------------";
 echo "-- Dialog, intents from XLS to XML, CSV";
 echo "--------------------------------------------------------------------------------";
-mkdir -p tests/data/dialog/g_dialogs;
-python scripts/dialog_xls2xml.py -x tests/data/xls/E_EN_master.xlsx -gd tests/data/dialog/g_dialogs -gi "tests/data/intents" -ge "tests/data/entities" -v;
+mkdir -p "tests/data/dialog/g_dialogs";
+python scripts/dialog_xls2xml.py -x "tests/data/xls/E_EN_master.xlsx" -gd "tests/data/dialog/g_dialogs" -gi "tests/data/intents" -ge "tests/data/entities" -v;
 stopIfFailed $?;
-python scripts/dialog_xls2xml.py -x tests/data/xls/E_EN_tests.xlsx -gd tests/data/dialog/g_dialogs -gi "tests/data/intents" -ge "tests/data/entities" -v;
+python scripts/dialog_xls2xml.py -x "tests/data/xls/E_EN_tests.xlsx" -gd "tests/data/dialog/g_dialogs" -gi "tests/data/intents" -ge "tests/data/entities" -v;
 stopIfFailed $?;
-python scripts/dialog_xls2xml.py -x tests/data/xls/E_EN_T2C_authoring.xlsx -gd tests/data/dialog/g_dialogs -gi "tests/data/intents" -ge "tests/data/entities" -v;
+python scripts/dialog_xls2xml.py -x "tests/data/xls/E_EN_T2C_authoring.xlsx" -gd "tests/data/dialog/g_dialogs" -gi "tests/data/intents" -ge "tests/data/entities" -v;
 stopIfFailed $?;
-python scripts/dialog_xls2xml.py -x tests/data/xls/E_CZ_T2C_authoring.xlsx -gd tests/data/dialog/g_dialogs -gi "tests/data/intents" -ge "tests/data/entities" -v;
+python scripts/dialog_xls2xml.py -x "tests/data/xls/E_CZ_T2C_authoring.xlsx" -gd "tests/data/dialog/g_dialogs" -gi "tests/data/intents" -ge "tests/data/entities" -v;
+stopIfFailed $?;
+python scripts/dialog_xls2xml.py -x "tests/data/xls/cond_x_test.xlsx" -gd "tests/data/dialog/g_dialogs" -gi "tests/data/intents" -ge "tests/data/entities" -v;
 stopIfFailed $?;
 ./ci/artifactory-deploy.sh "tests/data/dialog/g_dialogs/*";
+
+echo "--------------------------------------------------------------------------------";
+echo "-- Testing entities in T2C (@entity:(<x>) blocks)";
+echo "--------------------------------------------------------------------------------";
+
+echo "TEST @entity:(<x>) blocks"
+grep "\#CO_JE.*@PREDMET:(Z.vada)" "tests/data/dialog/g_dialogs/cond_x_test.xml"
+stopIfFailed $?;
+grep "\#CO_JE.*@PREDMET:(V.stra.n. stav)" "tests/data/dialog/g_dialogs/cond_x_test.xml"
+stopIfFailed $?;
+grep "\#CO_JE.*@PREDMET:(Vyrovn.vac. trh)" "tests/data/dialog/g_dialogs/cond_x_test.xml"
+stopIfFailed $?;
+echo "TEST buttons in @entity:(<x>) blocks"
+grep "\#CO_JE.*@PREDMET:(Buttons do not belong here)" "tests/data/dialog/g_dialogs/cond_x_test.xml"
+stopIfFailed $?;
 
 echo "--------------------------------------------------------------------------------";
 echo "-- Dialog from XML to JSON";
@@ -116,7 +169,7 @@ echo "username = ${WA_USERNAME}" >> tests/tmp.cfg;
 echo "password = ${WA_PASSWORD}" >> tests/tmp.cfg;
 echo "workspace_id = ${WA_WORKSPACE_ID_TEST}" >> tests/tmp.cfg;
 mkdir -p outputs/dialog
-python scripts/workspace_test.py tests/tmp.cfg tests/test_more_outputs.test outputs/test_more_outputs.out -v
+python scripts/workspace_test.py tests/test_more_outputs.test outputs/test_more_outputs.out -c tests/tmp.cfg -v
 stopIfFailed $?;
 ./ci/artifactory-deploy.sh outputs/test_more_outputs.out
 rm -f tests/tmp.cfg;

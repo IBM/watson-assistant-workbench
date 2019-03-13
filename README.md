@@ -15,7 +15,7 @@ It aims at
 It contains a bundle of tools for generating WA workspace from the structure data (and viceversa), testing and uploading (working with the WCS API).
 
 Currently supported conversation version is 2017-02-03 except:
-- Fuzzy matching, Folders, Digression and Pattern defined entities are not supported.
+- Fuzzy matching, Folders and Digression are not supported.
 - A name of a dialog node still has to be unique as it is used as node ID.
 - Missing "slot_in_focus" property.
 - Slots are not supported in json to xml conversion scripts.
@@ -29,3 +29,12 @@ For brief summary how to run scripts please see [scripts.md](/scripts.md).
 Description of T2C  and xml/csv WAW formats can be found in `doc` folder.
 
 Release notes can be found in [release_notes.md](/release_notes.md).
+
+If you want to run unit tests locally, you first need to install development dependencies from [requirements_dev.txt](/requirements_dev.txt). You can run
+```
+pip install -r requirements_dev.txt
+```
+The unit tests can be started with this command (from top directory of this repository)
+```
+PYTHONPATH=./scripts:$PYTHONPATH pytest ci/unit_tests
+```

@@ -29,7 +29,7 @@
     </node>
     <node name="ALL_ABOUT_ME_WHAT_IS_YOUR_NAME_">
         <condition>#ALL_ABOUT_ME_WHAT_IS_YOUR_NAME_</condition>
-        <output>
+        <output structure="emptyDict">
             <response>
                 <condition>$botName</condition>
                 <output>

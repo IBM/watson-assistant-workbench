@@ -29,6 +29,7 @@ except NameError:
     unicode = str  # Python 3
 
 # CONSTANTS (care it is not real constant)
+DEFAULT_BEHAVIOR = 'jump_to'
 DEFAULT_SELECTOR = 'user_input'
 
 DEFAULT_REPEAT_ATTEMPTS = 3
@@ -191,7 +192,7 @@ def importNodes(root, config):
         importTree = LET.parse(os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*importPath))
         importText(importTree, config)
         replace_config_variables(importTree)
-        
+
         if schema is not None:
             validate(importTree)
 
@@ -217,7 +218,7 @@ def importNodes(root, config):
             else:
                 # INSERT NODE
 
-                #eprintf('    Appending node: %s\n', importChild) 
+                #eprintf('    Appending node: %s\n', importChild)
             """
             root.insert(root.index(node) + childIndex, importChild)
             childIndex += 1
@@ -262,7 +263,7 @@ def findAllNodeNames(tree):
     nodesWithNames = tree.xpath('//node[@name]')
     for nodeWithName in nodesWithNames:
         if nodeWithName.get('name') in names:
-            eprintf('ERROR: Duplicit node name found: %s\n', nodeWithName.get('name'))
+            eprintf("ERROR: Duplicit node name found: '%s'\n", nodeWithName.get('name'))
             exit(1)
         else:
             names.append(nodeWithName.get('name'))
@@ -534,7 +535,7 @@ def generateRepeatNodes(root, parent, settings):
     maxAttempts = int(settings.find('attempts').text) if settings is not None and settings.find('attempts') is not None else DEFAULT_REPEAT_ATTEMPTS
     if VERBOSE: eprintf('maxAttempts: %s\n', maxAttempts)
     # output sentences
-    outputs = settings.find('outputs').findall('output') if settings.find('outputs') is not None and len(settings.find('outputs').findall('output')) > 0 else DEFAULT_REPEAT_MESS_TEMPLATES['default'] 
+    outputs = settings.find('outputs').findall('output') if settings.find('outputs') is not None and len(settings.find('outputs').findall('output')) > 0 else DEFAULT_REPEAT_MESS_TEMPLATES['default']
     if VERBOSE: eprintf('nOutputs: %s\n', len(outputs))
     # LAST NODE (RETURNING TO THE MAIN MENU)
     generateRepeatNode(parent, root, outputs[-1], maxAttempts-1, repeatVarName, 0, settings.find('goto'))
@@ -595,18 +596,33 @@ def printNodes(root, parent, dialogJSON):
             validateNodeName(nodeXML)
         nodeJSON = {'dialog_node':nodeXML.find('name').text}
         dialogJSON.append(nodeJSON)
+        if VERBOSE: printf("DEBUG: ===============================\nDEBUG: name %s\n", nodeXML.find('name').text)
 
         children = []
 
+        # TITLE
+        if nodeXML.get('title') is not None:
+            nodeJSON['title'] = nodeXML.get('title')
         # TYPE
         if nodeXML.find('type') is not None:
             nodeJSON['type'] = nodeXML.find('type').text
         elif nodeXML.find('slots') is not None:
             nodeJSON['type'] = "frame"
+        # disabled
+        if nodeXML.find('disabled') is not None:
+            if nodeXML.find('disabled').text in ["True", "true"]:
+                nodeJSON['disabled'] = True
+            elif nodeXML.find('disabled').text in ["False", "false"]:
+                nodeJSON['disabled'] = False
+            else:
+                nodeJSON['disabled'] = nodeXML.find('disabled').text
+                eprintf("ERROR: Unable to parse boolean " + nodeXML.find('disabled').text + "\n")
         # EVENTNAME
         if nodeXML.get('eventName') is not None:
             nodeJSON['event_name'] = nodeXML.get('eventName')
             nodeJSON['type'] = 'event_handler'
+        if nodeXML.find('event_name') is not None:
+            nodeJSON['event_name'] = nodeXML.find('event_name').text
         # VARIABLE
         if nodeXML.get('variable') is not None:
             nodeJSON['variable'] = nodeXML.get('variable')
@@ -615,7 +631,10 @@ def printNodes(root, parent, dialogJSON):
             nodeJSON['type'] = 'response_condition'
         # CONDITION
         if nodeXML.find('condition') is not None:
-            nodeJSON['conditions'] = nodeXML.find('condition').text
+            if nodeXML.find('condition').text is not None:
+                nodeJSON['conditions'] = nodeXML.find('condition').text
+            else:
+                nodeJSON['conditions'] = ""
         elif 'type' in nodeJSON:
             if nodeJSON['type'] == 'default':
                 nodeJSON['conditions'] = DEFAULT_CONDITION_ELSE
@@ -623,10 +642,8 @@ def printNodes(root, parent, dialogJSON):
                 nodeJSON['conditions'] = DEFAULT_CONDITION_YES
             elif nodeJSON['type'] == 'no':
                 nodeJSON['conditions'] = DEFAULT_CONDITION_NO
-            elif nodeJSON['type'] == 'slot' or nodeJSON['type'] == 'response_condition' or nodeJSON['type'] == 'event_handler':
-                None
-            else:
-                nodeJSON['conditions'] = DEFAULT_CONDITION_ELSE
+#            else:
+#                nodeJSON['conditions'] = DEFAULT_CONDITION_ELSE
         else:
             nodeJSON['conditions'] = DEFAULT_CONDITION_ELSE
         # OUTPUT
@@ -643,13 +660,25 @@ def printNodes(root, parent, dialogJSON):
                     outputNodeXML.append(outputNodeTextXML)
                     # TODO save againMessage
                 outputNodeXML.text = None
-            if outputNodeXML.find('textValues') is not None: #rename textValues element to text
+            if outputNodeXML.find('textValues') is not None:
                 outputNodeTextXML = outputNodeXML.find('textValues')
+                if outputNodeTextXML.get('structure') is not None:
+                    for outputNodeTextValueXML in outputNodeTextXML.findall('values'):
+                        outputNodeTextValueXML.attrib['structure'] = outputNodeTextXML.get('structure')
+                    outputNodeTextXML.attrib.pop('structure')
+                #rename textValues element to text
                 outputNodeTextXML.tag = 'text'
+
+            #if len(outputNodeXML.getchildren()) == 0: # remove empy output ("output": Null cannot be uploaded to WA)
+            #    nodeXML.remove(outputNodeXML)
+            #else:
             convertAll(nodeJSON, outputNodeXML)
         # CONTEXT
         if nodeXML.find('context') is not None:
-            convertAll(nodeJSON, nodeXML.find('context')) 
+            convertAll(nodeJSON, nodeXML.find('context'))
+        # METADATA
+        if nodeXML.find('metadata') is not None:
+            convertAll(nodeJSON, nodeXML.find('metadata'))
         # ACTIONS
         if nodeXML.find('actions') is not None:
             actionsXML = nodeXML.find('actions')
@@ -665,8 +694,9 @@ def printNodes(root, parent, dialogJSON):
             elif nodeXML.find('goto').find('target').text == '::FIRST_SIBLING':
                 nodeXML.find('goto').find('target').text = next(x for x in root if x.tag == 'node').find('name').text
             gotoJson = {'dialog_node':nodeXML.find('goto').find('target').text}
+            gotoJson['behavior'] = nodeXML.find('goto').find('behavior').text if nodeXML.find('goto').find('behavior') is not None else DEFAULT_BEHAVIOR
             gotoJson['selector'] = nodeXML.find('goto').find('selector').text if nodeXML.find('goto').find('selector') is not None else DEFAULT_SELECTOR
-            nodeJSON['go_to'] = gotoJson
+            nodeJSON['next_step'] = gotoJson
         # PARENT
         if parent is not None:
             nodeJSON['parent'] = parent.find('name').text
@@ -680,6 +710,10 @@ def printNodes(root, parent, dialogJSON):
             nodeJSON['digress_out'] = nodeXML.find('digress_out').text
         if nodeXML.find('digress_out_slots') is not None:
             nodeJSON['digress_out_slots'] = nodeXML.find('digress_out_slots').text
+
+        # TYPE DEFAULT
+        if not 'type' in nodeJSON:
+            nodeJSON['type'] = "standard"
 
         # CLOSE NODE
         previousSibling = nodeXML
@@ -713,21 +747,66 @@ def convertAll(upperNodeJson, nodeXml):
         nodeXml (Element): Parsed XML representation to be translated
     """
     key = nodeXml.tag #key is index/selector to upperNodeJson, it is either name (e.g. generic)
+    if VERBOSE: printf("DEBUG: tag '%s'\n", nodeXml.tag)
     if type(upperNodeJson) is list:  # or an index of the last element of the array
         key = len(upperNodeJson) - 1
-
-    if not list(nodeXml):
-        if nodeXml.text:  # if a single element with text - terminal (string, number or none)
-            if nodeXml.text.strip().lower() == 'null':
-                upperNodeJson[key] = None
-            elif nodeXml.get('type') is not None and nodeXml.get('type') == 'number':
-                upperNodeJson[key] = float(nodeXml.text)
-            else:
-                upperNodeJson[key] = unescape(nodeXml.text.strip())
-
-        else:
+    if VERBOSE: printf("DEBUG: key '%s'\n", str(key))
+    if nodeXml.get(XSI+'nil') is not None:
+        if nodeXml.get(XSI+'nil') in ["True", "true"]:
+            if VERBOSE: printf("DEBUG: Tag is None\n")
             upperNodeJson[key] = None
-    else:
+            return
+        elif nodeXml.text in ["False", "false"]:
+            pass
+        else:
+            eprintf("ERROR: Unable to parse boolean " + nodeXml.get(XSI+'nil') + "\n")
+
+    if not list(nodeXml): # it has no children (subtags) - it is a terminal
+        if VERBOSE: printf("DEBUG: Tag is terminal\n")
+        if VERBOSE: printf("DEBUG:  structure '%s'\n", str(nodeXml.get('structure')))
+        if nodeXml.get('structure') is not None:
+            if nodeXml.get('structure') == 'emptyList':
+#                if VERBOSE: printf("DEBUG: Tag is emptyList\n")
+                upperNodeJson[key] = []
+                return
+            elif nodeXml.get('structure') == 'emptyDict':
+#                if VERBOSE: printf("DEBUG: Tag is emptyDict\n")
+                upperNodeJson[key] = {}
+                return
+#            elif nodeXml.get('structure') == 'listItem' and nodeXml.text:
+#                upperNodeJson[key] = []
+#                if nodeXml.text:
+#                    upperNodeJson[key].append(nodeXml.text)
+#                return
+#        if nodeXml.text is None:
+#            upperNodeJson[key] = None
+# text cannot be none, just empty
+        if nodeXml.text:  # if a single element with text - terminal (string, number or none)
+            if VERBOSE: printf("DEBUG: Tag has text\n")
+            if nodeXml.get('type') is not None and nodeXml.get('type') == 'number':
+                try:
+                    upperNodeJson[key] = int(nodeXml.text)
+                except ValueError:
+                    try:
+                        upperNodeJson[key] = float(nodeXml.text)
+                    except ValueError:
+                        eprintf("ERROR: Unable to parse number '%s'\n", nodeXml.text)
+            elif nodeXml.get('type') is not None and nodeXml.get('type') == 'boolean':
+                if nodeXml.text in ["True", "true"]:
+                    upperNodeJson[key] = True
+                elif nodeXml.text in ["False", "false"]:
+                    upperNodeJson[key] = False
+                else:
+                    upperNodeJson[key] = nodeXml.text
+                    eprintf("ERROR: Unable to parse boolean " + nodeXml.text + "\n")
+            else:
+                if VERBOSE: printf("DEBUG: of type text\n")
+                upperNodeJson[key] = unescape(nodeXml.text.strip())
+                if VERBOSE: printf("DEBUG: adding '%s' to [%s]\n", unescape(nodeXml.text.strip()), str(key))
+        else:
+            upperNodeJson[key] = '' # empty string
+    else: # it has subtags
+        if VERBOSE: printf("DEBUG: Tag has subtags\n")
         #if there is an array of subelements within elemnt - separate elements of each tag value to a separate nodeNameMap field
         upperNodeJson[key] = {}
 
@@ -745,9 +824,12 @@ def convertAll(upperNodeJson, nodeXml):
             #if len(nodeNameMap[name]) == 1 and nodeNameMap[name][0].get('structure') != 'listItem' and name!='values':
             if len(nodeNameMap[name]) == 1 and nodeNameMap[name][0].get('structure') != 'listItem' :
                 convertAll(upperNodeJson[key], nodeNameMap[name][0])
+                if VERBOSE: printf("DEBUG: Subtag is tag\n")
             else:
                 upperNodeJson[key][name] = []
+                if VERBOSE: printf("DEBUG: Subtag is list\n")
                 for element in nodeNameMap[name]:
+                    if VERBOSE: printf("DEBUG: adding [%s][%s] element '%s'\n", str(key), name, str(element))
                     upperNodeJson[key][name].append(None)  # just to get index
                     convertAll(upperNodeJson[key][name], element)
 
@@ -771,6 +853,11 @@ if __name__ == '__main__':
     args = parser.parse_args(sys.argv[1:])
     config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
+
+    # XML namespaces
+    XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
+    XSI = "{%s}" % XSI_NAMESPACE
+    NSMAP = {"xsi" : XSI_NAMESPACE}
 
     if hasattr(config, 'cloudfunctions_namespace') and hasattr(config, 'cloudfunctions_package'):
         setattr(config, 'cloudfunctions_path_to_actions', '/' + '/'.join([getattr(config, 'cloudfunctions_namespace').strip("/"), getattr(config, 'cloudfunctions_package').strip("/")]).strip("/") + '/')
@@ -823,7 +910,7 @@ if __name__ == '__main__':
     if hasattr(config, 'common_outputs_directory') and hasattr(config, 'common_outputs_dialogs'):
         if not os.path.exists(getattr(config, 'common_outputs_directory')):
             os.makedirs(getattr(config, 'common_outputs_directory'))
-            print('Created new output directory ' + getattr(config, 'common_outputs_directory'))
+            printf("Created new output directory %s\n", getattr(config, 'common_outputs_directory'))
         with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'w', encoding='utf-8') as outputFile:
             outputFile.write(json.dumps(dialogNodes, indent=4, ensure_ascii=False))
         printf("File %s created\n", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')))

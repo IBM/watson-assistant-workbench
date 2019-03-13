@@ -50,7 +50,6 @@ if __name__ == '__main__':
     pathList = getattr(config, 'common_entities')
     if hasattr(config, 'common_generated_entities'):
         pathList = pathList + getattr(config, 'common_generated_entities')
-
     filesAtPath = getFilesAtPath(pathList)
     for entityFileName in sorted(filesAtPath):
 
@@ -69,7 +68,10 @@ if __name__ == '__main__':
                         entityJSON = {}
                         entityJSON['entity'] = line
                         entityJSON['values'] = []
-                        entitiesJSON.append(entityJSON)
+                        if entityJSON not in entitiesJSON: #we do not want system entities duplicated, e.g., when composing more projects together
+                            entitiesJSON.append(entityJSON)
+                        else:
+                            printf("Skipping duplicated '%s' system entity.\n", line)
 
             # other entities
             else:
@@ -90,6 +92,8 @@ if __name__ == '__main__':
                         [x.strip().lower() for x in rawSynonyms]
                         representativeValue = rawSynonyms[0]
                         synonyms = sorted(list(set(rawSynonyms[1:])))
+                        # remove value from synonyms, so that duplicity with value is not possible
+                        if representativeValue in synonyms: synonyms.remove(representativeValue)
                         valueJSON = {}
                         if representativeValue[0] in '~':
                             # all patterns are represented by the first value without first char (~)

@@ -83,7 +83,7 @@ def main(args):
     filesAtPath = getFilesAtPath(config.common_functions, ['*' + ext for ext in extToRuntime.keys()])
 
     for functionFileName in filesAtPath:
-        fname=os.path.basename(functionFileName)
+        fname = os.path.basename(functionFileName)
         nameAndExt = os.path.splitext(fname)
 
         function_url = 'https://openwhisk.ng.bluemix.net/api/v1/namespaces/' + config.cloudfunctions_namespace + '/actions/' + config.cloudfunctions_package + '/' + nameAndExt[0] + '?overwrite=true'

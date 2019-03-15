@@ -1,4 +1,4 @@
 
 function main(args) {
-    return {greeting: 'Hello ' + (args.name || 'world') + '!'};
+    return {greeting: 'Hello ' + (args.name || 'World') + '!'};
 }

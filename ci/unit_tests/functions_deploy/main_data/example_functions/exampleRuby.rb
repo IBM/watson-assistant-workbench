@@ -1,6 +1,6 @@
 
 def main(args)
-  name = args["name"] || "stranger"
+  name = args["name"] || "World"
   greeting = "Hello #{name}!"
   puts greeting
   { "greeting" => greeting }

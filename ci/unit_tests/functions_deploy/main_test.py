@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, os, requests, unittest, urllib, uuid
+import json, os, requests, shutil, tempfile, unittest, urllib, uuid, zipfile
 
 import functions_deploy
 from .. import unit_utils
@@ -51,6 +51,7 @@ class TestMain(unit_utils.BaseTestCaseCapture):
     def setUp(self):
         self.package = self.packageBase + str(uuid.uuid4())
         self.packageCreated = False # test should set that to true if it created package for cloud functions
+        self.dirsToDelete = [] # directories that will be deleted in tearDown method
 
     def tearDown(self):
         if self.packageCreated:
@@ -71,6 +72,9 @@ class TestMain(unit_utils.BaseTestCaseCapture):
             packageDelResp = requests.delete(packageDelUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
                                                                   os.environ['CLOUD_FUNCTIONS_PASSWORD']))
             assert packageDelResp.status_code == 200
+
+        for directory in self.dirsToDelete:
+            shutil.rmtree(directory)
 
 
     def test_functionsUploadFromDirectory(self):
@@ -132,6 +136,39 @@ class TestMain(unit_utils.BaseTestCaseCapture):
             assert functionResp.status_code == 200
             functionRespJson = functionResp.json()
             assert pythonVersion == functionRespJson['majorVersion']
+
+    def test_functionsInZip(self):
+        # prepare zip file
+        dirForZip = tempfile.mkdtemp()
+        self.dirsToDelete += [dirForZip]
+
+        with zipfile.ZipFile(os.path.join(dirForZip, 'testFunc.zip'), 'w') as functionsZip:
+            for fileToZip in os.listdir(os.path.join(self.dataBasePath, 'zip_functions')):
+                functionsZip.write(os.path.join(self.dataBasePath, 'zip_functions', fileToZip), fileToZip)
+
+        #upload zip file
+        params = ['--cloudfunctions_username', os.environ['CLOUD_FUNCTIONS_USERNAME'],
+                  '--cloudfunctions_password', os.environ['CLOUD_FUNCTIONS_PASSWORD'],
+                  '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
+                  '--common_functions', [dirForZip]]
+
+        functions_deploy.main(params)
+        self.packageCreated = True
+
+        # call function and check if sub-function from non-main file was called
+        functionCallUrl = 'https://us-south.functions.cloud.ibm.com/api/v1/namespaces/' + self.urlNamespace + \
+            '/actions/' + self.package + '/testFunc?blocking=true&result=true'
+
+        functionResp = requests.post(functionCallUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
+                                                            os.environ['CLOUD_FUNCTIONS_PASSWORD']),
+                                     headers={'Content-Type': 'application/json',
+                                              'accept': 'application/json'},
+                                     data="{}")
+
+        assert functionResp.status_code == 200
+        functionRespJson = functionResp.json()
+        assert "String from helper function" == functionRespJson['test']
+
 
     def test_badArgs(self):
         ''' Tests some basic common problems with args'''

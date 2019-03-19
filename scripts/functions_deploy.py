@@ -13,16 +13,42 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, json, sys, argparse, requests
+import os, json, sys, argparse, requests, zipfile, base64
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from cfgCommons import Cfg
 from wawCommons import printf, eprintf, getFilesAtPath, getRequiredParameter
 import urllib3
 
+interpretedRuntimes = {
+    '.js': 'nodejs',
+    '.py': 'python',
+    '.go': 'go',
+    '.php': 'php',
+    '.rb': 'ruby',
+    '.swift': 'swift'
+}
+
+compiledRuntimes = {
+# Not yet tested
+#    '.jar': 'java',
+#    '.zip': 'dotnet' # zip is special case
+}
+
+compressedFiles = ['.zip']
+
+zipContent = {
+    '__main__.py': 'python',
+# Not yet tested
+#    '.dll': 'dotnet',
+#    'package.json': 'nodejs',
+#    'main.rb': 'ruby',
+#    'index.php': 'php'
+}
 
 def main(args):
     printf("\nSTARTING: %s\n", os.path.basename(__file__))
-    parser = argparse.ArgumentParser(description="Deploys the cloud functions", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description="Deploys the cloud functions",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('-c', '--common_configFilePaths', help="configuaration file", action='append')
     parser.add_argument('--common_functions', required=False, help="directory where the cloud functions are located")
@@ -31,16 +57,7 @@ def main(args):
     parser.add_argument('--cloudfunctions_password', required=False, help="cloud functions password")
     parser.add_argument('--cloudfunctions_package', required=False, help="cloud functions package name")
 
-    extToRuntime = {
-        '.js': 'nodejs',
-        '.py': 'python',
-        '.go': 'go',
-        '.php': 'php',
-        '.rb': 'ruby',
-        '.swift': 'swift'
-    }
-
-    for runtime in extToRuntime.values():
+    for runtime in interpretedRuntimes.values() + compiledRuntimes.values():
         parser.add_argument('--cloudfunctions_' + runtime + '_version', required=False,
             help="cloud functions " + runtime + " version")
 
@@ -54,12 +71,15 @@ def main(args):
     package = getRequiredParameter(config, 'cloudfunctions_package')
     functionDir = getRequiredParameter(config, 'common_functions')
 
-    for ext, runtime in extToRuntime.items():
-        extToRuntime[ext] = runtime + ':' + getattr(config, 'cloudfunctions_' + runtime + '_version', 'default')
+    runtimeVersions = {}
+    for ext, runtime in interpretedRuntimes.items() + compiledRuntimes.items():
+        runtimeVersions[runtime] = runtime + ':' + getattr(config, 'cloudfunctions_' + runtime + '_version', 'default')
 
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-    package_url = 'https://openwhisk.ng.bluemix.net/api/v1/namespaces/' + namespace.replace('@', '%40') + '/packages/' + package + '?overwrite=true'
-    response = requests.put(package_url, auth=(username, password), headers={'Content-Type': 'application/json'}, data='{}')
+    packageUrl = 'https://openwhisk.ng.bluemix.net/api/v1/namespaces/' + namespace.replace('@', '%40') + \
+        '/packages/' + package + '?overwrite=true'
+    response = requests.put(packageUrl, auth=(username, password), headers={'Content-Type': 'application/json'},
+                            data='{}')
     responseJson = response.json()
     if 'error' in responseJson:
         eprintf("\nCannot create cloud functions package\nERROR: %s\n", responseJson['error'])
@@ -69,18 +89,46 @@ def main(args):
     else:
         printf("\nCloud functions package successfully uploaded\n")
 
-    filesAtPath = getFilesAtPath(functionDir, ['*' + ext for ext in extToRuntime.keys()])
 
-    for functionFileName in filesAtPath:
-        fname = os.path.basename(functionFileName)
-        nameAndExt = os.path.splitext(fname)
+    filesAtPath = getFilesAtPath(functionDir, ['*' + ext for ext in (interpretedRuntimes.keys() + \
+                                                                     compiledRuntimes.keys() + \
+                                                                     compressedFiles)])
 
-        function_url = 'https://openwhisk.ng.bluemix.net/api/v1/namespaces/' + namespace + '/actions/' + package + '/' + nameAndExt[0] + '?overwrite=true'
-        code = open(os.path.join(functionDir, functionFileName), 'r').read()
-        payload = {'exec': {'kind': extToRuntime[nameAndExt[1]], 'code': code}}
+    for functionFilePath in filesAtPath:
+        fileName = os.path.basename(functionFilePath)
+        (funcName, ext) = os.path.splitext(fileName)
 
-        response = requests.put(function_url, auth=(username, password),
-                                headers={'Content-Type': 'application/json'}, data=json.dumps(payload), verify=False)
+        runtime = None
+        binary = False
+        # if the file is zip, it's necessary to look inside
+        if ext == '.zip':
+            runtime = _getZipPackageType(functionFilePath)
+            if not runtime:
+                printf("WARNING: Cannot determine function type from zip file '%s'. Skipping!\n", parameterName)
+                continue
+            binary = True
+        else:
+            if ext in interpretedRuntimes:
+                runtime = interpretedRuntimes[ext]
+                binary = False
+            elif ext in compiledRuntimes:
+                runtime = compiledRuntimes[ext]
+                binary = True
+            else:
+                printf("WARNING: Cannot determine function type of '%s'. Skipping!\n", parameterName)
+                continue
+
+        functionUrl = 'https://openwhisk.ng.bluemix.net/api/v1/namespaces/' + namespace + '/actions/' + package + \
+            '/' + funcName + '?overwrite=true'
+
+        if binary:
+            content = base64.b64encode(open(os.path.join(functionDir, functionFilePath), 'rb').read())
+        else:
+            content = open(os.path.join(functionDir, functionFilePath), 'r').read()
+        payload = {'exec': {'kind': runtimeVersions[runtime], 'binary': binary, 'code': content}}
+
+        response = requests.put(functionUrl, auth=(username,password), headers={'Content-Type': 'application/json'},
+                                data=json.dumps(payload), verify=False)
         responseJson = response.json()
         if 'error' in responseJson:
             eprintf("Cannot create cloud function\nERROR: %s\n", responseJson['error'])
@@ -88,9 +136,17 @@ def main(args):
                 printf("%s", responseJson)
             sys.exit(1)
         else:
-            printf("Cloud functions %s successfully uploaded.\n", functionFileName)
+            printf("Cloud functions %s successfully uploaded.\n", functionFilePath)
 
     printf("\nFINISHING: %s\n", os.path.basename(__file__))
+
+def _getZipPackageType(zipFilePath):
+    with zipfile.ZipFile(zipFilePath, 'r') as functionsZip:
+        for zipMember in functionsZip.namelist():
+            for item in zipContent:
+                if zipMember.endswith(item):
+                    return zipContent[item]
+    return None
 
 if __name__ == '__main__':
     main(sys.argv[1:])

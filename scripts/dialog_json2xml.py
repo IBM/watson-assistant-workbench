@@ -348,19 +348,24 @@ def isNumber(s):
     except ValueError:
         return False
 
-if __name__ == '__main__':
+def main(argv):
     parser = argparse.ArgumentParser(description='Decompose Bluemix conversation service dialog in .json format to dialog files in .xml format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('dialog', nargs='?', type=argparse.FileType('r'), default=sys.stdin, help='file with dialog in .json format, if not specified, dialog is read from standard input')
     # optional arguments
     parser.add_argument('-d', '--dialogDir', required=False, help='directory with dialog files. If not specified, output is printed to standard output')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
 
+    global VERBOSE
+    global STDOUT
     VERBOSE = args.verbose
     STDOUT = not args.dialogDir
 
     # XML namespaces
+    global XSI_NAMESPACE
+    global XSI
+    global NSMAP
     XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
     XSI = "{%s}" % XSI_NAMESPACE
     NSMAP = {"xsi" : XSI_NAMESPACE}
@@ -380,3 +385,8 @@ if __name__ == '__main__':
     else:
         # print to standard output
         print(LET.tostring(dialogsXML, pretty_print=True, encoding='utf8'))
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
+
+

@@ -24,7 +24,7 @@ try:
 except NameError:
     unicode = str  # Python 3
 
-if __name__ == '__main__':
+def main(argv):
     print('STARTING: ' + os.path.basename(__file__) + '\n')
     parser = argparse.ArgumentParser(description='Deploys  workspace in json format to Watson Conversation Service.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-of', '--common_outputs_directory', required=False, help='directory where the otputs are stored')
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     parser.add_argument('-cid','--conversation_workspace_id', required=False, help='workspace_id of the application. If a workspace id is provided, previous workspace content is overwritten, otherwise a new workspace is created ')
     parser.add_argument('-wn','--conversation_workspace_name', required=False, help='name of the workspace')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
     config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
 
@@ -131,3 +131,7 @@ if __name__ == '__main__':
                 sys.exit(1)
 
     print('\nFINISHING: '+ os.path.basename(__file__) + '\n')
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
+

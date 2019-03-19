@@ -18,7 +18,7 @@ import json, sys, argparse, os, glob, codecs
 from wawCommons import printf, eprintf, getFilesAtPath, toIntentName
 from cfgCommons import Cfg
 
-if __name__ == '__main__':
+def main(argv):
     printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
     parser = argparse.ArgumentParser(description='Converts intent csv files to .json format of Watson Conversation Service', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     parser.add_argument('-ni', '--common_intents_nameCheck', action='append', nargs=2, help="regex and replacement for intent name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
     config = Cfg(args)
 
     VERBOSE = hasattr(config, 'common_verbose')
@@ -78,3 +78,7 @@ if __name__ == '__main__':
         print(json.dumps(intents, indent=4, ensure_ascii=False, encoding='utf8'))
 
     printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
+

@@ -3,4 +3,4 @@ lxml
 openpyxl==2.5.14
 requests
 unidecode
-deepdiff
+deepdiff==3.3.0

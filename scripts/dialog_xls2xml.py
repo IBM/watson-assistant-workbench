@@ -36,30 +36,38 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
             xmlData = handler.convertDialogData(dialogData, domains[domain_name]) #process all nodes of the domain
             dialogFile.write(handler.printXml(xmlData))
 
-    # Create directory for intents (if it does not exist already)
-    if hasattr(config, 'common_generated_intents') and not os.path.exists(getattr(config, 'common_generated_intents')[0]):
-        os.makedirs(getattr(config, 'common_generated_intents')[0])
-        print('Created new directory ' + getattr(config, 'common_generated_intents')[0])
-    # One file per intent
-    for intent, intentData in dialogData.getAllIntents().items():
-        if len(intentData.getExamples()) > 0:
-            intent_name = intent[1:] if intent.startswith(u'#') else intent
+    # generate intents if 'common_generated_intents' folder is specified
+    if hasattr(config, 'common_generated_intents'):
+        generatedIntents = getattr(config, 'common_generated_intents')
+        generatedIntentsFolder = generatedIntents[0] if isinstance(generatedIntents, list) else generatedIntents
+        # Create directory for intents (if it does not exist already)
+        if not os.path.exists(generatedIntentsFolder):
+            os.makedirs(generatedIntentsFolder)
+            printf('Created new directory ' + generatedIntentsFolder + '\n')
+        # One file per intent
+        for intent, intentData in dialogData.getAllIntents().items():
+            if len(intentData.getExamples()) > 0:
+                intent_name = intent[1:] if intent.startswith(u'#') else intent
 
-            with open(os.path.join(getattr(config, 'common_generated_intents')[0], intent_name.encode('ascii', 'ignore') + '.csv'), 'w') as intentFile:
-                for example in intentData.getExamples():
-                    intentFile.write(example.encode('utf8') + '\n')
+                with open(os.path.join(generatedIntentsFolder, intent_name.encode('ascii', 'ignore') + '.csv'), 'w') as intentFile:
+                    for example in intentData.getExamples():
+                        intentFile.write(example.encode('utf8') + '\n')
 
-    # Create directory for entities (if it does not exist already)
-    if hasattr(config, 'common_generated_entities') and not os.path.exists(getattr(config, 'common_generated_entities')[0]):
-        os.makedirs(getattr(config, 'common_generated_entities')[0])
-        print('Created new directory ' + getattr(config, 'common_generated_entities')[0])
-    # One file per entity
-    for entity_name, entityData in dialogData.getAllEntities().items():
-        with open(os.path.join(getattr(config, 'common_generated_entities')[0], entity_name.encode('ascii', 'ignore') + '.csv'), 'w') as entityFile:
-            for entityList in entityData.getValues():
-                entityFile.write(entityList.encode('utf8') + '\n')
+    # generate entities if 'common_generated_entities' folder is specified
+    if hasattr(config, 'common_generated_entities'):
+        generatedEntities = getattr(config, 'common_generated_entities')
+        generatedEntitiesFolder = generatedEntities[0] if isinstance(generatedEntities, list) else generatedEntities
+        # Create directory for entities (if it does not exist already)
+        if not os.path.exists(generatedEntitiesFolder):
+            os.makedirs(generatedEntitiesFolder)
+            printf('Created new directory ' + generatedEntitiesFolder + '\n')
+        # One file per entity
+        for entity_name, entityData in dialogData.getAllEntities().items():
+            with open(os.path.join(generatedEntitiesFolder, entity_name.encode('ascii', 'ignore') + '.csv'), 'w') as entityFile:
+                for entityList in entityData.getValues():
+                    entityFile.write(entityList.encode('utf8') + '\n')
 
-if __name__ == '__main__':
+def main(argv):
     printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
     parser = argparse.ArgumentParser(description='Creates dialog nodes with answers to intents .', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # optional arguments
@@ -70,7 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
     parser.add_argument('-v', '--common_verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
     config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
 
@@ -110,3 +118,6 @@ if __name__ == '__main__':
     saveDialogDataToFileSystem(xlsxHandler.getDialogData(), XMLHandler(), config)
 
     printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

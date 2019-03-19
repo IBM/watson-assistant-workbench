@@ -21,7 +21,7 @@ CHECK_MESSAGES_TIME_MAX = 5 # in seconds
 CHECK_WORKSPACE_TIME_DELAY = 1 # in seconds
 CHECK_WORKSPACE_TIME_MAX = 5 * 60 # in seconds
 
-if __name__ == '__main__':
+def main(argv):
     parser = argparse.ArgumentParser(description='Tests all dialog flows from given file and save received responses to output file', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('inputFileName', help='file with test jsons to be sent to conversation service. (One at each line at key \'input\'.)')
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # optional arguments
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
 
     config = Cfg(args)
 
@@ -110,4 +110,8 @@ if __name__ == '__main__':
         eprintf('ERROR: Cannot open test input file %s\n', args.inputFileName)
         sys.exit(1)
 
-print('\nFINISHING: '+ os.path.basename(__file__) + '\n')
+    print('\nFINISHING: '+ os.path.basename(__file__) + '\n')
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
+

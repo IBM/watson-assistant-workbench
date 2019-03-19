@@ -125,7 +125,7 @@ def createLineFailureXML(failureData):
     lineFailureXml.append(lineFailureReceivedXml)
     return lineFailureXml
 
-if __name__ == '__main__':
+def main(argv):
     parser = argparse.ArgumentParser(description='Compares all dialog flows from given files and generate xml report', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('expectedFileName', help='file with expected JSONs (One at each line at key \'output_message\')')
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     # optional arguments
     parser.add_argument('-o','--output', required=False, help='name of generated xml file', default='test.junit.xml')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
 
     VERBOSE = args.verbose
 
@@ -260,3 +260,7 @@ if __name__ == '__main__':
 
     with open(args.output, "w") as outputFile:
         outputFile.write(LET.tostring(outputXml, pretty_print=True, encoding='utf8'))
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
+

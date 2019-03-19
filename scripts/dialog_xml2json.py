@@ -834,7 +834,7 @@ def convertAll(upperNodeJson, nodeXml):
                     convertAll(upperNodeJson[key][name], element)
 
 
-if __name__ == '__main__':
+def main(argv):
     printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
     parser = argparse.ArgumentParser(description='Converts dialog nodes from .xml format to Bluemix conversation service workspace .json format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-dm','--common_dialog_main', required=False, help='main dialog file with dialogue nodes in xml format')
@@ -850,11 +850,18 @@ if __name__ == '__main__':
     parser.add_argument('-cfp','--cloudfunctions_password', required=False, help='cloud functions password')
     parser.add_argument('-cfa','--cloudfunctions_package', required=False, help='cloud functions package')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
+
+    global config
     config = Cfg(args)
+
+    global VERBOSE
     VERBOSE = hasattr(config, 'common_verbose')
 
     # XML namespaces
+    global XSI_NAMESPACE
+    global XSI
+    global NSMAP
     XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
     XSI = "{%s}" % XSI_NAMESPACE
     NSMAP = {"xsi" : XSI_NAMESPACE}
@@ -878,11 +885,13 @@ if __name__ == '__main__':
         eprintf('ERROR: Schema file %s not found.\n', schemaFile)
         exit(1)
     schemaTree = LET.parse(schemaFile)
+    global schema
     schema = LET.XMLSchema(schemaTree)
     validate(dialogTree)
 
     # process dialog tree
     root = dialogTree.getroot()
+    global rootGlobal
     rootGlobal = root
     importNodes(root, config)
 
@@ -893,6 +902,7 @@ if __name__ == '__main__':
     removeOutOfScopeNodes(dialogTree)
 
     # find all node names
+    global names
     names = findAllNodeNames(dialogTree)
 
     parent_map = dict((c, p) for p in dialogTree.getiterator() for c in p)
@@ -919,3 +929,7 @@ if __name__ == '__main__':
         config.saveConfiguration(getattr(config, 'common_output_config'))
 
     printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
+

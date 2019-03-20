@@ -16,9 +16,9 @@ limitations under the License.
 import json, os, requests, shutil, tempfile, unittest, urllib, uuid, zipfile
 
 import functions_deploy
-from .. import unit_utils
+from ...test_utils import BaseTestCaseCapture
 
-class TestMain(unit_utils.BaseTestCaseCapture):
+class TestMain(BaseTestCaseCapture):
 
     dataBasePath = "./ci/unit_tests/functions_deploy/main_data/"
     namespace = "Prague Cognitive Services_IoT-Prague"
@@ -48,12 +48,14 @@ class TestMain(unit_utils.BaseTestCaseCapture):
         return functionNames
 
 
-    def setUp(self):
+    #def setUp(self):
+    def setup_method(self):
         self.package = self.packageBase + str(uuid.uuid4())
         self.packageCreated = False # test should set that to true if it created package for cloud functions
         self.dirsToDelete = [] # directories that will be deleted in tearDown method
 
-    def tearDown(self):
+    #def tearDown(self):
+    def teardown_method(self):
         if self.packageCreated:
             # get all functions in package and remove them
             functionNames = self._getFunctionsInPackage(self.package)
@@ -86,7 +88,7 @@ class TestMain(unit_utils.BaseTestCaseCapture):
                   '--cloudfunctions_package', self.package]
 
         # upload functions
-        functions_deploy.main(params)
+        self.t_noException([params])
         self.packageCreated = True
 
         # obtain list of uploaded functions
@@ -121,7 +123,7 @@ class TestMain(unit_utils.BaseTestCaseCapture):
                       '--cloudfunctions_password', os.environ['CLOUD_FUNCTIONS_PASSWORD'],
                       '--cloudfunctions_package', self.package]
 
-            functions_deploy.main(params)
+            self.t_noException([params])
             self.packageCreated = True
 
             functionCallUrl = 'https://us-south.functions.cloud.ibm.com/api/v1/namespaces/' + self.urlNamespace + \
@@ -152,7 +154,7 @@ class TestMain(unit_utils.BaseTestCaseCapture):
                   '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
                   '--common_functions', [dirForZip]]
 
-        functions_deploy.main(params)
+        self.t_noException([params])
         self.packageCreated = True
 
         # call function and check if sub-function from non-main file was called
@@ -172,8 +174,8 @@ class TestMain(unit_utils.BaseTestCaseCapture):
 
     def test_badArgs(self):
         ''' Tests some basic common problems with args'''
-        self.tUnrecognizedArgs(['--nonExistentArg', 'randomNonPositionalArg'])
-        self.tExitCode(1, [])
+        self.t_unrecognizedArgs([['--nonExistentArg', 'randomNonPositionalArg']])
+        self.t_exitCode(1, [[]])
 
         completeArgsList = ['--cloudfunctions_username', os.environ['CLOUD_FUNCTIONS_USERNAME'],
                             '--cloudfunctions_password', os.environ['CLOUD_FUNCTIONS_PASSWORD'],
@@ -191,4 +193,4 @@ class TestMain(unit_utils.BaseTestCaseCapture):
                 if i != argIndex and i != (argIndex + 1):
                     missingArgsList += [completeArgsList[i]]
 
-            self.tExitCodeAndErrMessage(1, paramName, missingArgsList)
+            self.t_exitCodeAndErrMessage(1, paramName, [missingArgsList])

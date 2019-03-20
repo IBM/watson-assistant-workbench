@@ -12,16 +12,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from __future__ import print_function
 
 import sys, argparse, os
 import wawCommons
+from wawCommons import setLoggerConfig, getScriptLogger
 from cfgCommons import Cfg
-from wawCommons import printf, eprintf
 import shutil
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 if __name__ == '__main__':
-    printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
+    setLoggerConfig()
+    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Clean generated directories.',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
@@ -36,24 +40,24 @@ if __name__ == '__main__':
 
     if os.path.exists(config.common_generated_dialogs[0]):
         shutil.rmtree(config.common_generated_dialogs[0])
-        if VERBOSE:printf('%s does not exist.', config.common_generated_dialogs[0])
+        if VERBOSE:logger.info('%s does not exist.', config.common_generated_dialogs[0])
     else:
-        if VERBOSE:printf('%s does not exist.', config.common_generated_dialogs[0])
+        if VERBOSE:logger.info('%s does not exist.', config.common_generated_dialogs[0])
 
     if os.path.exists(config.common_generated_intents[0]):
         shutil.rmtree(config.common_generated_intents[0])
-        if VERBOSE:printf('%s does not exist.', config.common_generated_intents[0])
+        if VERBOSE:logger.info('%s does not exist.', config.common_generated_intents[0])
     else:
-        if VERBOSE:printf('%s doess not exist.', config.common_generated_intents[0])
+        if VERBOSE:logger.info('%s doess not exist.', config.common_generated_intents[0])
     if os.path.exists(config.common_generated_entities[0]):
         shutil.rmtree(config.common_generated_entities[0])
-        if VERBOSE:printf('%s does not exist.', config.common_generated_entities[0])
+        if VERBOSE:logger.info('%s does not exist.', config.common_generated_entities[0])
     else:
-        if VERBOSE:print('Does not exist.')
+        if VERBOSE:logger.info('Does not exist.')
     if os.path.exists(config.common_outputs_directory):
         shutil.rmtree(config.common_outputs_directory)
-        if VERBOSE:printf('%s has been removed.', config.common_outputs_directory)
+        if VERBOSE:logger.info('%s has been removed.', config.common_outputs_directory)
     else:
-        if VERBOSE:printf('%s does not exist.', config.common_outputs_directory)
+        if VERBOSE:logger.info('%s does not exist.', config.common_outputs_directory)
 
-    printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    logger.info('FINISHING: ' + os.path.basename(__file__))

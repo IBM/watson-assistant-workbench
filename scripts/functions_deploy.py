@@ -16,12 +16,17 @@ limitations under the License.
 import os, json, sys, argparse, requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from cfgCommons import Cfg
-from wawCommons import printf, eprintf, getFilesAtPath
+from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath
 import urllib3
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 
 if __name__ == '__main__':
-    printf('\nSTARTING: '+ os.path.basename(__file__) + '\n')
+    setLoggerConfig()
+    logger.info('STARTING: '+ os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Concatenate intents, entities and dialogue jsons to Watson Conversation Service workspace .json format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
@@ -37,17 +42,17 @@ if __name__ == '__main__':
 
     intentsJSON = {}
     if not hasattr(config, 'cloudfunctions_namespace'):
-        eprintf('ERROR: cloudfunctions_namespace  not specified.')
+        logger.error('cloudfunctions_namespace  not specified.')
         exit(1)
     if not hasattr(config, 'cloudfunctions_password'):
-        eprintf('ERROR: cloudfunctions_password  not specified.')
+        logger.error('cloudfunctions_password  not specified.')
         exit(1)
     if not hasattr(config, 'cloudfunctions_package'):
-        eprintf('ERROR: cloudfunctions_package  not specified.')
+        logger.error('cloudfunctions_package  not specified.')
         exit(1)
 
     if not hasattr(config, 'common_functions'):
-        printf('ERROR: common_functions  not specified.')
+        logger.error('common_functions  not specified.')
         exit(1)
 
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -55,11 +60,12 @@ if __name__ == '__main__':
     response = requests.put(package_url, auth=(config.cloudfunctions_username, config.cloudfunctions_password), headers={'Content-Type': 'application/json'}, data='{}')
     responseJson = response.json()
     if 'error' in responseJson:
-        eprintf('\nCannot create cloud functions package\nERROR: %s\n', responseJson['error'])
-        if VERBOSE: printf("%s", responseJson)
+        logger.error('Cannot create cloud functions package')
+        logger.error(responseJson['error'])
+        if VERBOSE: logger.info("%s", responseJson)
         sys.exit(1)
     else:
-        printf('\nCloud functions package successfully uploaded\n')
+        logger.info('Cloud functions package successfully uploaded')
 
     filesAtPath = getFilesAtPath(config.common_functions)
 
@@ -73,10 +79,11 @@ if __name__ == '__main__':
                                 headers={'Content-Type': 'application/json'}, data=json.dumps(payload), verify=False)
         responseJson = response.json()
         if 'error' in responseJson:
-            eprintf('Cannot create cloud function\nERROR: %s\n', responseJson['error'])
-            if VERBOSE: printf("%s", responseJson)
+            logger.error('Cannot create cloud function')
+            logger.error(responseJson['error'])
+            if VERBOSE: logger.info("%s", responseJson)
             sys.exit(1)
         else:
-            printf('Cloud functions %s successfully uploaded.\n', functionFileName)
+            logger.info('Cloud functions %s successfully uploaded.', functionFileName)
 
-    printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    logger.info('FINISHING: ' + os.path.basename(__file__))

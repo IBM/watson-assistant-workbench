@@ -14,7 +14,6 @@ limitations under the License.
 """
 
 import re
-from wawCommons import eprintf
 from collections import OrderedDict
 
 class EntityData(object):

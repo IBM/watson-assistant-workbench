@@ -20,7 +20,7 @@ from ...test_utils import BaseTestCaseCapture
 
 class TestMain(BaseTestCaseCapture):
 
-    dataBasePath = "./ci/unit_tests/functions_deploy/main_data/"
+    dataBasePath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'main_data')
     namespace = "Prague Cognitive Services_IoT-Prague"
     urlNamespace = urllib.quote(namespace)
     packageBase = "Package-for-WAW-CI-"
@@ -48,13 +48,11 @@ class TestMain(BaseTestCaseCapture):
         return functionNames
 
 
-    #def setUp(self):
     def setup_method(self):
         self.package = self.packageBase + str(uuid.uuid4())
         self.packageCreated = False # test should set that to true if it created package for cloud functions
         self.dirsToDelete = [] # directories that will be deleted in tearDown method
 
-    #def tearDown(self):
     def teardown_method(self):
         if self.packageCreated:
             # get all functions in package and remove them
@@ -140,6 +138,7 @@ class TestMain(BaseTestCaseCapture):
             assert pythonVersion == functionRespJson['majorVersion']
 
     def test_functionsInZip(self):
+        """Tests if functions_deploy can handle function in zip file."""
         # prepare zip file
         dirForZip = tempfile.mkdtemp()
         self.dirsToDelete += [dirForZip]
@@ -173,7 +172,7 @@ class TestMain(BaseTestCaseCapture):
 
 
     def test_badArgs(self):
-        ''' Tests some basic common problems with args'''
+        """Tests some basic common problems with args."""
         self.t_unrecognizedArgs([['--nonExistentArg', 'randomNonPositionalArg']])
         self.t_exitCode(1, [[]])
 

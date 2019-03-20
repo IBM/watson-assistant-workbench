@@ -49,6 +49,7 @@ class TestMain(BaseTestCaseCapture):
 
 
     def setup_method(self):
+        BaseTestCaseCapture.checkEnvironmentVariables(['CLOUD_FUNCTIONS_USERNAME', 'CLOUD_FUNCTIONS_PASSWORD'])
         self.package = self.packageBase + str(uuid.uuid4())
         self.packageCreated = False # test should set that to true if it created package for cloud functions
         self.dirsToDelete = [] # directories that will be deleted in tearDown method
@@ -136,6 +137,7 @@ class TestMain(BaseTestCaseCapture):
             assert functionResp.status_code == 200
             functionRespJson = functionResp.json()
             assert pythonVersion == functionRespJson['majorVersion']
+
 
     def test_functionsInZip(self):
         """Tests if functions_deploy can handle function in zip file."""

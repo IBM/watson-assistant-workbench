@@ -104,7 +104,7 @@ def main(args):
         if ext == '.zip':
             runtime = _getZipPackageType(functionFilePath)
             if not runtime:
-                printf("WARNING: Cannot determine function type from zip file '%s'. Skipping!\n", parameterName)
+                printf("WARNING: Cannot determine function type from zip file '%s'. Skipping!\n", functionFilePath)
                 continue
             binary = True
         else:
@@ -115,7 +115,7 @@ def main(args):
                 runtime = compiledRuntimes[ext]
                 binary = True
             else:
-                printf("WARNING: Cannot determine function type of '%s'. Skipping!\n", parameterName)
+                printf("WARNING: Cannot determine function type of '%s'. Skipping!\n", functionFilePath)
                 continue
 
         functionUrl = 'https://openwhisk.ng.bluemix.net/api/v1/namespaces/' + namespace + '/actions/' + package + \

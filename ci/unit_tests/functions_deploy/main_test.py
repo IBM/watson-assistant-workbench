@@ -142,8 +142,8 @@ class TestMain(BaseTestCaseCapture):
     def test_functionsInZip(self):
         """Tests if functions_deploy can handle function in zip file."""
         # prepare zip file
-        dirForZip = tempfile.mkdtemp()
-        self.dirsToDelete += [dirForZip]
+        dirForZip = os.path.join(self.dataBasePath, "outputs", "pythonZip")
+        BaseTestCaseCapture.createFolder(dirForZip)
 
         with zipfile.ZipFile(os.path.join(dirForZip, 'testFunc.zip'), 'w') as functionsZip:
             for fileToZip in os.listdir(os.path.join(self.dataBasePath, 'zip_functions')):

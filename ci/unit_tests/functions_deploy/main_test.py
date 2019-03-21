@@ -52,7 +52,6 @@ class TestMain(BaseTestCaseCapture):
         BaseTestCaseCapture.checkEnvironmentVariables(['CLOUD_FUNCTIONS_USERNAME', 'CLOUD_FUNCTIONS_PASSWORD'])
         self.package = self.packageBase + str(uuid.uuid4())
         self.packageCreated = False # test should set that to true if it created package for cloud functions
-        self.dirsToDelete = [] # directories that will be deleted in tearDown method
 
     def teardown_method(self):
         if self.packageCreated:
@@ -73,9 +72,6 @@ class TestMain(BaseTestCaseCapture):
             packageDelResp = requests.delete(packageDelUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
                                                                   os.environ['CLOUD_FUNCTIONS_PASSWORD']))
             assert packageDelResp.status_code == 200
-
-        for directory in self.dirsToDelete:
-            shutil.rmtree(directory)
 
 
     def test_functionsUploadFromDirectory(self):

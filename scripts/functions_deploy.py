@@ -16,8 +16,12 @@ limitations under the License.
 import os, json, sys, argparse, requests, zipfile, base64
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from cfgCommons import Cfg
-from wawCommons import printf, eprintf, getFilesAtPath, getRequiredParameter
+from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath, getRequiredParameter
 import urllib3
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 interpretedRuntimes = {
     '.js': 'nodejs',
@@ -46,7 +50,8 @@ zipContent = {
 }
 
 def main(args):
-    printf("\nSTARTING: %s\n", os.path.basename(__file__))
+    setLoggerConfig()
+    logger.info('STARTING: '+ os.path.basename(__file__))
     parser = argparse.ArgumentParser(description="Deploys the cloud functions",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
@@ -82,13 +87,13 @@ def main(args):
                             data='{}')
     responseJson = response.json()
     if 'error' in responseJson:
-        eprintf("\nCannot create cloud functions package\nERROR: %s\n", responseJson['error'])
+        logger.error('Cannot create cloud functions package')
+        logger.error(responseJson['error'])
         if VERBOSE:
-            printf("%s", responseJson)
+            logger.info("%s", responseJson)
         sys.exit(1)
     else:
-        printf("\nCloud functions package successfully uploaded\n")
-
+        logger.info('Cloud functions package successfully uploaded')
 
     filesAtPath = getFilesAtPath(functionDir, ['*' + ext for ext in (interpretedRuntimes.keys() + \
                                                                      compiledRuntimes.keys() + \
@@ -104,7 +109,7 @@ def main(args):
         if ext == '.zip':
             runtime = _getZipPackageType(functionFilePath)
             if not runtime:
-                printf("WARNING: Cannot determine function type from zip file '%s'. Skipping!\n", functionFilePath)
+                logger.warning("Cannot determine function type from zip file '%s'. Skipping!", functionFilePath)
                 continue
             binary = True
         else:
@@ -115,7 +120,7 @@ def main(args):
                 runtime = compiledRuntimes[ext]
                 binary = True
             else:
-                printf("WARNING: Cannot determine function type of '%s'. Skipping!\n", functionFilePath)
+                logger.warning("Cannot determine function type of '%s'. Skipping!", functionFilePath)
                 continue
 
         functionUrl = 'https://openwhisk.ng.bluemix.net/api/v1/namespaces/' + namespace + '/actions/' + package + \
@@ -131,14 +136,15 @@ def main(args):
                                 data=json.dumps(payload), verify=False)
         responseJson = response.json()
         if 'error' in responseJson:
-            eprintf("Cannot create cloud function\nERROR: %s\n", responseJson['error'])
+            logger.error('Cannot create cloud function')
+            logger.error(responseJson['error'])
             if VERBOSE:
-                printf("%s", responseJson)
+                logger.info("%s", responseJson)
             sys.exit(1)
         else:
-            printf("Cloud functions %s successfully uploaded.\n", functionFilePath)
+            logger.info('Cloud functions %s successfully uploaded.', functionFilePath)
 
-    printf("\nFINISHING: %s\n", os.path.basename(__file__))
+    logger.info('FINISHING: ' + os.path.basename(__file__))
 
 def _getZipPackageType(zipFilePath):
     with zipfile.ZipFile(zipFilePath, 'r') as functionsZip:

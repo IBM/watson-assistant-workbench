@@ -18,19 +18,11 @@ limitations under the License.
 import sys, re, codecs, os, fnmatch
 import unicodedata, unidecode, requests
 import lxml.etree as Xml
+import logging
+from logging.config import fileConfig
+
 
 restrictionTextNamePolicy = "NAME_POLICY can be only set to either 'soft', 'soft_verbose' or 'hard'"
-
-sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-sys.stderr = codecs.getwriter('utf8')(sys.stderr)
-
-def printf(format, *args):
-    sys.stdout.write(format % args)
-    sys.stdout.flush()
-
-def eprintf(format, *args):
-    sys.stderr.write(format % args)
-    sys.stderr.flush()
 
 def toCode(NAME_POLICY, code):
     global restrictionTextNamePolicy
@@ -45,13 +37,13 @@ def toCode(NAME_POLICY, code):
     newCode = re.sub('[^\w-]', '', newCode, re.UNICODE)
     if newCode != code:
         if NAME_POLICY == 'soft_verbose':
-            eprintf("WARNING: Illegal value of the code: '%s'\n%s\n", code, restrictionTextCode)
-            eprintf("WARNING: Code \'%s\' changed to: '%s'\n", code, newCode)
+            logger.warning("Illegal value of the code: '%s'- %s", code, restrictionTextCode)
+            logger.warning("Code \'%s\' changed to: '%s'", code, newCode)
         elif NAME_POLICY == 'hard':
-            eprintf("ERROR: Illegal value of the code: '%s'\n%s\n", code, restrictionTextCode)
+            logger.error("Illegal value of the code: '%s' - %s", code, restrictionTextCode)
             exit(1)
         elif NAME_POLICY != 'soft':
-            eprintf("ERROR: Unknown value of the NAME_POLICY: '%s'\n%s\n", NAME_POLICY, restrictionTextNamePolicy)
+            logger.error("Unknown value of the NAME_POLICY: '%s' - %s", NAME_POLICY, restrictionTextNamePolicy)
             exit(1)
     return newCode
 
@@ -100,7 +92,7 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
                         uNewIntentSubnameUser = unidecode.unidecode(uIntentSubnameUser)
                         triggeredUserRegexToAppend = "intent name cannot contain accented letters"
                     else:
-                        eprintf("ERROR: unsupported special regex opperation '" + replacementPair[1].decode('utf-8') + "'\n")
+                        logger.error("unsupported special regex opperation '" + replacementPair[1].decode('utf-8'))
                         exit(1)
                 # use regex
                 else:
@@ -116,13 +108,13 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
         if uIntentSubnameUser != uIntentSubname:
             if NAME_POLICY == 'soft':
                 uIntentSubnameUser=uIntentSubnameUser; #TBD- delete this when logging is fixed
-                #eprintf("WARNING: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
-                #eprintf("WARNING: Intent name \'%s\' changed to: '%s'\n", uIntentSubname, uIntentSubnameUser)
+                #logger.warning("Illegal value of the intent name: '%s'- %s", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
+                #logger.warning("Intent name \'%s\' changed to: '%s'", uIntentSubname, uIntentSubnameUser)
             elif NAME_POLICY == 'hard':
-                eprintf("ERROR: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
+                logger.error("Illegal value of the intent name: '%s' - %s", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
                 exit(1)
             else:
-                eprintf("ERROR: Unknown value of the NAME_POLICY: '%s'\n%s\n", NAME_POLICY, restrictionTextNamePolicy)
+                logger.error("Unknown value of the NAME_POLICY: '%s' - %s", NAME_POLICY, restrictionTextNamePolicy)
                 exit(1)
 
         #uIntentSubnameNoHash = uIntentSubname[1:] if uIntentSubname.startswith(u'#') else uIntentSubname
@@ -130,18 +122,18 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
 
         # if uIntentSubnameUser != uIntentSubnameNoHash:
         #     if NAME_POLICY == 'soft_verbose':
-        #         eprintf("WARNING: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
-        #         eprintf("WARNING: Intent name \'%s\' changed to: '%s'\n", uIntentSubname, uIntentSubnameUser)
+        #         logger.warning("Illegal value of the intent name: '%s' - %s", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
+        #         logger.warning("Intent name \'%s\' changed to: '%s'", uIntentSubname, uIntentSubnameUser)
         #     elif NAME_POLICY == 'hard':
-        #         eprintf("ERROR: Illegal value of the intent name: '%s'\n%s\n", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
+        #         logger.error("Illegal value of the intent name: '%s' - %s", uIntentSubname, ' '.join(restrictionTextIntentName).decode('utf-8'))
         #         exit(1)
         #     elif NAME_POLICY == 'soft':
         #         exit(1)
         #     else:
-        #         eprintf("ERROR: Unknown value of the NAME_POLICY: '%s'\n%s\n", NAME_POLICY, restrictionTextNamePolicy)
+        #         logger.error("Unknown value of the NAME_POLICY: '%s' - %s", NAME_POLICY, restrictionTextNamePolicy)
         #         exit(1)
         if not uIntentSubnameUser:
-            eprintf("ERROR: empty intent name\n")
+            logger.error("empty intent name")
             exit(1)
         uNewIntentName = uNewIntentName + u'_' + uIntentSubnameUser if uNewIntentName else uIntentSubnameUser
     return uNewIntentName.encode('utf-8')
@@ -182,7 +174,7 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
                     uNewIntentSubnameUser = unidecode.unidecode(uEntityNameUser)
                     triggeredUserRegexToAppend = "entity name cannot contain accented letters"
                 else:
-                    eprintf("ERROR: unsupported special regex opperation '" + replacementPair[1].decode('utf-8') + "'\n")
+                    logger.error("unsupported special regex opperation '" + replacementPair[1].decode('utf-8'))
                     exit(1)
             # use regex
             else:
@@ -197,16 +189,16 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
     # return error or name
     if uEntityNameUser != uEntityName: # allowed name differs from the given one
         if NAME_POLICY == 'soft':
-            eprintf("WARNING: Illegal value of the entity name: '%s'\n%s\n", uEntityName, " ".join(restrictionTextEntityName).decode('utf-8'))
-            eprintf("WARNING: Entity name \'%s\' was changed to: '%s'\n", uEntityName, uEntityNameUser)
+            logger.warning("Illegal value of the entity name: '%s' - %s", uEntityName, " ".join(restrictionTextEntityName).decode('utf-8'))
+            logger.warning("Entity name \'%s\' was changed to: '%s'", uEntityName, uEntityNameUser)
         elif NAME_POLICY == 'hard':
-            eprintf("ERROR: Illegal value of the entity name: '%s'\n%s\n", uEntityName, " ".join(restrictionTextEntityName).decode('utf-8'))
+            logger.error("Illegal value of the entity name: '%s' - %s", uEntityName, " ".join(restrictionTextEntityName).decode('utf-8'))
             exit(1)
         else:
-            eprintf("ERROR: Unknown value of the NAME_POLICY: '%s'\n%s\n", NAME_POLICY, restrictionTextNamePolicy)
+            logger.error("Unknown value of the NAME_POLICY: '%s' - %s", NAME_POLICY, restrictionTextNamePolicy)
             exit(1)
     if not uEntityNameUser:
-        eprintf("ERROR: empty entity name\n")
+        logger.error("empty entity name")
         exit(1)
     return uEntityNameUser.encode('utf-8')
 
@@ -266,64 +258,64 @@ def _fileMatchesPatterns(filename, patterns):
 
 def getWorkspaceId(config, workspacesUrl, version, username, password):
     if hasattr(config, 'conversation_workspace_id') and getattr(config, 'conversation_workspace_id'):
-        printf('INFO: conversation_workspace_id defined.\n')
+        logger.info('conversation_workspace_id defined.')
         workspaceId = getattr(config, 'conversation_workspace_id')
     else:
-        printf('INFO: conversation_workspace_id parameter not defined.\n')
+        logger.info('conversation_workspace_id parameter not defined.')
         workspaceId = ""
 
         # workspace name unique
         if hasattr(config, 'conversation_workspace_name_unique') and getattr(config, 'conversation_workspace_name_unique') in ["true", "True"]:
             if hasattr(config, 'conversation_workspace_name') and getattr(config, 'conversation_workspace_name'):
-                printf('INFO: conversation_workspace_name set to unique\n')
+                logger.info('conversation_workspace_name set to unique')
                 workspaceName = getattr(config, 'conversation_workspace_name')
 
                 # get all workspaces with this name
                 requestUrl = workspacesUrl + '?version=' + version
-                printf("request url: %s\n", requestUrl)
+                logger.info("request url: %s", requestUrl)
                 response = requests.get(workspacesUrl + '?version=' + version, auth=(username, password))
                 responseJson = response.json()
-                printf("\nINFO: response: %s\n", responseJson)
+                logger.info("response: %s", responseJson)
                 if not errorsInResponse(responseJson):
-                    printf('INFO: Workspaces successfully retrieved.\n')
+                    logger.info('Workspaces successfully retrieved.')
                 else:
-                    eprintf('ERROR: Cannot retrieve workspaces.\n')
+                    logger.error('Cannot retrieve workspaces.')
                     sys.exit(1)
 
                 sameNameWorkspace = None
                 for workspace in responseJson['workspaces']:
-                    print("workspace name: " + workspace['name'] + "\n")
+                    logger.info("workspace name: " + workspace['name'])
                     if workspace['name'] == workspaceName:
                         if sameNameWorkspace is None:
                             sameNameWorkspace = workspace
                         else:
                             # if there is more than one workspace with the same name -> error
-                            eprintf('ERROR: There are more than one workspace with this name, do not know which one to update.\n')
+                            logger.error('There are more than one workspace with this name, do not know which one to update.')
                             exit(1)
                 if sameNameWorkspace is None:
                     # workspace with the same name not found
-                    printf('WARNING: There is no workspace with this name.\n')
+                    logger.warning('There is no workspace with this name.')
                 else:
                     # just one workspace with this name -> get its id
                     workspaceId = sameNameWorkspace['workspace_id']
 
             else: # workspace name unique and not defined or empty
-                eprintf('ERROR: conversation_workspace_name set to unique and not defined.\n')
+                logger.error('conversation_workspace_name set to unique and not defined.')
                 exit(1)
 
         else: # workspace name not unique
-            printf("INFO: Workspace name doesn't have to be unique\n")
+            logger.info("Workspace name doesn't have to be unique")
 
     return workspaceId
 
 def errorsInResponse(responseJson):
     # check errors
     if 'error' in responseJson:
-        eprintf('ERROR: %s (code %s)\n', responseJson['error'], responseJson['code'])
+        logger.error('%s (code %s)', responseJson['error'], responseJson['code'])
         if 'errors' in responseJson:
             for errorJson in responseJson['errors']:
-                eprintf('\t path: \'%s\' - %s\n', errorJson['path'], errorJson['message'])
-#        if VERBOSE: eprintf("INFO: WORKSPACE: %s\n", json.dumps(workspace, indent=4))
+                logger.error('\t path: \'%s\' - %s', errorJson['path'], errorJson['message'])
+#        if VERBOSE: logger.error("WORKSPACE: %s", json.dumps(workspace, indent=4))
         return True
     else:
         return False
@@ -333,7 +325,7 @@ def getOptionalParameter(config, parameterName):
         parameterValue = getattr(config, parameterName)
         return parameterValue
     else:
-        printf("WARNING: '%s' parameter not defined\n", parameterName)
+        logger.warning("'%s' parameter not defined", parameterName)
         return None
 
 def getRequiredParameter(config, parameterName):
@@ -341,5 +333,13 @@ def getRequiredParameter(config, parameterName):
         parameterValue = getattr(config, parameterName)
         return parameterValue
     else:
-        eprintf("ERROR: required '%s' parameter not defined\n", parameterName)
+        logger.error("required '%s' parameter not defined", parameterName)
         exit(1)
+
+def setLoggerConfig():
+    fileConfig(os.path.split(os.path.abspath(__file__))[0]+'/logging_config.ini')
+
+def getScriptLogger(script):
+    return logging.getLogger("common."+os.path.splitext(os.path.basename(script))[0])
+
+logger = getScriptLogger(__file__)

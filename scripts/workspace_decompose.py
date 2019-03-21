@@ -13,8 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, sys, argparse
-from wawCommons import printf, eprintf
+import json, sys, argparse, os
+from wawCommons import setLoggerConfig, getScriptLogger
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 def main(argv):
     parser = argparse.ArgumentParser(description='Decompose Bluemix conversation service workspace in .json format to intents json, entities json and dialog json', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -56,8 +60,9 @@ def main(argv):
             counterexamplesJSON.append(counterexampleIntentJSON)
             counterexamplesFile.write(json.dumps(counterexamplesJSON, indent=4, ensure_ascii=False).encode('utf8'))
 
-    if VERBOSE: printf("Workspace %s was successfully decomposed\n", args.workspace)
+    if VERBOSE: logger.info("Workspace %s was successfully decomposed", args.workspace)
 
 if __name__ == '__main__':
+    setLoggerConfig()
     main(sys.argv[1:])
 

@@ -13,11 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json,sys,argparse, re
+import json,sys,argparse, re, os
 import lxml.etree as LET
-from wawCommons import printf, eprintf, toCode
+from wawCommons import setLoggerConfig, getScriptLogger,  toCode
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 if __name__ == '__main__':
+    setLoggerConfig()
     parser = argparse.ArgumentParser(description='Replaces codes in text tags with sentences specified in the resource file.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('dialog', help='dialog nodes in xml format.')
@@ -48,19 +53,19 @@ if __name__ == '__main__':
     # REPLACE ALL CODES WITH TEXTS
     for tagToReplace in tagsToReplace:
         if tagToReplace.text is None: continue
-        if VERBOSE: printf("%s: code '%s'\n", tagToReplace.tag, tagToReplace.text)
+        if VERBOSE: logger.info("%s: code '%s'", tagToReplace.tag, tagToReplace.text)
         textParts = tagToReplace.text.split()
         for textPart in textParts:
             if not textPart.startswith('%%'): continue # it is not a code
             code = toCode(NAME_POLICY, textPart[2:])
             # if this tag code is not in translations dictionary -> error
             if not code in translations:
-                eprintf("ERROR: code '%s' not in resource file!\n", code)
+                logger.error("code '%s' not in resource file!", code)
             else:
                 # replace code (introduced with double %% and followed by white character or by the end) with its translation
                 newText = re.sub(r"%%"+code+"(?=\s|$)", translations[code], tagToReplace.text)
                 tagToReplace.text = newText
-        if VERBOSE: printf("-> translated as %s\n", tagToReplace.text)
+        if VERBOSE: logger.info("-> translated as %s", tagToReplace.text)
 
     # OUTPUT NEW DIALOG
     if args.output is not None:
@@ -72,4 +77,4 @@ if __name__ == '__main__':
     else:
         sys.stdout.write(LET.tostring(dialogXML, pretty_print=True, encoding='utf8'))
 
-    if VERBOSE: eprintf('Codes were successfully replaced with texts.\n')
+    if VERBOSE: logger.info('Codes were successfully replaced with texts.')

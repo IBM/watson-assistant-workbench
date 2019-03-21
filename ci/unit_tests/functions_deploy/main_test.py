@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, os, requests, shutil, tempfile, unittest, urllib, uuid, zipfile
+import json, os, requests, shutil, unittest, urllib, uuid, zipfile
 
 import functions_deploy
 from ...test_utils import BaseTestCaseCapture
@@ -21,16 +21,20 @@ from ...test_utils import BaseTestCaseCapture
 class TestMain(BaseTestCaseCapture):
 
     dataBasePath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'main_data')
-    namespace = "Prague Cognitive Services_IoT-Prague"
-    urlNamespace = urllib.quote(namespace)
     packageBase = "Package-for-WAW-CI-"
+
+    def setup_class(cls):
+        BaseTestCaseCapture.checkEnvironmentVariables(['CLOUD_FUNCTIONS_USERNAME', 'CLOUD_FUNCTIONS_PASSWORD'])
+        cls.cloudFunctionsUrl = os.environ.get('CLOUD_FUNCTIONS_URL',
+                                               'https://us-south.functions.cloud.ibm.com/api/v1/namespaces')
+        cls.namespace = os.environ.get('CLOUD_FUNCTIONS_NAMESPACE', "Prague Cognitive Services_IoT-Prague")
+        cls.urlNamespace = urllib.quote(cls.namespace)
 
     def callfunc(self, *args, **kwargs):
         functions_deploy.main(*args, **kwargs)
 
     def _getFunctionsInPackage(self, package):
-        functionListUrl = 'https://us-south.functions.cloud.ibm.com/api/v1/namespaces/' + self.urlNamespace + \
-            '/actions/?limit=0&skip=0'
+        functionListUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/?limit=0&skip=0'
 
         functionListResp = requests.get(functionListUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
                                                                os.environ['CLOUD_FUNCTIONS_PASSWORD']),
@@ -49,7 +53,6 @@ class TestMain(BaseTestCaseCapture):
 
 
     def setup_method(self):
-        BaseTestCaseCapture.checkEnvironmentVariables(['CLOUD_FUNCTIONS_USERNAME', 'CLOUD_FUNCTIONS_PASSWORD'])
         self.package = self.packageBase + str(uuid.uuid4())
         self.packageCreated = False # test should set that to true if it created package for cloud functions
 
@@ -58,16 +61,15 @@ class TestMain(BaseTestCaseCapture):
             # get all functions in package and remove them
             functionNames = self._getFunctionsInPackage(self.package)
             for functionName in functionNames:
-                functionDelUrl = 'https://us-south.functions.cloud.ibm.com/api/v1/namespaces/' + self.urlNamespace + \
-                    '/actions/' + self.package + '/' + functionName
+                functionDelUrl =  self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
+                    '/' + functionName
 
                 functionDelResp = requests.delete(functionDelUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
                                                                         os.environ['CLOUD_FUNCTIONS_PASSWORD']))
                 assert functionDelResp.status_code == 200
 
             # remove cloud function package
-            packageDelUrl = 'https://us-south.functions.cloud.ibm.com/api/v1/namespaces/' + self.urlNamespace + \
-                '/packages/' + self.package
+            packageDelUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/packages/' + self.package
 
             packageDelResp = requests.delete(packageDelUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
                                                                   os.environ['CLOUD_FUNCTIONS_PASSWORD']))
@@ -80,7 +82,8 @@ class TestMain(BaseTestCaseCapture):
         params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
                   '--cloudfunctions_username', os.environ['CLOUD_FUNCTIONS_USERNAME'],
                   '--cloudfunctions_password', os.environ['CLOUD_FUNCTIONS_PASSWORD'],
-                  '--cloudfunctions_package', self.package]
+                  '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
+                  '--cloudfunctions_url', self.cloudFunctionsUrl]
 
         # upload functions
         self.t_noException([params])
@@ -96,8 +99,8 @@ class TestMain(BaseTestCaseCapture):
 
         # try to call particular functions
         for functionName in functionNames:
-            functionCallUrl = 'https://us-south.functions.cloud.ibm.com/api/v1/namespaces/' + self.urlNamespace + \
-                '/actions/' + self.package + '/' + functionName + '?blocking=true&result=true'
+            functionCallUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
+                '/' + functionName + '?blocking=true&result=true'
 
             functionResp = requests.post(functionCallUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
                                                                 os.environ['CLOUD_FUNCTIONS_PASSWORD']),
@@ -116,13 +119,14 @@ class TestMain(BaseTestCaseCapture):
             params = ['-c', os.path.join(self.dataBasePath, 'python' + str(pythonVersion) + 'Functions.cfg'),
                       '--cloudfunctions_username', os.environ['CLOUD_FUNCTIONS_USERNAME'],
                       '--cloudfunctions_password', os.environ['CLOUD_FUNCTIONS_PASSWORD'],
-                      '--cloudfunctions_package', self.package]
+                      '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
+                      '--cloudfunctions_url', self.cloudFunctionsUrl]
 
             self.t_noException([params])
             self.packageCreated = True
 
-            functionCallUrl = 'https://us-south.functions.cloud.ibm.com/api/v1/namespaces/' + self.urlNamespace + \
-                '/actions/' + self.package + '/getPythonMajorVersion?blocking=true&result=true'
+            functionCallUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
+                '/getPythonMajorVersion?blocking=true&result=true'
 
             functionResp = requests.post(functionCallUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
                                                                 os.environ['CLOUD_FUNCTIONS_PASSWORD']),
@@ -149,14 +153,14 @@ class TestMain(BaseTestCaseCapture):
         params = ['--cloudfunctions_username', os.environ['CLOUD_FUNCTIONS_USERNAME'],
                   '--cloudfunctions_password', os.environ['CLOUD_FUNCTIONS_PASSWORD'],
                   '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
-                  '--common_functions', [dirForZip]]
+                  '--cloudfunctions_url', self.cloudFunctionsUrl, '--common_functions', [dirForZip]]
 
         self.t_noException([params])
         self.packageCreated = True
 
         # call function and check if sub-function from non-main file was called
-        functionCallUrl = 'https://us-south.functions.cloud.ibm.com/api/v1/namespaces/' + self.urlNamespace + \
-            '/actions/' + self.package + '/testFunc?blocking=true&result=true'
+        functionCallUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
+            '/testFunc?blocking=true&result=true'
 
         functionResp = requests.post(functionCallUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
                                                             os.environ['CLOUD_FUNCTIONS_PASSWORD']),
@@ -178,6 +182,7 @@ class TestMain(BaseTestCaseCapture):
                             '--cloudfunctions_password', os.environ['CLOUD_FUNCTIONS_PASSWORD'],
                             '--cloudfunctions_package', self.package,
                             '--cloudfunctions_namespace', self.urlNamespace,
+                            '--cloudfunctions_url', self.cloudFunctionsUrl,
                             '--common_functions', self.dataBasePath]
 
         for argIndex in range(len(completeArgsList)):

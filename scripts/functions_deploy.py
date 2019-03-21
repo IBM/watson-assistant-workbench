@@ -61,6 +61,7 @@ def main(args):
     parser.add_argument('--cloudfunctions_username', required=False, help="cloud functions user name")
     parser.add_argument('--cloudfunctions_password', required=False, help="cloud functions password")
     parser.add_argument('--cloudfunctions_package', required=False, help="cloud functions package name")
+    parser.add_argument('--cloudfunctions_url', required=False, help="url of cloud functions API")
 
     for runtime in interpretedRuntimes.values() + compiledRuntimes.values():
         parser.add_argument('--cloudfunctions_' + runtime + '_version', required=False,
@@ -74,6 +75,7 @@ def main(args):
     username = getRequiredParameter(config, 'cloudfunctions_username')
     password = getRequiredParameter(config, 'cloudfunctions_password')
     package = getRequiredParameter(config, 'cloudfunctions_package')
+    namespaceUrl = getRequiredParameter(config, 'cloudfunctions_url')
     functionDir = getRequiredParameter(config, 'common_functions')
 
     runtimeVersions = {}
@@ -81,8 +83,7 @@ def main(args):
         runtimeVersions[runtime] = runtime + ':' + getattr(config, 'cloudfunctions_' + runtime + '_version', 'default')
 
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-    packageUrl = 'https://openwhisk.ng.bluemix.net/api/v1/namespaces/' + namespace.replace('@', '%40') + \
-        '/packages/' + package + '?overwrite=true'
+    packageUrl = namespaceUrl + '/' + namespace + '/packages/' + package + '?overwrite=true'
     response = requests.put(packageUrl, auth=(username, password), headers={'Content-Type': 'application/json'},
                             data='{}')
     responseJson = response.json()
@@ -123,8 +124,7 @@ def main(args):
                 logger.warning("Cannot determine function type of '%s'. Skipping!", functionFilePath)
                 continue
 
-        functionUrl = 'https://openwhisk.ng.bluemix.net/api/v1/namespaces/' + namespace + '/actions/' + package + \
-            '/' + funcName + '?overwrite=true'
+        functionUrl = namespaceUrl + '/' + namespace + '/actions/' + package + '/' + funcName + '?overwrite=true'
 
         if binary:
             content = base64.b64encode(open(os.path.join(functionDir, functionFilePath), 'rb').read())

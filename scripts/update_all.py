@@ -14,13 +14,18 @@ limitations under the License.
 """
 from __future__ import print_function
 
-import os, sys, logging
+import os, sys
 import subprocess, argparse
-from wawCommons import printf, eprintf
+import logging
+from wawCommons import setLoggerConfig, getScriptLogger
+
+
+logger = getScriptLogger(__file__)
 
 if __name__ == '__main__':
-    printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
-    printf('\nUsing WAW directory: ' + os.path.dirname(__file__) + '\n')
+    setLoggerConfig()
+    logger.info('STARTING: ' + os.path.basename(__file__))
+    logger.info('Using WAW directory: ' + os.path.dirname(__file__))
     scriptsPath=os.path.dirname(__file__)
     defaultParamList=['shared.cfg', 'private.cfg']
 
@@ -38,7 +43,7 @@ if __name__ == '__main__':
             if os.path.isfile(strParamsItem):
                 paramsAll += ' -c ' + strParamsItem
             else:
-                print('ERROR: Configuration file %s not found.', strParamsItem)
+                logger.error('Configuration file %s not found.', strParamsItem)
                 exit(1)
     else:
         # create list of default config files
@@ -46,9 +51,9 @@ if __name__ == '__main__':
             if os.path.isfile(strParamsItem):
                 paramsAll += ' -c ' + strParamsItem
             else:
-                print('WARNING: Default configuration file %s was not found, ignoring.', strParamsItem)
+                logger.warning('Default configuration file %s was not found, ignoring.', strParamsItem)
     if len(paramsAll) == 0:
-        print('ERROR: Please provide at least one configuration file.', strParamsItem)
+        logger.error('Please provide at least one configuration file.')
         exit(1)
     if VERBOSE:
         paramsAll += ' -v'
@@ -56,36 +61,36 @@ if __name__ == '__main__':
 
     #Execute all steps
     cmd = 'python ' + scriptsPath + '/clean_generated.py ' + paramsAll
-    if VERBOSE:print(cmd)
+    if VERBOSE:logger.info(cmd)
     retValue = os.system(cmd)
     cmd = 'python ' + scriptsPath + '/dialog_xls2xml.py '+ paramsAll
-    if VERBOSE:print(cmd)
-    print(cmd)
+    if VERBOSE:logger.info(cmd)
+    logger.info(cmd)
     retValue = os.system(cmd)
     cmd = 'python ' + scriptsPath + '/dialog_xml2json.py ' + paramsAll
-    if VERBOSE:print(cmd)
+    if VERBOSE:logger.info(cmd)
     retValue = os.system(cmd)
     cmd = 'python ' + scriptsPath + '/entities_csv2json.py ' + paramsAll
-    if VERBOSE:print(cmd)
+    if VERBOSE:logger.info(cmd)
     retValue = os.system(cmd)
     cmd = 'python ' + scriptsPath + '/intents_csv2json.py ' + paramsAll
-    if VERBOSE:print(cmd)
+    if VERBOSE:logger.info(cmd)
     retValue = os.system(cmd)
     cmd = 'python ' + scriptsPath + '/dialog_xml2json.py ' + paramsAll
-    if VERBOSE:print(cmd)
+    if VERBOSE:logger.info(cmd)
     retValue = os.system(cmd)
     cmd = 'python ' + scriptsPath + '/workspace_compose.py ' + paramsAll
-    if VERBOSE:print(cmd)
+    if VERBOSE:logger.info(cmd)
     retValue = os.system(cmd)
     cmd = 'python ' + scriptsPath + '/workspace_addjson.py ' + paramsAll
-    if VERBOSE:print(cmd)
+    if VERBOSE:logger.info(cmd)
     retValue = os.system(cmd)
 
     cmd = 'python ' + scriptsPath + '/workspace_deploy.py ' + paramsAll
-    if VERBOSE:print(cmd)
+    if VERBOSE:logger.info(cmd)
     retValue = os.system(cmd)
     cmd = 'python ' + scriptsPath + '/functions_deploy.py ' + paramsAll
-    if VERBOSE:print(cmd)
+    if VERBOSE:logger.info(cmd)
     retValue = os.system(cmd)
 
-    printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    logger.info('FINISHING: ' + os.path.basename(__file__))

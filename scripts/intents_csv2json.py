@@ -15,11 +15,15 @@ limitations under the License.
 from __future__ import print_function
 
 import json, sys, argparse, os, glob, codecs
-from wawCommons import printf, eprintf, getFilesAtPath, toIntentName
+from wawCommons import setLoggerConfig, getScriptLogger,  getFilesAtPath, toIntentName
 from cfgCommons import Cfg
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 def main(argv):
-    printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
+    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Converts intent csv files to .json format of Watson Conversation Service', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
@@ -37,11 +41,11 @@ def main(argv):
     NAME_POLICY = 'soft' if args.soft else 'hard'
 
     if not hasattr(config, 'common_intents'):
-        print('intents parameter is not defined.')
+        logger.info('intents parameter is not defined.')
     if not hasattr(config, 'common_generated_intents'):
-        print('generated_intents parameter is not defined, ignoring')
+        logger.info('generated_intents parameter is not defined, ignoring')
     if not hasattr(config, 'common_outputs_intents'):
-        print('Outputs_intents parameter is not defined, output will be generated to console.')
+        logger.info('Outputs_intents parameter is not defined, output will be generated to console.')
 
     intents = []
 
@@ -63,7 +67,7 @@ def main(argv):
                 if line and not line in examples:
                     examples.append(line)
                 elif line in examples:
-                    printf('Example used twice for the intent %s, omitting:%s \n', intentName, line )
+                    logger.info('Example used twice for the intent %s, omitting:%s', intentName, line )
             intent['examples'] = [{'text':i} for i in examples]
             intents.append(intent)
 
@@ -71,14 +75,15 @@ def main(argv):
     if hasattr(config, 'common_outputs_directory') and hasattr(config, 'common_outputs_intents'):
         if not os.path.exists(getattr(config, 'common_outputs_directory')):
             os.makedirs(getattr(config, 'common_outputs_directory'))
-            printf('Created new output directory ' + getattr(config, 'common_outputs_directory'))
+            logger.info('Created new output directory ' + getattr(config, 'common_outputs_directory'))
         with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'w', encoding='utf8') as outputFile:
             outputFile.write(json.dumps(intents, indent=4, ensure_ascii=False, encoding='utf8'))
     else:
         print(json.dumps(intents, indent=4, ensure_ascii=False, encoding='utf8'))
 
-    printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    logger.info('FINISHING: ' + os.path.basename(__file__))
 
 if __name__ == '__main__':
+    setLoggerConfig()
     main(sys.argv[1:])
 

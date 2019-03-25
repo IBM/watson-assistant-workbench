@@ -14,13 +14,57 @@ limitations under the License.
 """
 from __future__ import print_function
 
-import json, sys, argparse, os, glob, codecs
+import json, sys, argparse, os, glob, codecs, re
 from wawCommons import setLoggerConfig, getScriptLogger,  getFilesAtPath, toIntentName, openFile
 from cfgCommons import Cfg
 import logging
 
-
 logger = getScriptLogger(__file__)
+
+def processExample(line, intentName, examples):
+    example = {}
+    #find all matches of contextual entities
+    matches = re.findall(r'<(.*)>([^</>]*?)<\/\1>', line)
+
+    #strip the tags
+    lineRemovedInnerAnnotation = line
+    while True:
+        lineRemovedInnerAnnotation = re.sub(r'<(.*)>([^</>]*?)<\/\1>', r'\2', lineRemovedInnerAnnotation)
+        outerTagsMatches = re.findall(r'<(.*)>([^</>]*?)<\/\1>', lineRemovedInnerAnnotation)
+        if len(outerTagsMatches) > 0:
+            for match in outerTagsMatches:
+                logger.warning('For the intent %s, omitting outer tag annotation: <%s>', intentName, match[0])
+        else:
+            break
+    invalidAnnotation = re.findall(r'<.*?>', lineRemovedInnerAnnotation)
+    if len(invalidAnnotation) > 0:
+        for match in invalidAnnotation:
+            logger.error('Invalid annotation tag for the intent %s, %s', intentName, match)
+        exit(1)
+
+    #isn't it already in example?
+    alreadyin = False
+    for prevexample in examples:
+        if lineRemovedInnerAnnotation == str(prevexample['text']):
+            logger.warning('Example used twice for the intent %s, omitting: %s', intentName, lineRemovedInnerAnnotation)
+            alreadyin = True
+    if alreadyin:
+        return None
+    if not lineRemovedInnerAnnotation:
+        logger.warning('Omitting empty line for intent %s after annotation tags are removed: %s', intentName, line)
+        return None
+
+    # locating the match
+    example['text'] = lineRemovedInnerAnnotation
+    if len(matches) > 0:
+        example['mentions'] = []
+        for match in matches:
+            start = lineRemovedInnerAnnotation.index(match[1])
+            end = start + len(match[1])
+            entity = match[0]
+            example['mentions'].append({'entity': entity, 'location':[start, end]})
+    #return the example object
+    return example
 
 def main(argv):
     logger.info('STARTING: ' + os.path.basename(__file__))
@@ -64,13 +108,16 @@ def main(argv):
                 # remove comments
                 line = line.split('#')[0]
                 line = line.rstrip().lower()
-                if line and not line in examples:
-                    examples.append(line)
-                elif line in examples:
-                    logger.info('Example used twice for the intent %s, omitting:%s', intentName, line )
-            intent['examples'] = [{'text':i} for i in examples]
-            intents.append(intent)
+                #non-ascii characters fix
+                line = line.encode('utf-8')
+                if line:
+                    example = processExample(line, intentName, examples)
+                    #adding to the list
+                    if example:
+                        examples.append(example)
 
+            intent['examples'] = examples
+            intents.append(intent)
 
     if hasattr(config, 'common_outputs_directory') and hasattr(config, 'common_outputs_intents'):
         if not os.path.exists(getattr(config, 'common_outputs_directory')):
@@ -86,4 +133,3 @@ def main(argv):
 if __name__ == '__main__':
     setLoggerConfig()
     main(sys.argv[1:])
-

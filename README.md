@@ -34,7 +34,8 @@ If you want to run unit tests locally, you first need to install development dep
 ```
 pip install -r requirements_dev.txt
 ```
-The unit tests can be started with this command (from top directory of this repository)
+The unit and app tests can be started with this commands (from top directory of this repository)
 ```
 PYTHONPATH=./scripts:$PYTHONPATH pytest ci/unit_tests
+PYTHONPATH=./scripts:$PYTHONPATH pytest ci/app_tests
 ```

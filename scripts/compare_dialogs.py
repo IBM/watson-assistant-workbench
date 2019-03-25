@@ -13,9 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, sys, os.path, argparse
+import json, sys, os, os.path, argparse
 from deepdiff import DeepDiff
-from wawCommons import printf, eprintf
+from wawCommons import setLoggerConfig, getScriptLogger
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 try:
     basestring            # Python 2
@@ -37,11 +41,11 @@ def main(argv):
     outputpath = args.outputDialogFileName
 
     if not os.path.isfile(inputpath):
-        eprintf("ERROR: Input dialog json '%s' does not exist.\n", inputpath)
+        logger.error("Input dialog json '%s' does not exist.", inputpath)
         exit(1)
 
     if not os.path.isfile(outputpath):
-        eprintf("ERROR: Output dialog json '%s' does not exist.\n", outputpath)
+        logger.error("Output dialog json '%s' does not exist.", outputpath)
         exit(1)
 
     with open(inputpath) as f:
@@ -52,15 +56,16 @@ def main(argv):
 
     result = DeepDiff(dialogInputUnsorted, dialogOutputUnsorted, ignore_order=True).json
     if VERBOSE:
-        printf("result: %s\n", json.dumps(result, indent=4))
+        logger.info("result: %s", json.dumps(result, indent=4))
 
     if result == '{}':
-        printf("Dialog JSONs are same.\n")
+        logger.info("Dialog JSONs are same.")
         exit(0)
     else:
-        printf("Dialog JSONs differ.\n")
+        logger.info("Dialog JSONs differ.")
         exit(1)
 
 if __name__ == '__main__':
+    setLoggerConfig()
     main(sys.argv[1:])
 

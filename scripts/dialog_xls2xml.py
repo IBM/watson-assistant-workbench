@@ -12,22 +12,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from __future__ import print_function
 
 # coding: utf-8
 import sys, argparse, os, codecs
 from cfgCommons import Cfg
-from wawCommons import printf, openFile
 from XLSXHandler import XLSXHandler
 from XMLHandler import XMLHandler
+from wawCommons import setLoggerConfig, getScriptLogger, openFile
+import logging
 
-from wawCommons import printf, eprintf
+
+logger = getScriptLogger(__file__)
 
 def saveDialogDataToFileSystem(dialogData, handler, config):
     # Create directory for dialogs (if it does not exist already)
     if hasattr(config, 'common_generated_dialogs') and not os.path.exists(getattr(config, 'common_generated_dialogs')):
         os.makedirs(getattr(config, 'common_generated_dialogs'))
-        print('Created new directory ' + getattr(config, 'common_generated_dialogs'))
+        logger.info('Created new directory ' + getattr(config, 'common_generated_dialogs'))
     # Generate xml file per dialog domain (original xls workbook (all its sheets).
     domains = dialogData.getAllDomains()
     for domain_name in domains:   # For all domains
@@ -39,7 +40,7 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
     # Create directory for intents (if it does not exist already)
     if hasattr(config, 'common_generated_intents') and not os.path.exists(getattr(config, 'common_generated_intents')[0]):
         os.makedirs(getattr(config, 'common_generated_intents')[0])
-        print('Created new directory ' + getattr(config, 'common_generated_intents')[0])
+        logger.info('Created new directory ' + getattr(config, 'common_generated_intents')[0])
     # One file per intent
     for intent, intentData in dialogData.getAllIntents().items():
         if len(intentData.getExamples()) > 0:
@@ -52,15 +53,29 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
     # Create directory for entities (if it does not exist already)
     if hasattr(config, 'common_generated_entities') and not os.path.exists(getattr(config, 'common_generated_entities')[0]):
         os.makedirs(getattr(config, 'common_generated_entities')[0])
-        print('Created new directory ' + getattr(config, 'common_generated_entities')[0])
+        logger.info('Created new directory ' + getattr(config, 'common_generated_entities')[0])
     # One file per entity
     for entity_name, entityData in dialogData.getAllEntities().items():
         with openFile(os.path.join(getattr(config, 'common_generated_entities')[0], entity_name + '.csv'), 'w') as entityFile:
             for entityList in entityData.getValues():
                 entityFile.write(entityList + '\n')
 
-if __name__ == '__main__':
-    printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
+    # generate entities if 'common_generated_entities' folder is specified
+    if hasattr(config, 'common_generated_entities'):
+        generatedEntities = getattr(config, 'common_generated_entities')
+        generatedEntitiesFolder = generatedEntities[0] if isinstance(generatedEntities, list) else generatedEntities
+        # Create directory for entities (if it does not exist already)
+        if not os.path.exists(generatedEntitiesFolder):
+            os.makedirs(generatedEntitiesFolder)
+            logger.info('Created new directory ' + generatedEntitiesFolder )
+        # One file per entity
+        for entity_name, entityData in dialogData.getAllEntities().items():
+            with open(os.path.join(generatedEntitiesFolder, entity_name.encode('ascii', 'ignore') + '.csv'), 'w') as entityFile:
+                for entityList in entityData.getValues():
+                    entityFile.write(entityList.encode('utf8') + '\n')
+
+def main(argv):
+    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Creates dialog nodes with answers to intents .', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # optional arguments
     parser.add_argument('-x', '--common_xls', required=False, help='file with MSExcel formated dialog', action='append')
@@ -70,28 +85,28 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
     parser.add_argument('-v', '--common_verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
     config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
 
     if hasattr(config, 'common_verbose') and getattr(config, 'common_verbose'):
         name_policy = 'soft_verbose'
     if not hasattr(config, 'common_xls'):
-        eprintf('ERROR: xls is not defined')
+        logger.error('xls is not defined')
         exit(1)
     if not hasattr(config, 'common_generated_dialogs'):
-        if VERBOSE: printf('INFO: generated_dialogs parameter is not defined\n')
+        if VERBOSE: logger.info('generated_dialogs parameter is not defined')
     if not hasattr(config, 'common_generated_intents'):
-        if VERBOSE: printf('INFO: generated_intents parameter is not defined\n')
+        if VERBOSE: logger.info('generated_intents parameter is not defined')
     if not hasattr(config, 'common_generated_entities'):
-        if VERBOSE: printf('INFO: generated_entities parameter is not defined\n')
+        if VERBOSE: logger.info('generated_entities parameter is not defined')
 
     xlsxHandler = XLSXHandler(config)
     allDataBlocks = {}  # map of datablocks, key: Excel sheet name, value: list of all block in the sheet
 
-    print(getattr(config, 'common_xls'))
+    logger.info(getattr(config, 'common_xls'))
     for fileOrFolder in getattr(config, 'common_xls'):
-        if VERBOSE: printf('INFO: Searching in path: %s\n', fileOrFolder)
+        if VERBOSE: logger.info('Searching in path: %s', fileOrFolder)
         if os.path.isdir(fileOrFolder):
             xlsDirList = os.listdir(fileOrFolder)
             for xlsFile in xlsDirList:
@@ -99,8 +114,8 @@ if __name__ == '__main__':
                         not(xlsFile.startswith('~')) and not(xlsFile.startswith('.')):
                     xlsxHandler.parseXLSXIntoDataBlocks(fileOrFolder + "/" + xlsFile)
                 else:
-                    eprintf('WARNING: The file %s skipped due to failing file selection policy check. '
-                            'It should be .xlsx file not starting with ~ or .(dot).\n', os.path.join(fileOrFolder, xlsFile))
+                    logger.warning('The file %s skipped due to failing file selection policy check. '
+                            'It should be .xlsx file not starting with ~ or .(dot).', os.path.join(fileOrFolder, xlsFile))
 
         elif os.path.exists(fileOrFolder):
             xlsxHandler.parseXLSXIntoDataBlocks(fileOrFolder)
@@ -109,4 +124,8 @@ if __name__ == '__main__':
     xlsxHandler.updateReferences()          # Resolving cross references
     saveDialogDataToFileSystem(xlsxHandler.getDialogData(), XMLHandler(), config)
 
-    printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    logger.info('FINISHING: ' + os.path.basename(__file__))
+
+if __name__ == '__main__':
+    setLoggerConfig()
+    main(sys.argv[1:])

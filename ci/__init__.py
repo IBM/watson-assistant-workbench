@@ -1,5 +1,5 @@
 """
-Copyright 2018 IBM Corporation
+Copyright 2019 IBM Corporation
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -13,17 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import re
-from collections import OrderedDict
+import pytest
 
-class IntentData(object):
-    """ Represents a single intent.    """
+from wawCommons import setLoggerConfig
 
-    def __init__(self):
-        self._examples = []         # list of all text alternatives of intent
+# we want to have pytest assert introspection in the test_utils
+pytest.register_assert_rewrite('ci.test_utils')
 
-    def addExample(self, example):
-        self._examples.append(example)
-
-    def getExamples(self):
-        return self._examples
+setLoggerConfig()

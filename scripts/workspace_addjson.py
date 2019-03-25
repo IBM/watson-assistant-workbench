@@ -13,9 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, sys, os.path, argparse, codecs
+import json, sys, os, os.path, argparse, codecs
 from cfgCommons import Cfg
-from wawCommons import printf, eprintf, getRequiredParameter
+from wawCommons import setLoggerConfig, getScriptLogger,  getRequiredParameter
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 
 try:
@@ -28,7 +32,7 @@ nothingFound = True
     # function to find a desired key in complex json and add other part of json
 def includeJson(nodeJSON, keyJSON, keySearch, includeJSON):
     global nothingFound
-    print(keyJSON)
+    logger.info(keyJSON)
     # check if inputs are ok
     if nodeJSON is None or keyJSON is None:
         return
@@ -55,7 +59,7 @@ def includeJson(nodeJSON, keyJSON, keySearch, includeJSON):
             includeJson(nodeJSON[keyJSON], subKeyJSON, keySearch, includeJSON)
 
 def main(args):
-    printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
+    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='This script takes a workspace JSON as one parameter and another JSON (i.e., piece of context data structure) and put the second one into desired place in the first one. This happens inplace.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # arguments
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
@@ -76,14 +80,14 @@ def main(args):
         try:
             workspaceInput = json.load(inputpath)
         except:
-            eprintf('ERROR: Workspace JSON is not valid JSON: %s', os.path.join(getRequiredParameter(config, 'common_outputs_directory'), getRequiredParameter(config, 'common_outputs_workspace')))
+            logger.error('Workspace JSON is not valid JSON: %s', os.path.join(getRequiredParameter(config, 'common_outputs_directory'), getRequiredParameter(config, 'common_outputs_workspace')))
             exit(1)
     # json to add
     with codecs.open(os.path.join(getRequiredParameter(config, 'includejsondata_jsonfile')), 'r', encoding='utf8') as jsonincludepath:
         try:
             jsonInclude = json.load(jsonincludepath)
         except:
-            eprintf('ERROR: JSON to include is not valid JSON: %s', os.path.join(getRequiredParameter(config, 'includejsondata_jsonfile')))
+            logger.error('JSON to include is not valid JSON: %s', os.path.join(getRequiredParameter(config, 'includejsondata_jsonfile')))
             exit(1)
     # target element
     targetKey = getRequiredParameter(config, 'includejsondata_targetkey')
@@ -96,11 +100,12 @@ def main(args):
         json.dump(workspaceInput, outfile, indent=4)
 
     if nothingFound is True:
-        eprintf('\nWARNING: target key not found.')
+        logger.warning('Target key not found.')
     else:
-        printf('\nWriting workspaces with added JSON successfull.')
+        logger.info('Writing workspaces with added JSON successfull.')
 
-    print('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    logger.info('FINISHING: ' + os.path.basename(__file__))
 
 if __name__ == '__main__':
+    setLoggerConfig()
     main(sys.argv[1:])

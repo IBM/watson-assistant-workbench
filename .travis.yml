@@ -9,13 +9,21 @@ install:
   - pip install -r requirements.txt -r requirements_dev.txt
 
 before_script:
+  # add scripts to PYTHONPATH
+  - export PYTHONPATH=./scripts:$PYTHONPATH
   # stop the build if there are Python syntax errors or undefined names
   - flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
   # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
   - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
 script:
-  - ./ci/travis.sh
+  - pytest ci -v
+
+after_script:
+  # deploy all 'outputs' folders to Artifactory
+  - ./scripts/artifactory/artifactory-deploy-tests-outputs.sh
+  # remove old files (older than ${ARTIFACTORY_KEEP_DAYS}) and delete empty builds and branches
+  - ./scripts/artifactory/artifactory-cleanup.sh
 
 notifications:
   email:

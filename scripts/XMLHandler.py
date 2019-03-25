@@ -14,7 +14,13 @@ limitations under the License.
 """
 
 import lxml.etree as XML
-from wawCommons import eprintf, toIntentName, printf
+from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName
+import os
+import logging
+
+
+logger = getScriptLogger(__file__)
+
 NAME_POLICY = 'soft'
 
 # Watson Assistant limits number of options currently to 5, we cut the end of the list of options if it is longer
@@ -31,7 +37,7 @@ class XMLHandler(object):
         for node_name in nodes: #for each node in the domain
             nodeData = dialogData.getNode(node_name)
             if nodeData == None:
-                printf("WARNING: Not found a definition for a node name %s \n",node_name)
+                logger.warning("Not found a definition for a node name %s",node_name)
                 continue
 
             # construct the XML structure for each node
@@ -84,7 +90,7 @@ class XMLHandler(object):
                 elif channelName == '8':
                     outputXml.append(self._createXmlElement('url', output))
                 else:
-                    eprintf('WARNING: Unrecognized channel: %s, value: %s\n', channelName, output)
+                    logger.warning('Unrecognized channel: %s, value: %s', channelName, output)
 
         if buttons:
             #segment generating buttons to generic - we might return to it when WA format gets more stable
@@ -102,7 +108,7 @@ class XMLHandler(object):
                     optionsXml.append(self._createXmlOption('value', buttonValue))
                     genericXml.append(optionsXml)
                 else:
-                    eprintf('Warning: Number of buttons is larger then %s, ignoring: %s, %s\n', MAX_OPTIONS, buttonLabel, buttonLabel)
+                    logger.warning('Number of buttons is larger then %s, ignoring: %s, %s', MAX_OPTIONS, buttonLabel, buttonLabel)
                 buttonIndex += 1
             outputXml.append(genericXml)
             '''
@@ -113,10 +119,10 @@ class XMLHandler(object):
                     # sanity check, string length 64 is the limit of WA
                     if len(buttonLabel) >64 :
                         buttonLabel = buttonLabel[:64]
-                        eprintf('WARNING: Button label is > 64 char, truncating to: %s\n', buttonLabel)
+                        logger.warning('Button label is > 64 char, truncating to: %s', buttonLabel)
                     if len(buttonValue) >64 :
                         buttonValue = buttonValue[:64]
-                        eprintf('WARNING: Button label is > 64 char, truncating to: %s\n', buttonValue)
+                        logger.warning('Button label is > 64 char, truncating to: %s', buttonValue)
 
                     xmlSuggestion = XML.Element('suggestions', structure = 'listItem')
                     xmlLabel = XML.Element('label')
@@ -127,7 +133,7 @@ class XMLHandler(object):
                     xmlSuggestion.append(xmlValue)
                     outputXml.append(xmlSuggestion)
                 else:
-                    eprintf('Warning: Number of buttons is larger then %s, ignoring: %s, %s\n', MAX_OPTIONS, buttonLabel, buttonValue)
+                    logger.warning('Number of buttons is larger then %s, ignoring: %s, %s', MAX_OPTIONS, buttonLabel, buttonValue)
                 buttonIndex += 1
         if foldables:
             #Example: {"output": {"text": "this is regular text", "more": [{"title": "this is title", "body": "this is body"}]}}
@@ -143,7 +149,7 @@ class XMLHandler(object):
                     xmlFoldable.append(xmlBody)
                     outputXml.append(xmlFoldable)
                 else:
-                    eprintf('Warning: Number of foldables is larger then %s, ignoring: %s, %s\n', MAX_OPTIONS, foldableTitle, foldableBody)
+                    logger.warning('Number of foldables is larger then %s, ignoring: %s, %s', MAX_OPTIONS, foldableTitle, foldableBody)
                 foldableIndex += 1
         return outputXml
 

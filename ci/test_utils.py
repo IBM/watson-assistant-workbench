@@ -34,6 +34,12 @@ class BaseTestCaseCapture(object):
 
     dialogSchemaPath = '../data_spec/dialog_schema.xml'
     captured = None
+    logs = None
+
+    class MessageType(object):
+        OUT = 0
+        ERR = 1
+        LOG = 2
 
     def t_tooFewArgs(self, args=[], kwargs={}):
         ''' Runs predefined function (callfunc) with given arguments and tests if it fails and error message contains \'too few arguments\' '''
@@ -59,17 +65,50 @@ class BaseTestCaseCapture(object):
         ''' Runs function with given arguments and tests exit code '''
         self.t_fun_exitCodeAndErrMessage(function, exitCode, '', args, kwargs)
 
+    def t_exitCodeAndOutMessage(self, exitCode, outMessage, args=[], kwargs={}):
+        ''' (Generic) Runs predefined function (callfunc) with given arguments and tests exit code and output message '''
+        self.t_fun_exitCodeAndOutMessage(self.callfunc, exitCode, outMessage, args, kwargs)
+
+    def t_fun_exitCodeAndOutMessage(self, function, exitCode, outMessage, args=[], kwargs={}):
+        ''' (Generic) Runs function with given arguments and tests exit code and output message '''
+        self.t_fun_exitCodeAndMessage(function, exitCode, BaseTestCaseCapture.MessageType.OUT, outMessage, args, kwargs)
+
     def t_exitCodeAndErrMessage(self, exitCode, errMessage, args=[], kwargs={}):
         ''' (Generic) Runs predefined function (callfunc) with given arguments and tests exit code and error message '''
         self.t_fun_exitCodeAndErrMessage(self.callfunc, exitCode, errMessage, args, kwargs)
 
     def t_fun_exitCodeAndErrMessage(self, function, exitCode, errMessage, args=[], kwargs={}):
         ''' (Generic) Runs function with given arguments and tests exit code and error message '''
+        self.t_fun_exitCodeAndMessage(function, exitCode, BaseTestCaseCapture.MessageType.ERR, errMessage, args, kwargs)
+
+    def t_exitCodeAndLogMessage(self, exitCode, logMessage, args=[], kwargs={}):
+        ''' (Generic) Runs predefined function (callfunc) with given arguments and tests exit code and log message '''
+        self.t_fun_exitCodeAndLogMessage(self.callfunc, exitCode, logMessage, args, kwargs)
+
+    def t_fun_exitCodeAndLogMessage(self, function, exitCode, logMessage, args=[], kwargs={}):
+        ''' (Generic) Runs function with given arguments and tests exit code and log message '''
+        self.t_fun_exitCodeAndMessage(function, exitCode, BaseTestCaseCapture.MessageType.LOG, logMessage, args, kwargs)
+
+    def t_exitCodeAndMessage(self, function, exitCode, messageType, logMessage, args=[], kwargs={}):
+        ''' (Generic) Runs predefined function (callfunc) with given arguments and tests exit code and message of given type '''
+        self.t_fun_exitCodeAndMessage(self.callfunc, exitCode, messageType, logMessage, args, kwargs)
+
+    def t_fun_exitCodeAndMessage(self, function, exitCode, messageType, logMessage, args=[], kwargs={}):
+        ''' (Generic) Runs function with given arguments and tests exit code and message of given type '''
         with pytest.raises(SystemExit) as pytest_wrapped_e:
             function(*args, **kwargs)
         self.captured = self.capfd.readouterr()
+        self.logs = self.caplog
         assert pytest_wrapped_e.value.code == exitCode
-        assert errMessage in self.captured.err
+
+        if messageType == BaseTestCaseCapture.MessageType.OUT:
+            assert logMessage in self.captured.out
+        elif messageType == BaseTestCaseCapture.MessageType.ERR:
+            assert logMessage in self.captured.err
+        elif messageType == BaseTestCaseCapture.MessageType.LOG:
+            assert logMessage in self.logs.text
+        else:
+            pytest.fail('Uknown MessageType: ' + messageType)
 
     def t_raiseError(self, errorType, errMessage, args=[], kwargs={}):
         ''' (Generic) Runs predefined function (callfunc) with given arguments and tests exception '''
@@ -80,6 +119,7 @@ class BaseTestCaseCapture(object):
         with pytest.raises(errorType, match=errMessage) as pytest_wrapped_e:
             function(*args, **kwargs)
         self.captured = self.capfd.readouterr()
+        self.logs = self.caplog
 
     def t_noException(self, args=[], kwargs={}):
         ''' (Generic) Runs predefined function (callfunc) with given arguments and checks that no exception was raised '''
@@ -90,6 +130,7 @@ class BaseTestCaseCapture(object):
         try:
             function(*args, **kwargs)
             self.captured = self.capfd.readouterr()
+            self.logs = self.caplog
         except Exception as e:
             pytest.fail(traceback.print_exception(sys.exc_info()))
 
@@ -100,6 +141,10 @@ class BaseTestCaseCapture(object):
     @pytest.fixture(autouse=True)
     def capfd(self, capfd):
         self.capfd = capfd
+
+    @pytest.fixture(autouse=True)
+    def caplog(self, caplog):
+        self.caplog = caplog
 
     @staticmethod
     def createFolder(folderPath, deleteExisting=True):

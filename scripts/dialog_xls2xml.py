@@ -37,28 +37,22 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
             xmlData = handler.convertDialogData(dialogData, domains[domain_name]) #process all nodes of the domain
             dialogFile.write(handler.printXml(xmlData))
 
-    # Create directory for intents (if it does not exist already)
-    if hasattr(config, 'common_generated_intents') and not os.path.exists(getattr(config, 'common_generated_intents')[0]):
-        os.makedirs(getattr(config, 'common_generated_intents')[0])
-        logger.info('Created new directory ' + getattr(config, 'common_generated_intents')[0])
-    # One file per intent
-    for intent, intentData in dialogData.getAllIntents().items():
-        if len(intentData.getExamples()) > 0:
-            intent_name = intent[1:] if intent.startswith(u'#') else intent
+    # generate intents if 'common_generated_intents' folder is specified
+    if hasattr(config, 'common_generated_intents'):
+        generatedIntents = getattr(config, 'common_generated_intents')
+        generatedIntentsFolder = generatedIntents[0] if isinstance(generatedIntents, list) else generatedIntents
+        # Create directory for intents (if it does not exist already)
+        if not os.path.exists(generatedIntentsFolder):
+            os.makedirs(generatedIntentsFolder)
+            logger.info('Created new directory ' + generatedIntentsFolder)
+        # One file per intent
+        for intent, intentData in dialogData.getAllIntents().items():
+            if len(intentData.getExamples()) > 0:
+                intent_name = intent[1:] if intent.startswith(u'#') else intent
 
-            with openFile(os.path.join(getattr(config, 'common_generated_intents')[0], intent_name + '.csv'), 'w') as intentFile:
-                for example in intentData.getExamples():
-                    intentFile.write(example + '\n')
-
-    # Create directory for entities (if it does not exist already)
-    if hasattr(config, 'common_generated_entities') and not os.path.exists(getattr(config, 'common_generated_entities')[0]):
-        os.makedirs(getattr(config, 'common_generated_entities')[0])
-        logger.info('Created new directory ' + getattr(config, 'common_generated_entities')[0])
-    # One file per entity
-    for entity_name, entityData in dialogData.getAllEntities().items():
-        with openFile(os.path.join(getattr(config, 'common_generated_entities')[0], entity_name + '.csv'), 'w') as entityFile:
-            for entityList in entityData.getValues():
-                entityFile.write(entityList + '\n')
+                with openFile(os.path.join(generatedIntentsFolder, intent_name + '.csv'), 'w') as intentFile:
+                    for example in intentData.getExamples():
+                        intentFile.write(example + '\n')
 
     # generate entities if 'common_generated_entities' folder is specified
     if hasattr(config, 'common_generated_entities'):
@@ -70,9 +64,9 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
             logger.info('Created new directory ' + generatedEntitiesFolder )
         # One file per entity
         for entity_name, entityData in dialogData.getAllEntities().items():
-            with open(os.path.join(generatedEntitiesFolder, entity_name.encode('ascii', 'ignore') + '.csv'), 'w') as entityFile:
+            with openFile(os.path.join(generatedEntitiesFolder, entity_name + '.csv'), 'w') as entityFile:
                 for entityList in entityData.getValues():
-                    entityFile.write(entityList.encode('utf8') + '\n')
+                    entityFile.write(entityList + '\n')
 
 def main(argv):
     logger.info('STARTING: ' + os.path.basename(__file__))

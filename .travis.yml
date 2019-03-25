@@ -24,6 +24,8 @@ script:
 after_script:
   # deploy all 'outputs' folders to Artifactory
   - ./scripts/artifactory/artifactory-deploy-tests-outputs.sh
+  # remove old files (older than ${ARTIFACTORY_KEEP_DAYS}) and delete empty builds and branches
+  - ./scripts/artifactory/artifactory-cleanup.sh
 
 notifications:
   email:

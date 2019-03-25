@@ -1,5 +1,6 @@
 #!/bin/sh
 
+LOG_FILE=log.log
 TAR_NAME=outputs.tar
 TAR_GZ_NAME=${TAR_NAME}.gz
 
@@ -20,4 +21,7 @@ done
 gzip ${TAR_NAME}
 
 ../scripts/artifactory/artifactory-deploy.sh ${TAR_GZ_NAME}
+
+cd ..
+./scripts/artifactory/artifactory-deploy.sh ${LOG_FILE}
 

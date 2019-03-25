@@ -45,7 +45,7 @@ class TestMain(BaseTestCaseCapture):
 
     def test_nonExistentFileFirst(self):
         ''' Tests if the first file does not exist '''
-        self.t_exitCodeAndErrMessage(
+        self.t_exitCodeAndLogMessage(
             1, # exit code
             'Input dialog json \'/some/random/path\' does not exist.', # error message substring
             [[
@@ -56,7 +56,7 @@ class TestMain(BaseTestCaseCapture):
 
     def test_nonExistentFileSecond(self):
         ''' Tests if the second file does not exist '''
-        self.t_exitCodeAndErrMessage(
+        self.t_exitCodeAndLogMessage(
             1, # exit code
             'Output dialog json \'/some/random/path\' does not exist.', # error message substring
             [[

@@ -15,9 +15,7 @@ before_script:
   - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
 script:
-  # TEMPORARILY allow Python 3.6 to fail the ./ci/travis.sh tests
-  # TODO: Once Python 3 passes the tests, revert the next line to just be "./ci/travis.sh"
-  - ./ci/travis.sh || test ${TRAVIS_PYTHON_VERSION} == 3.6
+  - ./ci/travis.sh
 
 notifications:
   email:

@@ -232,13 +232,8 @@ def main(argv):
                     if firstFailedLine is None:
                         firstFailedLine = line
 
-<<<<<<< HEAD
-                    printf('EXPECTED OUTPUT: ' + json.dumps(expectedJson, indent=4, ensure_ascii=False) + '\n')
-                    printf('RECEIVED OUTPUT: ' + json.dumps(receivedJson, indent=4, ensure_ascii=False) + '\n')
-=======
                     logger.info('EXPECTED OUTPUT: ' + json.dumps(expectedJson, indent=4, ensure_ascii=False).encode('utf8'))
                     logger.info('RECEIVED OUTPUT: ' + json.dumps(receivedJson, indent=4, ensure_ascii=False).encode('utf8'))
->>>>>>> devel
                     resultText = 'FAILED'
 
                 else:

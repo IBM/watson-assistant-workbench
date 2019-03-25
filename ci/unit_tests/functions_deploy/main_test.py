@@ -24,10 +24,13 @@ class TestMain(BaseTestCaseCapture):
     packageBase = "Package-for-WAW-CI-"
 
     def setup_class(cls):
-        BaseTestCaseCapture.checkEnvironmentVariables(['CLOUD_FUNCTIONS_USERNAME', 'CLOUD_FUNCTIONS_PASSWORD'])
+        BaseTestCaseCapture.checkEnvironmentVariables(['CLOUD_FUNCTIONS_USERNAME', 'CLOUD_FUNCTIONS_PASSWORD',
+                                                       'CLOUD_FUNCTIONS_NAMESPACE'])
+        cls.username = os.environ['CLOUD_FUNCTIONS_USERNAME']
+        cls.password = os.environ['CLOUD_FUNCTIONS_PASSWORD']
         cls.cloudFunctionsUrl = os.environ.get('CLOUD_FUNCTIONS_URL',
                                                'https://us-south.functions.cloud.ibm.com/api/v1/namespaces')
-        cls.namespace = os.environ.get('CLOUD_FUNCTIONS_NAMESPACE', "Prague Cognitive Services_IoT-Prague")
+        cls.namespace = os.environ['CLOUD_FUNCTIONS_NAMESPACE']
         cls.urlNamespace = urllib.quote(cls.namespace)
 
     def callfunc(self, *args, **kwargs):
@@ -36,8 +39,7 @@ class TestMain(BaseTestCaseCapture):
     def _getFunctionsInPackage(self, package):
         functionListUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/?limit=0&skip=0'
 
-        functionListResp = requests.get(functionListUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
-                                                               os.environ['CLOUD_FUNCTIONS_PASSWORD']),
+        functionListResp = requests.get(functionListUrl, auth=(self.username, self.password),
                                         headers={'accept': 'application/json'})
 
         assert functionListResp.status_code == 200
@@ -47,7 +49,7 @@ class TestMain(BaseTestCaseCapture):
 
         for function in functionListJson:
             if (self.namespace + '/' + package) in function['namespace']:
-                functionNames += [function['name']]
+                functionNames.append(function['name'])
 
         return functionNames
 
@@ -64,15 +66,13 @@ class TestMain(BaseTestCaseCapture):
                 functionDelUrl =  self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
                     '/' + functionName
 
-                functionDelResp = requests.delete(functionDelUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
-                                                                        os.environ['CLOUD_FUNCTIONS_PASSWORD']))
+                functionDelResp = requests.delete(functionDelUrl, auth=(self.username, self.password))
                 assert functionDelResp.status_code == 200
 
             # remove cloud function package
             packageDelUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/packages/' + self.package
 
-            packageDelResp = requests.delete(packageDelUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
-                                                                  os.environ['CLOUD_FUNCTIONS_PASSWORD']))
+            packageDelResp = requests.delete(packageDelUrl, auth=(self.username, self.password))
             assert packageDelResp.status_code == 200
 
 
@@ -80,8 +80,7 @@ class TestMain(BaseTestCaseCapture):
         """Tests if functions_deploy uploads all supported functions from given directory."""
 
         params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
-                  '--cloudfunctions_username', os.environ['CLOUD_FUNCTIONS_USERNAME'],
-                  '--cloudfunctions_password', os.environ['CLOUD_FUNCTIONS_PASSWORD'],
+                  '--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password,
                   '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
                   '--cloudfunctions_url', self.cloudFunctionsUrl]
 
@@ -102,10 +101,8 @@ class TestMain(BaseTestCaseCapture):
             functionCallUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
                 '/' + functionName + '?blocking=true&result=true'
 
-            functionResp = requests.post(functionCallUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
-                                                                os.environ['CLOUD_FUNCTIONS_PASSWORD']),
-                                         headers={'Content-Type': 'application/json',
-                                                  'accept': 'application/json'},
+            functionResp = requests.post(functionCallUrl, auth=(self.username, self.password),
+                                         headers={'Content-Type': 'application/json', 'accept': 'application/json'},
                                          data=json.dumps({'name': 'unit test'}))
 
             assert functionResp.status_code == 200
@@ -117,8 +114,7 @@ class TestMain(BaseTestCaseCapture):
         """Tests if it's possible to upload one fuction into two different version of runtime."""
         for pythonVersion in [2, 3]:
             params = ['-c', os.path.join(self.dataBasePath, 'python' + str(pythonVersion) + 'Functions.cfg'),
-                      '--cloudfunctions_username', os.environ['CLOUD_FUNCTIONS_USERNAME'],
-                      '--cloudfunctions_password', os.environ['CLOUD_FUNCTIONS_PASSWORD'],
+                      '--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password,
                       '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
                       '--cloudfunctions_url', self.cloudFunctionsUrl]
 
@@ -128,10 +124,8 @@ class TestMain(BaseTestCaseCapture):
             functionCallUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
                 '/getPythonMajorVersion?blocking=true&result=true'
 
-            functionResp = requests.post(functionCallUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
-                                                                os.environ['CLOUD_FUNCTIONS_PASSWORD']),
-                                         headers={'Content-Type': 'application/json',
-                                                  'accept': 'application/json'},
+            functionResp = requests.post(functionCallUrl, auth=(self.username, self.password),
+                                         headers={'Content-Type': 'application/json', 'accept': 'application/json'},
                                          data="{}")
 
             assert functionResp.status_code == 200
@@ -150,8 +144,7 @@ class TestMain(BaseTestCaseCapture):
                 functionsZip.write(os.path.join(self.dataBasePath, 'zip_functions', fileToZip), fileToZip)
 
         #upload zip file
-        params = ['--cloudfunctions_username', os.environ['CLOUD_FUNCTIONS_USERNAME'],
-                  '--cloudfunctions_password', os.environ['CLOUD_FUNCTIONS_PASSWORD'],
+        params = ['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password,
                   '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
                   '--cloudfunctions_url', self.cloudFunctionsUrl, '--common_functions', [dirForZip]]
 
@@ -162,10 +155,8 @@ class TestMain(BaseTestCaseCapture):
         functionCallUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
             '/testFunc?blocking=true&result=true'
 
-        functionResp = requests.post(functionCallUrl, auth=(os.environ['CLOUD_FUNCTIONS_USERNAME'],
-                                                            os.environ['CLOUD_FUNCTIONS_PASSWORD']),
-                                     headers={'Content-Type': 'application/json',
-                                              'accept': 'application/json'},
+        functionResp = requests.post(functionCallUrl, auth=(self.username, self.password),
+                                     headers={'Content-Type': 'application/json', 'accept': 'application/json'},
                                      data="{}")
 
         assert functionResp.status_code == 200
@@ -178,8 +169,8 @@ class TestMain(BaseTestCaseCapture):
         self.t_unrecognizedArgs([['--nonExistentArg', 'randomNonPositionalArg']])
         self.t_exitCode(1, [[]])
 
-        completeArgsList = ['--cloudfunctions_username', os.environ['CLOUD_FUNCTIONS_USERNAME'],
-                            '--cloudfunctions_password', os.environ['CLOUD_FUNCTIONS_PASSWORD'],
+        completeArgsList = ['--cloudfunctions_username', self.username,
+                            '--cloudfunctions_password', self.password,
                             '--cloudfunctions_package', self.package,
                             '--cloudfunctions_namespace', self.urlNamespace,
                             '--cloudfunctions_url', self.cloudFunctionsUrl,
@@ -190,9 +181,9 @@ class TestMain(BaseTestCaseCapture):
                 continue
             paramName = completeArgsList[argIndex][2:]
 
-            missingArgsList = []
+            argsListWithoutOne = []
             for i in range(len(completeArgsList)):
                 if i != argIndex and i != (argIndex + 1):
-                    missingArgsList += [completeArgsList[i]]
+                    argsListWithoutOne.append(completeArgsList[i])
 
-            self.t_exitCodeAndErrMessage(1, paramName, [missingArgsList])
+            self.t_exitCodeAndLogMessage(1, paramName, [argsListWithoutOne])

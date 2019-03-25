@@ -50,7 +50,6 @@ zipContent = {
 }
 
 def main(args):
-    setLoggerConfig()
     logger.info('STARTING: '+ os.path.basename(__file__))
     parser = argparse.ArgumentParser(description="Deploys the cloud functions",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -155,4 +154,5 @@ def _getZipPackageType(zipFilePath):
     return None
 
 if __name__ == '__main__':
+    setLoggerConfig()
     main(sys.argv[1:])

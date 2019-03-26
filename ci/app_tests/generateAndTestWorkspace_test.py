@@ -74,12 +74,15 @@ class TestGenerateAndTestWorkspace(BaseTestCaseCapture):
         xlsEnT2CAuthoringPath = os.path.abspath(os.path.join(xlsFolderPath, 'E_EN_T2C_authoring.xlsx'))
         xlsCzT2CAuthoringPath = os.path.abspath(os.path.join(xlsFolderPath, 'E_CZ_T2C_authoring.xlsx'))
         xlsCondXTestPath = os.path.abspath(os.path.join(xlsFolderPath, 'cond_x_test.xlsx'))
-        testMoreOutputsRefPath = os.path.abspath(os.path.join(self.dataBasePath, 'test_more_outputs.test'))
-        testMoreOutputsHypPath = os.path.abspath(os.path.join(self.testOutputPath, 'test_more_outputs.out'))
-        testMoreOutputsJUnitPath = os.path.abspath(os.path.join(self.testOutputPath, 'test_more_outputs.junit.xml'))
-        testNillRefPath = os.path.abspath(os.path.join(self.dataBasePath, 'test_nill.test'))
-        testNillHypPath = os.path.abspath(os.path.join(self.testOutputPath, 'test_nill.out'))
-        testNillJUnitPath = os.path.abspath(os.path.join(self.testOutputPath, 'test_nill.junit.xml'))
+        testDummyRefPath = os.path.abspath(os.path.join(self.dataBasePath, 'test_dummy.test'))
+        testDummyHypPath = os.path.abspath(os.path.join(self.testOutputPath, 'test_dummy.out'))
+        testDummyJUnitPath = os.path.abspath(os.path.join(self.testOutputPath, 'test_dummy.junit.xml'))
+#        testMoreOutputsRefPath = os.path.abspath(os.path.join(self.dataBasePath, 'test_more_outputs.test'))
+#        testMoreOutputsHypPath = os.path.abspath(os.path.join(self.testOutputPath, 'test_more_outputs.out'))
+#        testMoreOutputsJUnitPath = os.path.abspath(os.path.join(self.testOutputPath, 'test_more_outputs.junit.xml'))
+#        testNillRefPath = os.path.abspath(os.path.join(self.dataBasePath, 'test_nill.test'))
+#        testNillHypPath = os.path.abspath(os.path.join(self.testOutputPath, 'test_nill.out'))
+#        testNillJUnitPath = os.path.abspath(os.path.join(self.testOutputPath, 'test_nill.junit.xml'))
         BaseTestCaseCapture.createFolders([generatedDialogsFolderPath, generatedIntentsFolderPath, generatedEntitiesFolderPath])
         BaseTestCaseCapture.createFolders([dialogsDecomposedFolderPath, entitiesDecomposedFolderPath, intentsDecomposedFolderPath])
 
@@ -133,22 +136,23 @@ class TestGenerateAndTestWorkspace(BaseTestCaseCapture):
             configTmp.write('username = ' + os.environ[envVarNameUsername] + '\n')
             configTmp.write('password = ' + os.environ[envVarNamePassword] + '\n')
             configTmp.write('workspace_id = ' + os.environ[envVarNameWorkspaceId] + '\n')
-        self.t_fun_noException(workspace_test.main, [[testMoreOutputsRefPath, testMoreOutputsHypPath, '-c', configTmpPath, '-v']])
-        self.t_fun_noException(workspace_test.main, [[testNillRefPath, testNillHypPath, '-c', configTmpPath, '-v']])
+        self.t_fun_noException(workspace_test.main, [[testDummyRefPath, testDummyHypPath, '-c', configTmpPath, '-v']])
+#        self.t_fun_noException(workspace_test.main, [[testMoreOutputsRefPath, testMoreOutputsHypPath, '-c', configTmpPath, '-v']])
+#        self.t_fun_noException(workspace_test.main, [[testNillRefPath, testNillHypPath, '-c', configTmpPath, '-v']])
 
         # evaluate tests
-        self.t_fun_noException(evaluate_tests.main, [[testMoreOutputsRefPath, testMoreOutputsHypPath, '-o', testMoreOutputsJUnitPath, '-v']])
-        self.t_fun_noException(evaluate_tests.main, [[testNillRefPath, testNillHypPath, '-o', testNillJUnitPath, '-v']])
-        testMoreOutputsJUnitXmlTree = LET.parse(testMoreOutputsJUnitPath)
-        testNillJUnitXmlTree = LET.parse(testNillJUnitPath)
-        for element in testMoreOutputsJUnitXmlTree.getroot():
-            assert element.tag == 'testsuites'
-            assert 'failures' in element
-            assert element.get('failures') == '0'
-        for element in testNillJUnitXmlTree.getroot():
-            assert element.tag == 'testsuites'
-            assert 'failures' in element
-            assert element.get('failures') == '0'
+        self.t_fun_noException(evaluate_tests.main, [[testDummyRefPath, testDummyHypPath, '-o', testDummyJUnitPath, '-v']])
+#        self.t_fun_noException(evaluate_tests.main, [[testMoreOutputsRefPath, testMoreOutputsHypPath, '-o', testMoreOutputsJUnitPath, '-v']])
+#        self.t_fun_noException(evaluate_tests.main, [[testNillRefPath, testNillHypPath, '-o', testNillJUnitPath, '-v']])
+        testDummyJUnitXmlTree = LET.parse(testDummyJUnitPath)
+#        testMoreOutputsJUnitXmlTree = LET.parse(testMoreOutputsJUnitPath)
+#        testNillJUnitXmlTree = LET.parse(testNillJUnitPath)
+        assert testDummyJUnitXmlTree.getroot().tag == 'testsuites'
+#        assert testMoreOutputsJUnitXmlTree.getroot().tag == 'testsuites'
+#        assert testNillJUnitXmlTree.getroot().tag == 'testsuites'
+        assert testDummyJUnitXmlTree.getroot().get('failures') == '0'
+#        assert testMoreOutputsJUnitXmlTree.getroot().get('failures') == '0'
+#        assert testNillJUnitXmlTree.getroot().get('failures') == '0'
 
         # TODO: should be fixed in evaluate_tests.main (and test itself), right now it does not report errors to junit xml file, but just to the standard output
         # step 1: uncomment lines below and fix test to pass
@@ -157,5 +161,3 @@ class TestGenerateAndTestWorkspace(BaseTestCaseCapture):
             #pytest.fail('ERROR found in err log of evaluate_tests.main, log:\n' + self.captured.err)
         #if 'ERROR' in self.captured.out:
             #pytest.fail('ERROR found in out log of evaluate_tests.main, log:\n' + self.captured.out)
-
-

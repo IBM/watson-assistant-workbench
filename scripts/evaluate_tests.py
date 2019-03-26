@@ -48,7 +48,7 @@ def areSame(expectedOutputJson, receivedOutputJson, failureData, parentPath):
             logger.info('SAME: basestring %s and %s are same', expectedOutputJson, receivedOutputJson)
             return True
 
-    if isinstance(expectedOutputJson, int):
+    elif isinstance(expectedOutputJson, int):
         if not isinstance(receivedOutputJson, int):
             failureData['message'] = 'Received output differs in type from expected output.' + " (" + parentPath + ")"
             failureData['expectedElement'] = "Element of the type int (" + str(expectedOutputJson) + ")"
@@ -121,12 +121,12 @@ def createLineFailureXML(failureData):
     lineFailureXml.attrib['message'] = failureData['message']
     # expected element
     lineFailureExpectedXml = LET.Element('expected')
-    lineFailureExpectedXml.text = failureData['expectedElement']
     lineFailureXml.append(lineFailureExpectedXml)
+    lineFailureExpectedXml.text = failureData['expectedElement']
     # received element
     lineFailureReceivedXml = LET.Element('received')
-    lineFailureReceivedXml.text = failureData['receivedElement']
     lineFailureXml.append(lineFailureReceivedXml)
+    lineFailureReceivedXml.text = failureData['receivedElement']
     return lineFailureXml
 
 def main(argv):
@@ -164,6 +164,7 @@ def main(argv):
 
             # XML (new dialouge)
             dialogXml = LET.Element('testsuite')
+            outputXml.append(dialogXml)
 
             expectedJsonLine = expectedJsonFile.readline()
             receivedJsonLine = receivedJsonFile.readline()
@@ -201,6 +202,9 @@ def main(argv):
                         dialogXml.attrib['tests'] = str(nTestsinDialog)
                         dialogXml.attrib['failures'] = str(nFailuresInDialog)
                         dialogXml.attrib['time'] = str(time.time() - timeDialogStart)
+
+                        # XML (new dialouge)
+                        dialogXml = LET.Element('testsuite')
                         outputXml.append(dialogXml)
 
                     # init new dialog
@@ -210,9 +214,6 @@ def main(argv):
                     timeDialogStart = time.time()
                     dialogId = expectedData['dialog_id']
 
-                    # XML (new dialouge)
-                    dialogXml = LET.Element('testsuite')
-
                 nTestsinDialog += 1
                 timeLineStart = time.time()
                 checkMessagesTime = 0
@@ -220,9 +221,9 @@ def main(argv):
 
                 # XML
                 lineXml = LET.Element('testcase')
+                dialogXml.append(lineXml)
                 lineXml.attrib['name'] = 'line ' + str(line)
                 lineXml.attrib['time'] = str(time.time() - timeLineStart)
-                dialogXml.append(lineXml)
 
                 if not areSame(expectedJson, receivedJson, failureData, "root"):
                     # line failure
@@ -245,6 +246,20 @@ def main(argv):
                 receivedJsonLine = receivedJsonFile.readline()
 
             # end for each line
+            # end previous dialog
+            logger.info('--------------------------------------------------------------------------------')
+            if nFailuresInDialog: # at least one failure in this dialog
+                logger.info('-- TEST RESULT: FAILED, TOTAL FAILURES: %d, LINE OF THE FIRST FAILURE: %d', nFailuresInDialog, firstFailedLine)
+                nDialogsFailed += 1
+            else:
+                logger.info('-- TEST RESULT: OK')
+            logger.info('--------------------------------------------------------------------------------')
+
+            # XML previous dialog
+            dialogXml.attrib['name'] = 'dialog ' + str(dialogId)
+            dialogXml.attrib['tests'] = str(nTestsinDialog)
+            dialogXml.attrib['failures'] = str(nFailuresInDialog)
+            dialogXml.attrib['time'] = str(time.time() - timeDialogStart)
 
             if receivedJsonLine: logger.error('More than expected lines in file %s, line %d', args.receivedFileName, line)
 
@@ -268,4 +283,3 @@ def main(argv):
 if __name__ == '__main__':
     setLoggerConfig()
     main(sys.argv[1:])
-

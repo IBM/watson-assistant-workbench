@@ -141,14 +141,10 @@ class TestGenerateAndTestWorkspace(BaseTestCaseCapture):
         self.t_fun_noException(evaluate_tests.main, [[testNillRefPath, testNillHypPath, '-o', testNillJUnitPath, '-v']])
         testMoreOutputsJUnitXmlTree = LET.parse(testMoreOutputsJUnitPath)
         testNillJUnitXmlTree = LET.parse(testNillJUnitPath)
-        for element in testMoreOutputsJUnitXmlTree.getroot():
-            assert element.tag == 'testsuites'
-            assert 'failures' in element
-            assert element.get('failures') == '0'
-        for element in testNillJUnitXmlTree.getroot():
-            assert element.tag == 'testsuites'
-            assert 'failures' in element
-            assert element.get('failures') == '0'
+        assert testMoreOutputsJUnitXmlTree.getroot().tag == 'testsuites'
+        assert testNillJUnitXmlTree.getroot().tag == 'testsuites'
+        assert testMoreOutputsJUnitXmlTree.getroot().get('failures') == '0'
+        assert testNillJUnitXmlTree.getroot().get('failures') == '0'
 
         # TODO: should be fixed in evaluate_tests.main (and test itself), right now it does not report errors to junit xml file, but just to the standard output
         # step 1: uncomment lines below and fix test to pass
@@ -157,5 +153,3 @@ class TestGenerateAndTestWorkspace(BaseTestCaseCapture):
             #pytest.fail('ERROR found in err log of evaluate_tests.main, log:\n' + self.captured.err)
         #if 'ERROR' in self.captured.out:
             #pytest.fail('ERROR found in out log of evaluate_tests.main, log:\n' + self.captured.out)
-
-

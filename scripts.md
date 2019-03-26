@@ -152,5 +152,5 @@ cd example/en_app/
 _Don't forget to create an example/en\_app/private.cfg file with your WCS credentials (you can use example/en\_app/private.cfg.template file as a template). You will probably need to change paths in your config files to not contain "example/en\_app/" part._
 
 ```
-python ../../scripts/update_all.py -c common.cfg -c private.cfg - c build.cfg
+python ../../scripts/update_all.py -c common.cfg -c private.cfg -c build.cfg
 ```

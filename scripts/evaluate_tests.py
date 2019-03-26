@@ -121,12 +121,12 @@ def createLineFailureXML(failureData):
     lineFailureXml.attrib['message'] = failureData['message']
     # expected element
     lineFailureExpectedXml = LET.Element('expected')
-    lineFailureExpectedXml.text = failureData['expectedElement']
     lineFailureXml.append(lineFailureExpectedXml)
+    lineFailureExpectedXml.text = failureData['expectedElement']
     # received element
     lineFailureReceivedXml = LET.Element('received')
-    lineFailureReceivedXml.text = failureData['receivedElement']
     lineFailureXml.append(lineFailureReceivedXml)
+    lineFailureReceivedXml.text = failureData['receivedElement']
     return lineFailureXml
 
 def main(argv):
@@ -164,6 +164,7 @@ def main(argv):
 
             # XML (new dialouge)
             dialogXml = LET.Element('testsuite')
+            outputXml.append(dialogXml)
 
             expectedJsonLine = expectedJsonFile.readline()
             receivedJsonLine = receivedJsonFile.readline()
@@ -201,6 +202,9 @@ def main(argv):
                         dialogXml.attrib['tests'] = str(nTestsinDialog)
                         dialogXml.attrib['failures'] = str(nFailuresInDialog)
                         dialogXml.attrib['time'] = str(time.time() - timeDialogStart)
+
+                        # XML (new dialouge)
+                        dialogXml = LET.Element('testsuite')
                         outputXml.append(dialogXml)
 
                     # init new dialog
@@ -210,9 +214,6 @@ def main(argv):
                     timeDialogStart = time.time()
                     dialogId = expectedData['dialog_id']
 
-                    # XML (new dialouge)
-                    dialogXml = LET.Element('testsuite')
-
                 nTestsinDialog += 1
                 timeLineStart = time.time()
                 checkMessagesTime = 0
@@ -220,9 +221,9 @@ def main(argv):
 
                 # XML
                 lineXml = LET.Element('testcase')
+                dialogXml.append(lineXml)
                 lineXml.attrib['name'] = 'line ' + str(line)
                 lineXml.attrib['time'] = str(time.time() - timeLineStart)
-                dialogXml.append(lineXml)
 
                 if not areSame(expectedJson, receivedJson, failureData, "root"):
                     # line failure
@@ -268,4 +269,3 @@ def main(argv):
 if __name__ == '__main__':
     setLoggerConfig()
     main(sys.argv[1:])
-

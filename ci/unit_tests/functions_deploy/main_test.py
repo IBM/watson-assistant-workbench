@@ -13,10 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, os, requests, shutil, unittest, urllib, uuid, zipfile
+import json, os, requests, shutil, unittest, uuid, zipfile
 
 import functions_deploy
 from ...test_utils import BaseTestCaseCapture
+
+try:
+    from urllib.parse import quote
+except:
+    from urllib import quote
+
 
 class TestMain(BaseTestCaseCapture):
 
@@ -31,7 +37,7 @@ class TestMain(BaseTestCaseCapture):
         cls.cloudFunctionsUrl = os.environ.get('CLOUD_FUNCTIONS_URL',
                                                'https://us-south.functions.cloud.ibm.com/api/v1/namespaces')
         cls.namespace = os.environ['CLOUD_FUNCTIONS_NAMESPACE']
-        cls.urlNamespace = urllib.quote(cls.namespace)
+        cls.urlNamespace = quote(cls.namespace)
 
     def callfunc(self, *args, **kwargs):
         functions_deploy.main(*args, **kwargs)

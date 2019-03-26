@@ -48,7 +48,7 @@ def areSame(expectedOutputJson, receivedOutputJson, failureData, parentPath):
             logger.info('SAME: basestring %s and %s are same', expectedOutputJson, receivedOutputJson)
             return True
 
-    if isinstance(expectedOutputJson, int):
+    elif isinstance(expectedOutputJson, int):
         if not isinstance(receivedOutputJson, int):
             failureData['message'] = 'Received output differs in type from expected output.' + " (" + parentPath + ")"
             failureData['expectedElement'] = "Element of the type int (" + str(expectedOutputJson) + ")"

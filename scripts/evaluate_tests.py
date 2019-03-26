@@ -246,6 +246,20 @@ def main(argv):
                 receivedJsonLine = receivedJsonFile.readline()
 
             # end for each line
+            # end previous dialog
+            logger.info('--------------------------------------------------------------------------------')
+            if nFailuresInDialog: # at least one failure in this dialog
+                logger.info('-- TEST RESULT: FAILED, TOTAL FAILURES: %d, LINE OF THE FIRST FAILURE: %d', nFailuresInDialog, firstFailedLine)
+                nDialogsFailed += 1
+            else:
+                logger.info('-- TEST RESULT: OK')
+            logger.info('--------------------------------------------------------------------------------')
+
+            # XML previous dialog
+            dialogXml.attrib['name'] = 'dialog ' + str(dialogId)
+            dialogXml.attrib['tests'] = str(nTestsinDialog)
+            dialogXml.attrib['failures'] = str(nFailuresInDialog)
+            dialogXml.attrib['time'] = str(time.time() - timeDialogStart)
 
             if receivedJsonLine: logger.error('More than expected lines in file %s, line %d', args.receivedFileName, line)
 

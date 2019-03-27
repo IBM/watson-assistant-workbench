@@ -232,8 +232,8 @@ def main(argv):
                     if firstFailedLine is None:
                         firstFailedLine = line
 
-                    logger.info('EXPECTED OUTPUT: ' + json.dumps(expectedJson, indent=4, ensure_ascii=False).encode('utf8'))
-                    logger.info('RECEIVED OUTPUT: ' + json.dumps(receivedJson, indent=4, ensure_ascii=False).encode('utf8'))
+                    logger.info('EXPECTED OUTPUT: ' + json.dumps(expectedJson, indent=4, ensure_ascii=False))
+                    logger.info('RECEIVED OUTPUT: ' + json.dumps(receivedJson, indent=4, ensure_ascii=False))
                     resultText = 'FAILED'
 
                 else:
@@ -263,7 +263,7 @@ def main(argv):
     outputXml.attrib['time'] = str(time.time() - timeStart)
 
     with openFile(args.output, "w") as outputFile:
-        outputFile.write(LET.tostring(outputXml, pretty_print=True, encoding='utf8'))
+        outputFile.write(LET.tostring(outputXml, pretty_print=True, encoding='unicode'))
 
 if __name__ == '__main__':
     setLoggerConfig()

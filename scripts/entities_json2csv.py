@@ -56,8 +56,8 @@ def main(argv):
                     # add all synonyms
                     for synonym in valueJSON['synonyms']:
                         # empty-string synonyms are ignored when exported from WA json
-                        if synonym.strip().encode("utf-8") != '':
-                            value.append(synonym.strip().encode("utf-8"))
+                        if synonym.strip() != '':
+                            value.append(synonym.strip())
                 # for pattern entities add tilde to the value
                 if 'patterns' in valueJSON:
                     value.append("~" + valueJSON["value"].strip())

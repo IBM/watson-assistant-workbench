@@ -132,7 +132,7 @@ class BaseTestCaseCapture(object):
             self.captured = self.capfd.readouterr()
             self.logs = self.caplog
         except Exception as e:
-            pytest.fail(traceback.print_exception(sys.exc_info()))
+            pytest.fail(traceback.print_exception(*sys.exc_info()))
 
     def callfunc(self, args=[], kwargs={}):
         ''' (Need to be overidden) Function to be called and tested '''

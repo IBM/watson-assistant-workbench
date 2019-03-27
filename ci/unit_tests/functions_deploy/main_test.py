@@ -25,16 +25,16 @@ class TestMain(BaseTestCaseCapture):
     dataBasePath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'main_data')
     packageBase = "Package-for-WAW-CI-"
 
-    def setup_class(cls):
+    def setup_class(self):
         BaseTestCaseCapture.checkEnvironmentVariables(['CLOUD_FUNCTIONS_USERNAME', 'CLOUD_FUNCTIONS_PASSWORD',
                                                        'CLOUD_FUNCTIONS_NAMESPACE'])
-        cls.username = os.environ['CLOUD_FUNCTIONS_USERNAME']
-        cls.password = os.environ['CLOUD_FUNCTIONS_PASSWORD']
-        cls.cloudFunctionsUrl = os.environ.get('CLOUD_FUNCTIONS_URL',
+        self.username = os.environ['CLOUD_FUNCTIONS_USERNAME']
+        self.password = os.environ['CLOUD_FUNCTIONS_PASSWORD']
+        self.cloudFunctionsUrl = os.environ.get('CLOUD_FUNCTIONS_URL',
                                                'https://us-south.functions.cloud.ibm.com/api/v1/namespaces')
-        cls.namespace = os.environ['CLOUD_FUNCTIONS_NAMESPACE']
-        cls.urlNamespace = quote(cls.namespace)
-        cls.actionsUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/'
+        self.namespace = os.environ['CLOUD_FUNCTIONS_NAMESPACE']
+        self.urlNamespace = quote(self.namespace)
+        self.actionsUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/'
 
     def callfunc(self, *args, **kwargs):
         functions_deploy.main(*args, **kwargs)
@@ -151,7 +151,7 @@ class TestMain(BaseTestCaseCapture):
         self.packageCreated = True
 
         # call function and check if sub-function from non-main file was called
-        functionCallUrl = actionsUrl + self.package + '/testFunc?blocking=true&result=true'
+        functionCallUrl = self.actionsUrl + self.package + '/testFunc?blocking=true&result=true'
 
         functionResp = requests.post(functionCallUrl, auth=(self.username, self.password),
                                      headers={'Content-Type': 'application/json', 'accept': 'application/json'},

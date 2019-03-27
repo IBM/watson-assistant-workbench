@@ -25,16 +25,16 @@ class TestMain(BaseTestCaseCapture):
     dataBasePath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'main_data')
     packageBase = "Package-for-WAW-CI-"
 
-    def setup_class(self):
+    def setup_class(cls):
         BaseTestCaseCapture.checkEnvironmentVariables(['CLOUD_FUNCTIONS_USERNAME', 'CLOUD_FUNCTIONS_PASSWORD',
                                                        'CLOUD_FUNCTIONS_NAMESPACE'])
-        self.username = os.environ['CLOUD_FUNCTIONS_USERNAME']
-        self.password = os.environ['CLOUD_FUNCTIONS_PASSWORD']
-        self.cloudFunctionsUrl = os.environ.get('CLOUD_FUNCTIONS_URL',
+        cls.username = os.environ['CLOUD_FUNCTIONS_USERNAME']
+        cls.password = os.environ['CLOUD_FUNCTIONS_PASSWORD']
+        cls.cloudFunctionsUrl = os.environ.get('CLOUD_FUNCTIONS_URL',
                                                'https://us-south.functions.cloud.ibm.com/api/v1/namespaces')
-        self.namespace = os.environ['CLOUD_FUNCTIONS_NAMESPACE']
-        self.urlNamespace = quote(self.namespace)
-        self.actionsUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/'
+        cls.namespace = os.environ['CLOUD_FUNCTIONS_NAMESPACE']
+        cls.urlNamespace = quote(cls.namespace)
+        cls.actionsUrl = cls.cloudFunctionsUrl + '/' + cls.urlNamespace + '/actions/'
 
     def callfunc(self, *args, **kwargs):
         functions_deploy.main(*args, **kwargs)

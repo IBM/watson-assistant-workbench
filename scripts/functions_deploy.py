@@ -62,7 +62,7 @@ def main(args):
     parser.add_argument('--cloudfunctions_package', required=False, help="cloud functions package name")
     parser.add_argument('--cloudfunctions_url', required=False, help="url of cloud functions API")
 
-    for runtime in interpretedRuntimes.values() + compiledRuntimes.values():
+    for runtime in list(interpretedRuntimes.values()) + list(compiledRuntimes.values()):
         parser.add_argument('--cloudfunctions_' + runtime + '_version', required=False,
             help="cloud functions " + runtime + " version")
 
@@ -78,7 +78,7 @@ def main(args):
     functionDir = getRequiredParameter(config, 'common_functions')
 
     runtimeVersions = {}
-    for ext, runtime in interpretedRuntimes.items() + compiledRuntimes.items():
+    for ext, runtime in list(interpretedRuntimes.items()) + list(compiledRuntimes.items()):
         runtimeVersions[runtime] = runtime + ':' + getattr(config, 'cloudfunctions_' + runtime + '_version', 'default')
 
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -95,8 +95,8 @@ def main(args):
     else:
         logger.info('Cloud functions package successfully uploaded')
 
-    filesAtPath = getFilesAtPath(functionDir, ['*' + ext for ext in (interpretedRuntimes.keys() + \
-                                                                     compiledRuntimes.keys() + \
+    filesAtPath = getFilesAtPath(functionDir, ['*' + ext for ext in (list(interpretedRuntimes.keys()) + \
+                                                                     list(compiledRuntimes.keys()) + \
                                                                      compressedFiles)])
 
     for functionFilePath in filesAtPath:

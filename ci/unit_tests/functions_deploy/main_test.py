@@ -13,10 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, os, requests, shutil, unittest, urllib, uuid, zipfile
+import json, os, requests, shutil, unittest, uuid, zipfile
 
 import functions_deploy
 from ...test_utils import BaseTestCaseCapture
+
+try:
+    from urllib.parse import quote
+except ImportError:
+    from urllib import quote
+
 
 class TestMain(BaseTestCaseCapture):
 
@@ -31,14 +37,14 @@ class TestMain(BaseTestCaseCapture):
         cls.cloudFunctionsUrl = os.environ.get('CLOUD_FUNCTIONS_URL',
                                                'https://us-south.functions.cloud.ibm.com/api/v1/namespaces')
         cls.namespace = os.environ['CLOUD_FUNCTIONS_NAMESPACE']
-        cls.urlNamespace = urllib.quote(cls.namespace)
+        cls.urlNamespace = quote(cls.namespace)
+        cls.actionsUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/'
 
     def callfunc(self, *args, **kwargs):
         functions_deploy.main(*args, **kwargs)
 
     def _getFunctionsInPackage(self, package):
-        functionListUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/?limit=0&skip=0'
-
+        functionListUrl = self.actionsUrl + '?limit=0&skip=0'
         functionListResp = requests.get(functionListUrl, auth=(self.username, self.password),
                                         headers={'accept': 'application/json'})
 
@@ -63,8 +69,7 @@ class TestMain(BaseTestCaseCapture):
             # get all functions in package and remove them
             functionNames = self._getFunctionsInPackage(self.package)
             for functionName in functionNames:
-                functionDelUrl =  self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
-                    '/' + functionName
+                functionDelUrl =  self.actionsUrl + self.package + '/' + functionName
 
                 functionDelResp = requests.delete(functionDelUrl, auth=(self.username, self.password))
                 assert functionDelResp.status_code == 200
@@ -98,8 +103,7 @@ class TestMain(BaseTestCaseCapture):
 
         # try to call particular functions
         for functionName in functionNames:
-            functionCallUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
-                '/' + functionName + '?blocking=true&result=true'
+            functionCallUrl = self.actionsUrl + self.package + '/' + functionName + '?blocking=true&result=true'
 
             functionResp = requests.post(functionCallUrl, auth=(self.username, self.password),
                                          headers={'Content-Type': 'application/json', 'accept': 'application/json'},
@@ -121,8 +125,7 @@ class TestMain(BaseTestCaseCapture):
             self.t_noException([params])
             self.packageCreated = True
 
-            functionCallUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
-                '/getPythonMajorVersion?blocking=true&result=true'
+            functionCallUrl = self.actionsUrl + self.package + '/getPythonMajorVersion?blocking=true&result=true'
 
             functionResp = requests.post(functionCallUrl, auth=(self.username, self.password),
                                          headers={'Content-Type': 'application/json', 'accept': 'application/json'},
@@ -152,8 +155,7 @@ class TestMain(BaseTestCaseCapture):
         self.packageCreated = True
 
         # call function and check if sub-function from non-main file was called
-        functionCallUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/' + self.package + \
-            '/testFunc?blocking=true&result=true'
+        functionCallUrl = actionsUrl + self.package + '/testFunc?blocking=true&result=true'
 
         functionResp = requests.post(functionCallUrl, auth=(self.username, self.password),
                                      headers={'Content-Type': 'application/json', 'accept': 'application/json'},

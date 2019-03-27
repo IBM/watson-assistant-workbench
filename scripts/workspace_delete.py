@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import sys, argparse, requests, configparser, os
-from wawCommons import setLoggerConfig, getScriptLogger, openFile, IS_PYTHON_3
+from wawCommons import setLoggerConfig, getScriptLogger, openFile
 import logging
 
 
@@ -36,10 +36,7 @@ if __name__ == '__main__':
     try:
         config = configparser.ConfigParser()
         with openFile(args.config) as configFile:
-            if IS_PYTHON_3:
-                config.read_file(configFile)
-            else:
-                config.readfp(configFile)
+            config.read_file(configFile)
         workspacesUrl = config.get(conversationSection, 'url')
         version = config.get(conversationSection, 'version')
         username = config.get(conversationSection, 'username')

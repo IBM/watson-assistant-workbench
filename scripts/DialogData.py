@@ -168,7 +168,7 @@ class DialogData(object):
             :returns unique intent_name or None if not able to create
         """
         #Normalize the string
-        unique_intent_name = toIntentName( self._NAME_POLICY, [['$special', '\A']], intent_name).decode('utf-8')
+        unique_intent_name = toIntentName( self._NAME_POLICY, [['$special', '\A']], intent_name)
         if unique_intent_name not in self._intents:
             return unique_intent_name
         #try to modify by a number
@@ -188,7 +188,7 @@ class DialogData(object):
             :returns unique entity_name or None if not able to create
         """
         #Normalize the string
-        unique_entity_name = toEntityName(self._NAME_POLICY, [['$special', '\A']], entity_name).decode('utf-8')
+        unique_entity_name = toEntityName(self._NAME_POLICY, [['$special', '\A']], entity_name)
         if unique_entity_name not in self._entities:
             return unique_entity_name
         #try to modify by a number
@@ -208,7 +208,7 @@ class DialogData(object):
             :return: unique node_name or None if not able to create
         """
         # Normalize the string
-        unique_node_name = toIntentName(self._NAME_POLICY, [['$special', '\A']], node_name).decode('utf-8').upper()
+        unique_node_name = toIntentName(self._NAME_POLICY, [['$special', '\A']], node_name).upper()
         if unique_node_name not in self._nodes:
             return unique_node_name
         # try to modify by a number

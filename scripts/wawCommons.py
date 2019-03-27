@@ -16,27 +16,15 @@ limitations under the License.
 """
 
 import sys, re, codecs, os, io, unidecode, types, fnmatch, requests
-IS_PYTHON_3 = sys.version_info >= (3,0)
-if not IS_PYTHON_3:
-    import unicodedata, unidecode
 import lxml.etree as Xml
 import logging
 from logging.config import fileConfig
 
-if not IS_PYTHON_3:
-    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-    sys.stderr = codecs.getwriter('utf8')(sys.stderr)
 
 def openFile(name, *args, **kwargs):
     if 'encoding' not in kwargs.keys():
         kwargs['encoding'] = 'utf-8'
     f = io.open(name,*args, **kwargs)
-
-    if not IS_PYTHON_3:
-        f.oldWrite = f.write
-        f.write = lambda x: f.oldWrite(unicode(x))
-        f.oldwritelines = f.writelines
-        f.writelines = lambda x: f.oldwritelines([s for s in map(unicode, x)])
     return f
 
 restrictionTextNamePolicy = "NAME_POLICY can be only set to either 'soft', 'soft_verbose' or 'hard'"
@@ -47,8 +35,6 @@ def toCode(NAME_POLICY, code):
     code = code.strip()
     newCode = re.sub(' ', '_', code, re.UNICODE).upper()
     newCode = unidecode.unidecode(newCode) #unicodedata.normalize('NFKD', newCode.decode('utf-8')).encode('ASCII', 'ignore')  # remove accents
-    if not IS_PYTHON_3:
-        newCode = unicode(newCode)
     # remove everything that is not unicode letter or hyphen
     newCode = re.sub('[^\w-]', '', newCode, re.UNICODE)
     if newCode != code:
@@ -108,8 +94,6 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
                         triggeredUserRegexToAppend = "intent name should be uppercase"
                     elif replacementPair[1] == r'\A':
                         uNewIntentSubnameUser = unidecode.unidecode(uIntentSubnameUser)
-                        if not IS_PYTHON_3:
-                            uNewIntentSubnameUser = unicode(uNewIntentSubnameUser)
                         triggeredUserRegexToAppend = "intent name cannot contain accented letters"
                     else:
                         logger.error("unsupported special regex opperation '" + replacementPair[1].decode('utf-8'))
@@ -192,8 +176,6 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
                     triggeredUserRegexToAppend = "entity name should be uppercase"
                 elif replacementPair[1] == r'\A':
                     uNewIntentSubnameUser = unidecode.unidecode(uEntityNameUser)
-                    if not IS_PYTHON_3:
-                        uNewIntentSubnameUser = unicode(uNewIntentSubnameUser)
                     triggeredUserRegexToAppend = "entity name cannot contain accented letters"
                 else:
                     logger.error("unsupported special regex opperation '" + replacementPair[1].decode('utf-8'))

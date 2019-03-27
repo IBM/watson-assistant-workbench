@@ -98,7 +98,7 @@ def main(argv):
                             receivedOutputJson = response.json()
                             if not first:
                                 outputFile.write("\n")
-                            outputFile.write(json.dumps(receivedOutputJson, ensure_ascii=False, encoding='utf-8'))
+                            outputFile.write(json.dumps(receivedOutputJson, ensure_ascii=False))
                             first = False
                         elif response.status_code == 400:
                             logger.error('Error while testing.')

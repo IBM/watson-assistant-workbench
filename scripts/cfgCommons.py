@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import configparser, sys, os
-from wawCommons import setLoggerConfig, getScriptLogger, openFile, IS_PYTHON_3
+from wawCommons import setLoggerConfig, getScriptLogger, openFile
 import logging
 
 logger = getScriptLogger(__file__)
@@ -50,10 +50,7 @@ class Cfg:
                     logger.info("Processing config file:" + common_configFilePath)
                     configPart = configparser.ConfigParser()
                     with openFile(common_configFilePath) as configFile:
-                        if IS_PYTHON_3:
-                            configPart.read_file(openFile(common_configFilePath))                        
-                        else:   
-                            configPart.readfp(openFile(common_configFilePath))    
+                        configPart.read_file(openFile(common_configFilePath)) 
                                             
                     # Collect all attributes from all sections
                     for section in configPart.sections():

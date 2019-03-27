@@ -109,7 +109,7 @@ def main(argv):
                 line = line.split('#')[0]
                 line = line.rstrip().lower()
                 #non-ascii characters fix
-                line = line.encode('utf-8')
+                #line = line.encode('utf-8')
                 if line:
                     example = processExample(line, intentName, examples)
                     #adding to the list
@@ -124,9 +124,9 @@ def main(argv):
             os.makedirs(getattr(config, 'common_outputs_directory'))
             logger.info('Created new output directory ' + getattr(config, 'common_outputs_directory'))
         with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'w', encoding='utf8') as outputFile:
-            outputFile.write(json.dumps(intents, indent=4, ensure_ascii=False, encoding='utf8'))
+            outputFile.write(json.dumps(intents, indent=4, ensure_ascii=False))
     else:
-        print(json.dumps(intents, indent=4, ensure_ascii=False, encoding='utf8'))
+        print(json.dumps(intents, indent=4, ensure_ascii=False))
 
     logger.info('FINISHING: ' + os.path.basename(__file__))
 

@@ -925,10 +925,10 @@ def main(argv):
             os.makedirs(getattr(config, 'common_outputs_directory'))
             logger.info("Created new output directory %s", getattr(config, 'common_outputs_directory'))
         with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'w', encoding='utf-8') as outputFile:
-            outputFile.write(json.dumps(dialogNodes, indent=4, ensure_ascii=False, encoding='utf8'))
+            outputFile.write(json.dumps(dialogNodes, indent=4, ensure_ascii=False))
         logger.info("File %s created", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')))
     else:
-        print(json.dumps(dialogNodes, indent=4, ensure_ascii=False,encoding='utf8'))
+        print(json.dumps(dialogNodes, indent=4, ensure_ascii=False))
 
     if hasattr(config, 'common_output_config'):
         config.saveConfiguration(getattr(config, 'common_output_config'))

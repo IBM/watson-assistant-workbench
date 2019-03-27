@@ -41,15 +41,15 @@ def main(argv):
 
     if args.intents:
         with openFile(args.intents, 'w') as intentsFile:
-            intentsFile.write(json.dumps(workspaceJSON['intents'], indent=4, ensure_ascii=False, encoding='utf-8'))
+            intentsFile.write(json.dumps(workspaceJSON['intents'], indent=4, ensure_ascii=False))
 
     if args.entities:
         with openFile(args.entities, 'w') as entitiesFile:
-            entitiesFile.write(json.dumps(workspaceJSON['entities'], indent=4, ensure_ascii=False, encoding='utf-8'))
+            entitiesFile.write(json.dumps(workspaceJSON['entities'], indent=4, ensure_ascii=False))
 
     if args.dialog:
         with openFile(args.dialog, 'w') as dialogFile:
-            dialogFile.write(json.dumps(workspaceJSON['dialog_nodes'], indent=4, ensure_ascii=False, encoding='utf-8'))
+            dialogFile.write(json.dumps(workspaceJSON['dialog_nodes'], indent=4, ensure_ascii=False))
 
     if args.counterexamples:
         with openFile(args.counterexamples, 'w') as counterexamplesFile:
@@ -58,7 +58,7 @@ def main(argv):
             counterexampleIntentJSON['intent'] = "IRRELEVANT"
             counterexampleIntentJSON['examples'] = workspaceJSON['counterexamples']
             counterexamplesJSON.append(counterexampleIntentJSON)
-            counterexamplesFile.write(json.dumps(counterexamplesJSON, indent=4, ensure_ascii=False, encoding='utf-8'))
+            counterexamplesFile.write(json.dumps(counterexamplesJSON, indent=4, ensure_ascii=False))
 
     if VERBOSE: logger.info("Workspace %s was successfully decomposed", args.workspace)
 

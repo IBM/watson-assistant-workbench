@@ -39,8 +39,8 @@ class TestMain(BaseTestCaseCapture):
 
     def test_args(self):
         ''' Tests some basic sets of args '''
-        self.t_tooFewArgs([[]])
-        self.t_tooFewArgs([['/some/random/path']])
+        self.t_missingRequiredArgs([[]])
+        self.t_missingRequiredArgs([['/some/random/path']])
         self.t_unrecognizedArgs([['/some/random/path', '-s', 'randomNonPositionalArg']])
 
     def test_nonExistentFileFirst(self):
@@ -68,8 +68,8 @@ class TestMain(BaseTestCaseCapture):
     def test_invalidJsonFirst(self):
         ''' Tests if the first file contains invalid json '''
         self.t_raiseError(
-            ValueError, # exeption
-            'No JSON object could be decoded', # error message substring
+            json.JSONDecodeError, # exeption
+            'Expecting value', # error message substring
             [[
                 self.noJsonPath,
                 self.emptyDictJsonPath,
@@ -79,8 +79,8 @@ class TestMain(BaseTestCaseCapture):
     def test_invalidJsonSecond(self):
         ''' Tests if the second file contains invalid json '''
         self.t_raiseError(
-            ValueError, # exeption
-            'No JSON object could be decoded', # error message substring
+            json.JSONDecodeError, # exeption
+            'Expecting value', # error message substring
             [[
                 self.emptyDictJsonPath,
                 self.noJsonPath,

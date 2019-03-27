@@ -98,10 +98,10 @@ class TestGenerateAndTestWorkspace(BaseTestCaseCapture):
         with open(xmlCondXTestPath, 'r') as file:
             fileContent = file.read()
             # it is necessary to have 'Z.*vada' because original word to be matched, 'Z<A-ACUTE>vada', is represented like 'Z\xc3\xa1vada', same thing for others patterns
-            assert re.compile('#CO_JE.*@PREDMET:\(Z.*vada\)').search(fileContent)
-            assert re.compile('#CO_JE.*@PREDMET:\(V.*stra.*n.* stav\)').search(fileContent)
-            assert re.compile('#CO_JE.*@PREDMET:\(Vyrovn.*vac.* trh\)').search(fileContent)
-            assert re.compile('#CO_JE.*@PREDMET:\(Buttons do not belong here\)').search(fileContent)
+            assert re.compile('#CO_JE.*@PREDMET:\\(Z.*vada\\)').search(fileContent)
+            assert re.compile('#CO_JE.*@PREDMET:\\(V.*stra.*n.* stav\\)').search(fileContent)
+            assert re.compile('#CO_JE.*@PREDMET:\\(Vyrovn.*vac.* trh\\)').search(fileContent)
+            assert re.compile('#CO_JE.*@PREDMET:\\(Buttons do not belong here\\)').search(fileContent)
 
         # convert dialog from xml to json
         self.t_fun_noException(dialog_xml2json.main, [['-dm', dialogMainPath, '-of', self.testOutputPath, '-od', jsonDialogFilename, '-s', self.dialogSchemaPath, '-c', configBuildPath, '-v']])

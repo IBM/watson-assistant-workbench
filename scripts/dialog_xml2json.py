@@ -297,7 +297,7 @@ def validateNodeName(node):
     global names
     name = node.find('name').text
     # check characters (Node names can only contain letters, numbers, hyphens and underscores)
-    pattern = re.compile("[\w-]+", re.UNICODE)
+    pattern = re.compile("[\\w-]+", re.UNICODE)
     if not pattern.match(name):
         logger.error("Illegal name of the node: '%s' - Node names can only contain letters, numbers, hyphens and underscores.", name)
         exit(1)

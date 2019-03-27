@@ -387,7 +387,7 @@ def main(argv):
             dialogFile.write(LET.tostring(dialogsXML, pretty_print=True, encoding='unicode'))
     else:
         # print to standard output
-        print(LET.tostring(dialogsXML, pretty_print=True, encoding='utf8'))
+        print(LET.tostring(dialogsXML, pretty_print=True, encoding='unicode'))
 
 if __name__ == '__main__':
     setLoggerConfig()

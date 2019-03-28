@@ -46,14 +46,8 @@ def main(argv):
     VERBOSE = hasattr(config, 'common_verbose')
 
     # workspace info
-    if not hasattr(config, 'common_outputs_directory') or not getattr(config, 'common_outputs_directory'):
-        logger.error('common_outputs_directory parameter not defined.')
-        exit(1)
-    if not hasattr(config, 'common_outputs_workspace') or not getattr(config, 'common_outputs_workspace'):
-        logger.error('common_outputs_workspace parameter not defined.')
-        exit(1)
     try:
-        workspaceFilePath = os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace'))
+        workspaceFilePath = os.path.join(getRequiredParameter(config, 'common_outputs_directory'), getRequiredParameter(config, 'common_outputs_workspace'))
         with open(workspaceFilePath, 'r') as workspaceFile:
             workspace = json.load(workspaceFile)
     except IOError:
@@ -93,13 +87,16 @@ def main(argv):
         logger.error('Cannot upload workspace.')
         sys.exit(1)
 
-    if not hasattr(config, 'conversation_workspace_id') or not getattr(config, 'conversation_workspace_id'):
+    if not getOptionalParameter(config, 'conversation_workspace_id'):
         setattr(config, 'conversation_workspace_id', responseJson['workspace_id'])
         logger.info('WCS WORKSPACE_ID: %s', responseJson['workspace_id'])
-    if hasattr(config, 'common_output_config'):
-        config.saveConfiguration(getattr(config, 'common_output_config'))
 
-    if hasattr(config, 'context_client_name'):
+    outputConfigFile = getOptionalParameter(config, 'common_output_config')
+    if outputConfigFile:
+        config.saveConfiguration()
+
+    clientName = getOptionalParameter(config, 'context_client_name')
+    if clientName:
         # Assembling uri of the client
         clientv2URL='https://clientv2-latest.mybluemix.net/#defaultMinMode=true'
         clientv2URL+='&prefered_workspace_id=' + getattr(config, 'conversation_workspace_id')
@@ -120,10 +117,10 @@ def main(argv):
         clientv2URL+='developer_switch_enabled=false'
         logger.info('clientv2URL=%s', clientv2URL)
 
-    # create file with automatic redirect
-    if hasattr(config, 'common_outputs_client') and getattr(config, 'common_outputs_client'):
-        clientFilePath = os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_client'))
-        if hasattr(config, 'context_client_name'):
+        # create file with automatic redirect
+        clientFileName = getOptionalParameter(config, 'common_outputs_client')
+        if clientFileName:
+            clientFilePath = os.path.join(getRequiredParameter(config, 'common_outputs_directory'), clientFileName)
             try:
                 with open(clientFilePath, "w") as clientFile:
                     clientFile.write('<meta http-equiv="refresh" content=\"0; url=' + clientv2URL + '\" />')
@@ -138,4 +135,3 @@ def main(argv):
 if __name__ == '__main__':
     setLoggerConfig()
     main(sys.argv[1:])
-

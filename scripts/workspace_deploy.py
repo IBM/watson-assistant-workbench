@@ -29,7 +29,11 @@ except NameError:
 
 def main(argv):
     logger.info('STARTING: ' + os.path.basename(__file__))
-    parser = argparse.ArgumentParser(description='Deploys  workspace in json format to Watson Conversation Service.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description="Deploys a workspace in json format\
+     to the Watson Conversation Service. If there is no 'conversation_workspace_id' provided\
+     and the 'conversation_workspace_name_unique' is set to 'true', it uploads\
+     a workspace to the place specified by the 'conversation_workspace_name'",\
+      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-of', '--common_outputs_directory', required=False, help='directory where the otputs are stored')
     parser.add_argument('-ow', '--common_outputs_workspace', required=False, help='name of the json file with workspace')
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
@@ -40,6 +44,7 @@ def main(argv):
     parser.add_argument('-cp','--conversation_password', required=False, help='password of the conversation service instance')
     parser.add_argument('-cid','--conversation_workspace_id', required=False, help='workspace_id of the application. If a workspace id is provided, previous workspace content is overwritten, otherwise a new workspace is created ')
     parser.add_argument('-wn','--conversation_workspace_name', required=False, help='name of the workspace')
+    parser.add_argument('-wnu','--conversation_workspace_name_unique', required=False, help='true if the workspace name should be unique across apecified assistant')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(argv)
     config = Cfg(args)

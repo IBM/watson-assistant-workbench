@@ -126,7 +126,7 @@ def main(args):
         functionUrl = namespaceUrl + '/' + namespace + '/actions/' + package + '/' + funcName + '?overwrite=true'
 
         if binary:
-            content = base64.b64encode(open(functionFilePath, 'rb').read())
+            content = base64.b64encode(open(functionFilePath, 'rb').read()).decode('utf-8')
         else:
             content = open(functionFilePath, 'r').read()
         payload = {'exec': {'kind': runtimeVersions[runtime], 'binary': binary, 'code': content}}

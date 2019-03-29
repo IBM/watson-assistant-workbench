@@ -95,8 +95,8 @@ def main(args):
     else:
         logger.info('Cloud functions package successfully uploaded')
 
-    filesAtPath = getFilesAtPath(functionDir, ['*' + ext for ext in (list(interpretedRuntimes.keys()) + \
-                                                                     list(compiledRuntimes.keys()) + \
+    filesAtPath = getFilesAtPath(functionDir, ['*' + ext for ext in (list(interpretedRuntimes) +
+                                                                     list(compiledRuntimes) +
                                                                      compressedFiles)])
 
     for functionFilePath in filesAtPath:

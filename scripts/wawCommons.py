@@ -36,7 +36,7 @@ def toCode(NAME_POLICY, code):
     newCode = re.sub(' ', '_', code, re.UNICODE).upper()
     newCode = unidecode.unidecode(newCode) #unicodedata.normalize('NFKD', newCode.decode('utf-8')).encode('ASCII', 'ignore')  # remove accents
     # remove everything that is not unicode letter or hyphen
-    newCode = re.sub('[^\w-]', '', newCode, re.UNICODE)
+    newCode = re.sub('[^\\w-]', '', newCode, re.UNICODE)
     if newCode != code:
         if NAME_POLICY == 'soft_verbose':
             logger.warning("Illegal value of the code: '%s'- %s", code, restrictionTextCode)
@@ -62,7 +62,7 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
      - replace spaces and semicolons with uderscores
      - remove everything that is not unicode letter, hyphen or period
     User defined replacements:
-     e.g. userReplacements = [['$special', '\L'], ['-', '_']] which change all letters to lowercase and replace all hyphens for underscores
+     e.g. userReplacements = [['$special', '\\L'], ['-', '_']] which change all letters to lowercase and replace all hyphens for underscores
     If the name does not satisfy all restrictions, this function will return corrected name and print warning (NAME_POLICY soft_verbose)
     or it will end up with an error (NAME_POLICY hard)"""
     """Removes all unexpected characters from the intent names, normalize them to upper case and concatenate them with the underscores"""
@@ -75,7 +75,7 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
         uIntentSubname = intentSubname
         # apply WA restrictions (https://console.bluemix.net/docs/services/conversation/intents.html#defining-intents)
         uIntentSubnameWA = re.sub(' ;', '_', uIntentSubname, re.UNICODE) # replace space and ; by underscore
-        uIntentSubnameWA = re.sub(u'[^\wÀ-ÖØ-öø-ÿĀ-ž-\.]', '', uIntentSubnameWA, re.UNICODE) # remove everything that is not unicode letter, hyphen or period
+        uIntentSubnameWA = re.sub(u'[^\\wÀ-ÖØ-öø-ÿĀ-ž-\\.]', '', uIntentSubnameWA, re.UNICODE) # remove everything that is not unicode letter, hyphen or period
         if uIntentSubnameWA != uIntentSubname: # WA restriction triggered
             restrictionTextIntentName.append("The intent name can only contain letters (in Unicode), numbers, underscores, hyphens, and periods.")
         # apply user-defined restrictions
@@ -148,7 +148,7 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
      - replace spaces with uderscores
      - remove everything that is not unicode letter or hyphen
     User defined replacements:
-     e.g. userReplacements = [['$special', '\L'], ['-', '_']] which change all letters to lowercase and replace all hyphens for underscores
+     e.g. userReplacements = [['$special', '\\L'], ['-', '_']] which change all letters to lowercase and replace all hyphens for underscores
     If the name does not satisfy all restrictions, this function will return corrected name and print warning (NAME_POLICY soft)
     or it will end up with an error (NAME_POLICY hard)"""
     global restrictionTextNamePolicy
@@ -157,7 +157,7 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
     uEntityName = entityName
     # apply WA restrictions (https://console.bluemix.net/docs/services/conversation/entities.html#defining-entities)
     uEntityNameWA = re.sub(' ', '_', uEntityName, re.UNICODE) # replace spaces with underscores
-    uEntityNameWA = re.sub(u'[^\wÀ-ÖØ-öø-ÿĀ-ž-]', '', uEntityNameWA, re.UNICODE) # remove everything that is not unicode letter or hyphen
+    uEntityNameWA = re.sub(u'[^\\wÀ-ÖØ-öø-ÿĀ-ž-]', '', uEntityNameWA, re.UNICODE) # remove everything that is not unicode letter or hyphen
     if uEntityNameWA != uEntityName: # WA restriction triggered
         restrictionTextEntityName.append("The entity name can only contain letters (in Unicode), numbers, underscores, and hyphens.")
     # apply user-defined restrictions

@@ -256,7 +256,7 @@ class XLSXHandler(object):
         if len(block) > 1 and block[1][0]:
             logger.error('Format error. condititional block without header shold have just one condition: %s', block[0])
             exit()
-        node_condition = re.sub(u"#\$ ", u"", block[0][0])
+        node_condition = re.sub(u"#\\$ ", u"", block[0][0])
         node_name = self._dialogData.createUniqueNodeName(block[0][0])  # derive node name from explicit condition and make it unique
         node_condition = node_condition
         nodeData = self._dialogData.createNode(node_name, domain)  # create space for new node, remembers node_name

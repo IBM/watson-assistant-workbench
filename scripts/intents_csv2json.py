@@ -75,7 +75,7 @@ def main(argv):
     parser.add_argument('-gi', '--common_generated_intents', help='directory with generated intent csv files to be processed (all of them will be included in output json)', action='append')
     parser.add_argument('-od', '--common_outputs_directory', required=False, help='directory where the otputs will be stored (outputs is default)')
     parser.add_argument('-oi', '--common_outputs_intents', help='file with output json with all the intents')
-    parser.add_argument('-ni', '--common_intents_nameCheck', action='append', nargs=2, help="regex and replacement for intent name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
+    parser.add_argument('-ni', '--common_intents_nameCheck', action='append', nargs=2, help="regex and replacement for intent name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(argv)

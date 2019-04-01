@@ -29,7 +29,11 @@ except NameError:
 
 def main(argv):
     logger.info('STARTING: ' + os.path.basename(__file__))
-    parser = argparse.ArgumentParser(description='Deploys  workspace in json format to Watson Conversation Service.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description="Deploys a workspace in json format\
+     to the Watson Conversation Service. If there is no 'conversation_workspace_id' provided\
+     and the 'conversation_workspace_name_unique' is set to 'true', it uploads\
+     a workspace to the place specified by the 'conversation_workspace_name'",\
+      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-of', '--common_outputs_directory', required=False, help='directory where the otputs are stored')
     parser.add_argument('-ow', '--common_outputs_workspace', required=False, help='name of the json file with workspace')
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
@@ -40,20 +44,15 @@ def main(argv):
     parser.add_argument('-cp','--conversation_password', required=False, help='password of the conversation service instance')
     parser.add_argument('-cid','--conversation_workspace_id', required=False, help='workspace_id of the application. If a workspace id is provided, previous workspace content is overwritten, otherwise a new workspace is created ')
     parser.add_argument('-wn','--conversation_workspace_name', required=False, help='name of the workspace')
+    parser.add_argument('-wnu','--conversation_workspace_name_unique', required=False, help='true if the workspace name should be unique across apecified assistant')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(argv)
     config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
 
     # workspace info
-    if not hasattr(config, 'common_outputs_directory') or not getattr(config, 'common_outputs_directory'):
-        logger.error('common_outputs_directory parameter not defined.')
-        exit(1)
-    if not hasattr(config, 'common_outputs_workspace') or not getattr(config, 'common_outputs_workspace'):
-        logger.error('common_outputs_workspace parameter not defined.')
-        exit(1)
     try:
-        workspaceFilePath = os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace'))
+        workspaceFilePath = os.path.join(getRequiredParameter(config, 'common_outputs_directory'), getRequiredParameter(config, 'common_outputs_workspace'))
         with open(workspaceFilePath, 'r') as workspaceFile:
             workspace = json.load(workspaceFile)
     except IOError:
@@ -93,13 +92,16 @@ def main(argv):
         logger.error('Cannot upload workspace.')
         sys.exit(1)
 
-    if not hasattr(config, 'conversation_workspace_id') or not getattr(config, 'conversation_workspace_id'):
+    if not getOptionalParameter(config, 'conversation_workspace_id'):
         setattr(config, 'conversation_workspace_id', responseJson['workspace_id'])
         logger.info('WCS WORKSPACE_ID: %s', responseJson['workspace_id'])
-    if hasattr(config, 'common_output_config'):
-        config.saveConfiguration(getattr(config, 'common_output_config'))
 
-    if hasattr(config, 'context_client_name'):
+    outputConfigFile = getOptionalParameter(config, 'common_output_config')
+    if outputConfigFile:
+        config.saveConfiguration(outputConfigFile)
+
+    clientName = getOptionalParameter(config, 'context_client_name')
+    if clientName:
         # Assembling uri of the client
         clientv2URL='https://clientv2-latest.mybluemix.net/#defaultMinMode=true'
         clientv2URL+='&prefered_workspace_id=' + getattr(config, 'conversation_workspace_id')
@@ -120,10 +122,10 @@ def main(argv):
         clientv2URL+='developer_switch_enabled=false'
         logger.info('clientv2URL=%s', clientv2URL)
 
-    # create file with automatic redirect
-    if hasattr(config, 'common_outputs_client') and getattr(config, 'common_outputs_client'):
-        clientFilePath = os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_client'))
-        if hasattr(config, 'context_client_name'):
+        # create file with automatic redirect
+        clientFileName = getOptionalParameter(config, 'common_outputs_client')
+        if clientFileName:
+            clientFilePath = os.path.join(getRequiredParameter(config, 'common_outputs_directory'), clientFileName)
             try:
                 with open(clientFilePath, "w") as clientFile:
                     clientFile.write('<meta http-equiv="refresh" content=\"0; url=' + clientv2URL + '\" />')
@@ -138,4 +140,3 @@ def main(argv):
 if __name__ == '__main__':
     setLoggerConfig()
     main(sys.argv[1:])
-

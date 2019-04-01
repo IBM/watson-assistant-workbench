@@ -248,7 +248,7 @@ def absoluteFilePaths(directory, patterns=['*']):
         for f in filenames:
             if _fileMatchesPatterns(f, patterns):
                 yield os.path.abspath(os.path.join(dirpath, f))
-           
+
 def _fileMatchesPatterns(filename, patterns):
     """Helper function which checks if file matches one the patterns."""
     for pattern in patterns:
@@ -257,19 +257,19 @@ def _fileMatchesPatterns(filename, patterns):
     return False
 
 def getWorkspaceId(config, workspacesUrl, version, username, password):
-    if hasattr(config, 'conversation_workspace_id') and getattr(config, 'conversation_workspace_id'):
-        logger.info('conversation_workspace_id defined.')
-        workspaceId = getattr(config, 'conversation_workspace_id')
-    else:
-        logger.info('conversation_workspace_id parameter not defined.')
+
+    workspaceId = getOptionalParameter(config, 'conversation_workspace_id')
+
+    if not workspaceId:
         workspaceId = ""
 
-        # workspace name unique
-        if hasattr(config, 'conversation_workspace_name_unique') and getattr(config, 'conversation_workspace_name_unique') in ["true", "True"]:
-            if hasattr(config, 'conversation_workspace_name') and getattr(config, 'conversation_workspace_name'):
-                logger.info('conversation_workspace_name set to unique')
-                workspaceName = getattr(config, 'conversation_workspace_name')
+        # workspace name is considered as unique
+        workspaceNameUnique = getOptionalParameter(config, 'conversation_workspace_name_unique')
+        if workspaceNameUnique in ["true", "True"]:
+            logger.info('conversation_workspace_name set to unique')
 
+            workspaceName = getOptionalParameter(config, 'conversation_workspace_name')
+            if workspaceName:
                 # get all workspaces with this name
                 requestUrl = workspacesUrl + '?version=' + version
                 logger.info("request url: %s", requestUrl)
@@ -300,7 +300,7 @@ def getWorkspaceId(config, workspacesUrl, version, username, password):
                     workspaceId = sameNameWorkspace['workspace_id']
 
             else: # workspace name unique and not defined or empty
-                logger.error('conversation_workspace_name set to unique and not defined.')
+                logger.error("'conversation_workspace_name' set to unique but not defined.")
                 exit(1)
 
         else: # workspace name not unique

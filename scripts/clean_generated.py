@@ -23,7 +23,7 @@ import logging
 
 logger = getScriptLogger(__file__)
 
-if __name__ == '__main__':
+def main(argv):
     setLoggerConfig()
     logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Clean generated directories.',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     parser.add_argument('-oe', '--common_outputs_entities', help='file with output json with all the entities')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('-s', '--common_soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
     config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
 
@@ -61,3 +61,6 @@ if __name__ == '__main__':
         if VERBOSE:logger.info('%s does not exist.', config.common_outputs_directory)
 
     logger.info('FINISHING: ' + os.path.basename(__file__))
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

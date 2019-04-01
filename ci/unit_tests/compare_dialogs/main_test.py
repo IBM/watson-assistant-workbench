@@ -69,7 +69,7 @@ class TestMain(BaseTestCaseCapture):
         ''' Tests if the first file contains invalid json '''
         self.t_raiseException(
             json.JSONDecodeError, # exeption
-            'Expecting value', # error message substring
+            'Expecting value: line 1 column 1 (char 0)', # error message substring
             [[
                 self.noJsonPath,
                 self.emptyDictJsonPath,
@@ -80,7 +80,7 @@ class TestMain(BaseTestCaseCapture):
         ''' Tests if the second file contains invalid json '''
         self.t_raiseException(
             json.JSONDecodeError, # exeption
-            'Expecting value', # error message substring
+            'Expecting value: line 1 column 1 (char 0)', # error message substring
             [[
                 self.emptyDictJsonPath,
                 self.noJsonPath,

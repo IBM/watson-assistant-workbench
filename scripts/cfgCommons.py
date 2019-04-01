@@ -50,7 +50,7 @@ class Cfg:
                     logger.info("Processing config file:" + common_configFilePath)
                     configPart = configparser.ConfigParser()
                     with openFile(common_configFilePath) as configFile:
-                        configPart.read_file(openFile(common_configFilePath)) 
+                        configPart.read_file(configFile) 
                                             
                     # Collect all attributes from all sections
                     for section in configPart.sections():

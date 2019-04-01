@@ -98,7 +98,7 @@ def main(argv):
 
     outputConfigFile = getOptionalParameter(config, 'common_output_config')
     if outputConfigFile:
-        config.saveConfiguration()
+        config.saveConfiguration(outputConfigFile)
 
     clientName = getOptionalParameter(config, 'context_client_name')
     if clientName:

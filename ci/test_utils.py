@@ -63,15 +63,15 @@ class BaseTestCaseCapture(object):
 
     def t_fun_exitCode(self, function, exitCode, args=[], kwargs={}):
         ''' Runs function with given arguments and tests exit code '''
-        self.t_fun_exitCodeAndErrMessage(function, exitCode, '', args, kwargs)
+        self.t_fun_exitCodeAndMessage(function, exitCode, None, None, args, kwargs)
 
-    def t_exitCodeAndOutMessage(self, exitCode, outMessage, args=[], kwargs={}):
+    def t_exitCodeAndOutMessage(self, exitCode, message, args=[], kwargs={}):
         ''' (Generic) Runs predefined function (callfunc) with given arguments and tests exit code and output message '''
-        self.t_fun_exitCodeAndOutMessage(self.callfunc, exitCode, outMessage, args, kwargs)
+        self.t_fun_exitCodeAndOutMessage(self.callfunc, exitCode, message, args, kwargs)
 
-    def t_fun_exitCodeAndOutMessage(self, function, exitCode, outMessage, args=[], kwargs={}):
+    def t_fun_exitCodeAndOutMessage(self, function, exitCode, message, args=[], kwargs={}):
         ''' (Generic) Runs function with given arguments and tests exit code and output message '''
-        self.t_fun_exitCodeAndMessage(function, exitCode, BaseTestCaseCapture.MessageType.OUT, outMessage, args, kwargs)
+        self.t_fun_exitCodeAndMessage(function, exitCode, BaseTestCaseCapture.MessageType.OUT, message, args, kwargs)
 
     def t_exitCodeAndErrMessage(self, exitCode, errMessage, args=[], kwargs={}):
         ''' (Generic) Runs predefined function (callfunc) with given arguments and tests exit code and error message '''
@@ -81,45 +81,29 @@ class BaseTestCaseCapture(object):
         ''' (Generic) Runs function with given arguments and tests exit code and error message '''
         self.t_fun_exitCodeAndMessage(function, exitCode, BaseTestCaseCapture.MessageType.ERR, errMessage, args, kwargs)
 
-    def t_exitCodeAndLogMessage(self, exitCode, logMessage, args=[], kwargs={}):
+    def t_exitCodeAndLogMessage(self, exitCode, message, args=[], kwargs={}):
         ''' (Generic) Runs predefined function (callfunc) with given arguments and tests exit code and log message '''
-        self.t_fun_exitCodeAndLogMessage(self.callfunc, exitCode, logMessage, args, kwargs)
+        self.t_fun_exitCodeAndLogMessage(self.callfunc, exitCode, message, args, kwargs)
 
-    def t_fun_exitCodeAndLogMessage(self, function, exitCode, logMessage, args=[], kwargs={}):
+    def t_fun_exitCodeAndLogMessage(self, function, exitCode, message, args=[], kwargs={}):
         ''' (Generic) Runs function with given arguments and tests exit code and log message '''
-        self.t_fun_exitCodeAndMessage(function, exitCode, BaseTestCaseCapture.MessageType.LOG, logMessage, args, kwargs)
+        self.t_fun_exitCodeAndMessage(function, exitCode, BaseTestCaseCapture.MessageType.LOG, message, args, kwargs)
 
-    def t_exitCodeAndMessage(self, function, exitCode, messageType, logMessage, args=[], kwargs={}):
+    def t_exitCodeAndMessage(self, function, exitCode, messageType, message, args=[], kwargs={}):
         ''' (Generic) Runs predefined function (callfunc) with given arguments and tests exit code and message of given type '''
-        self.t_fun_exitCodeAndMessage(self.callfunc, exitCode, messageType, logMessage, args, kwargs)
+        self.t_fun_exitCodeAndMessage(self.callfunc, exitCode, messageType, message, args, kwargs)
 
-    def t_fun_exitCodeAndMessage(self, function, exitCode, messageType, logMessage, args=[], kwargs={}):
+    def t_fun_exitCodeAndMessage(self, function, exitCode, messageType, message, args=[], kwargs={}):
         ''' (Generic) Runs function with given arguments and tests exit code and message of given type '''
-        with pytest.raises(SystemExit) as pytest_wrapped_e:
-            function(*args, **kwargs)
-        self.captured = self.capfd.readouterr()
-        self.logs = self.caplog
-        assert pytest_wrapped_e.value.code == exitCode
+        self.t_fun_generic(function, SystemExit, str(exitCode), messageType, message, args, kwargs)
 
-        if messageType == BaseTestCaseCapture.MessageType.OUT:
-            assert logMessage in self.captured.out
-        elif messageType == BaseTestCaseCapture.MessageType.ERR:
-            assert logMessage in self.captured.err
-        elif messageType == BaseTestCaseCapture.MessageType.LOG:
-            assert logMessage in self.logs.text
-        else:
-            pytest.fail('Uknown MessageType: ' + messageType)
-
-    def t_raiseError(self, errorType, errMessage, args=[], kwargs={}):
+    def t_raiseException(self, exceptionType, exceptionValue, args=[], kwargs={}):
         ''' (Generic) Runs predefined function (callfunc) with given arguments and tests exception '''
-        self.t_fun_raiseError(self.callfunc, errorType, errMessage, args, kwargs)
+        self.t_fun_raiseException(self.callfunc, exceptionType, exceptionValue, args, kwargs)
 
-    def t_fun_raiseError(self, function, errorType, errMessage, args=[], kwargs={}):
+    def t_fun_raiseException(self, function, exceptionType, exceptionValue, args=[], kwargs={}):
         ''' (Generic) Runs function with given arguments and tests exception '''
-        with pytest.raises(errorType, match=errMessage) as pytest_wrapped_e:
-            function(*args, **kwargs)
-        self.captured = self.capfd.readouterr()
-        self.logs = self.caplog
+        self.t_fun_generic(function, exceptionType, exceptionValue, None, None, args, kwargs)
 
     def t_noException(self, args=[], kwargs={}):
         ''' (Generic) Runs predefined function (callfunc) with given arguments and checks that no exception was raised '''
@@ -127,12 +111,76 @@ class BaseTestCaseCapture(object):
 
     def t_fun_noException(self, function, args=[], kwargs={}):
         ''' (Generic) Runs function with given arguments and checks that no exception was raised '''
+        self.t_fun_noExceptionAndMessage(function, None, None, args, kwargs)
+
+    def t_noExceptionAndOutMessage(self, message, args=[], kwargs={}):
+        ''' (Generic) Runs predefined function (callfunc) with given arguments and checks that no exception was raised and output message '''
+        self.t_fun_noExceptionAndOutMessage(self.callfunc, message, args, kwargs)
+
+    def t_fun_noExceptionAndOutMessage(self, function, message, args=[], kwargs={}):
+        ''' (Generic) Runs function with given arguments and checks that no exception was raised and output message '''
+        self.t_fun_noExceptionAndMessage(function, BaseTestCaseCapture.MessageType.OUT, message, args, kwargs)
+
+    def t_noExceptionAndErrMessage(self, message, args=[], kwargs={}):
+        ''' (Generic) Runs predefined function (callfunc) with given arguments and checks that no exception was raised and error message '''
+        self.t_fun_noExceptionAndErrMessage(self.callfunc, message, args, kwargs)
+
+    def t_fun_noExceptionAndErrMessage(self, function, message, args=[], kwargs={}):
+        ''' (Generic) Runs function with given arguments and tchecks that no exception was raised and error message '''
+        self.t_fun_noExceptionAndMessage(function, BaseTestCaseCapture.MessageType.ERR, message, args, kwargs)
+
+    def t_noExceptionAndLogMessage(self, message, args=[], kwargs={}):
+        ''' (Generic) Runs predefined function (callfunc) with given arguments and checks that no exception was raised and log message '''
+        self.t_fun_noExceptionAndLogMessage(self.callfunc, message, args, kwargs)
+
+    def t_fun_noExceptionAndLogMessage(self, function, message, args=[], kwargs={}):
+        ''' (Generic) Runs function with given arguments and checks that no exception was raised and log message '''
+        self.t_fun_noExceptionAndMessage(function, BaseTestCaseCapture.MessageType.LOG, message, args, kwargs)
+
+    def t_noExceptionAndMessage(self, messageType, message, args=[], kwargs={}):
+        ''' (Generic) Runs predefined function (callfunc) with given arguments and checks that no exception was raised and message of given type '''
+        self.t_fun_noExceptionAndMessage(self.callfunc, messageType, message, args, kwargs)
+
+    def t_fun_noExceptionAndMessage(self, function, messageType, message, args=[], kwargs={}):
+        ''' (Generic) Runs function with given arguments and checks that no exception was raised and message of given type '''
+        self.t_fun_generic(function, None, None, messageType, message, args, kwargs)
+
+    def t_generic(self, exceptionType, exceptionValue, messageType, message, args=[], kwargs={}):
+        ''' (Generic) Runs predefined function (callfunc) with given arguments and tests if everything is set as should be '''
+        self.t_fun_generic(self.callfunc, exceptionType, exceptionValue, messageType, message, args, kwargs)
+
+    def t_fun_generic(self, function, exceptionType, exceptionValue, messageType, message, args=[], kwargs={}):
+        ''' (Generic) Runs function with given arguments and tests if everything is set as should be '''
+        exception = None
+
         try:
             function(*args, **kwargs)
-            self.captured = self.capfd.readouterr()
-            self.logs = self.caplog
-        except:
-            pytest.fail(traceback.format_exc())
+        except BaseException as e:
+            exception = e
+            if not exceptionType:
+                pytest.fail(traceback.format_exc())
+
+        if exceptionType:
+            assert exceptionType == type(exception)
+        else:
+            assert exception == None
+
+        if exceptionValue:
+            assert exceptionValue == str(exception)
+        else:
+            assert exception == None
+
+        self.captured = self.capfd.readouterr()
+        self.logs = self.caplog
+        if messageType:
+            if messageType == BaseTestCaseCapture.MessageType.OUT:
+                assert message in self.captured.out
+            elif messageType == BaseTestCaseCapture.MessageType.ERR:
+                assert message in self.captured.err
+            elif messageType == BaseTestCaseCapture.MessageType.LOG:
+                assert message in self.logs.text
+            else:
+                pytest.fail('Uknown MessageType: ' + messageType)
 
     def callfunc(self, args=[], kwargs={}):
         ''' (Need to be overidden) Function to be called and tested '''

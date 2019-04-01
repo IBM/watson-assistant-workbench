@@ -12,15 +12,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from __future__ import print_function
 
 import json,sys,argparse,os
 import io
 from cfgCommons import Cfg
-from wawCommons import printf, eprintf, toEntityName, getFilesAtPath
+from wawCommons import setLoggerConfig, getScriptLogger,  toEntityName, getFilesAtPath
+import logging
 
-if __name__ == '__main__':
-    printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
+
+logger = getScriptLogger(__file__)
+
+def main(argv):
+    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Conversion entity csv files to .json.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration fil, the optional name of file where configuration is stored.')
@@ -31,18 +34,18 @@ if __name__ == '__main__':
     parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('-s', '--common_soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
     config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
     NAME_POLICY = 'soft' if args.common_soft else 'hard'
 
     if not hasattr(config, 'common_entities'):
-        print('entities parameter is not defined.')
+        logger.info('entities parameter is not defined.')
         exit(1)
     if not hasattr(config, 'common_generated_entities'):
-        print('generated_entities parameter is not defined, ignoring')
+        logger.info('generated_entities parameter is not defined, ignoring')
     if not hasattr(config, 'common_outputs_entities'):
-        print('Outputs_entities parameter is not defined, output will be generated to console.')
+        logger.info('Outputs_entities parameter is not defined, output will be generated to console.')
 
     # process entities
     entitiesJSON = []
@@ -71,7 +74,7 @@ if __name__ == '__main__':
                         if entityJSON not in entitiesJSON: #we do not want system entities duplicated, e.g., when composing more projects together
                             entitiesJSON.append(entityJSON)
                         else:
-                            printf("Skipping duplicated '%s' system entity.\n", line)
+                            logger.info("Skipping duplicated '%s' system entity.", line)
 
             # other entities
             else:
@@ -115,12 +118,17 @@ if __name__ == '__main__':
     if getattr(config, 'common_outputs_directory') and hasattr(config, 'common_outputs_entities'):
         if not os.path.exists(getattr(config, 'common_outputs_directory')):
             os.makedirs(getattr(config, 'common_outputs_directory'))
-            print('Created new output directory ' + getattr(config, 'common_outputs_entities'))
+            logger.info('Created new output directory ' + getattr(config, 'common_outputs_entities'))
         with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), mode='w', encoding='utf-8') as outputFile:
             outputFile.write(json.dumps(entitiesJSON, indent=4, ensure_ascii=False, encoding='utf8'))
-        if VERBOSE: printf("Entities json '%s' was successfully created\n", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')))
+        if VERBOSE: logger.info("Entities json '%s' was successfully created", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')))
     else:
         print(json.dumps(entitiesJSON, indent=4, ensure_ascii=False).encode('utf8'))
-        if VERBOSE: printf("Entities json was successfully created\n", os.path.basename(__file__))
+        if VERBOSE: logger.info("Entities json was successfully created %s", os.path.basename(__file__))
 
-    printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    logger.info('FINISHING: ' + os.path.basename(__file__))
+
+if __name__ == '__main__':
+    setLoggerConfig()
+    main(sys.argv[1:])
+

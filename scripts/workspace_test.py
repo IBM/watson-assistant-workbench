@@ -14,14 +14,18 @@ limitations under the License.
 """
 
 import json, sys, os, time, argparse, requests, configparser
-from wawCommons import printf, eprintf, getWorkspaceId, getRequiredParameter, errorsInResponse
+from wawCommons import setLoggerConfig, getScriptLogger, getWorkspaceId, getRequiredParameter, errorsInResponse
 from cfgCommons import Cfg
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 CHECK_MESSAGES_TIME_MAX = 5 # in seconds
 CHECK_WORKSPACE_TIME_DELAY = 1 # in seconds
 CHECK_WORKSPACE_TIME_MAX = 5 * 60 # in seconds
 
-if __name__ == '__main__':
+def main(argv):
     parser = argparse.ArgumentParser(description='Tests all dialog flows from given file and save received responses to output file', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('inputFileName', help='file with test jsons to be sent to conversation service. (One at each line at key \'input\'.)')
@@ -29,7 +33,7 @@ if __name__ == '__main__':
     # optional arguments
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
 
     config = Cfg(args)
 
@@ -38,38 +42,38 @@ if __name__ == '__main__':
     workspacesUrl = getRequiredParameter(config, 'conversation_url')
     version = getRequiredParameter(config, 'conversation_version')
     username = getRequiredParameter(config, 'conversation_username')
-    printf('WCS USERNAME: %s\n', username)
+    logger.info('WCS USERNAME: %s', username)
     password = getRequiredParameter(config, 'conversation_password')
-    printf('WCS PASSWORD: %s\n', password)
+    logger.info('WCS PASSWORD: %s', password)
     workspaceId = getWorkspaceId(config, workspacesUrl, version, username, password)
 
     # wait until workspace is done with training
     checkWorkspaceTime = 0
     requestUrl = workspacesUrl + '/' + workspaceId + '?version=' + version
     while True:
-        if VERBOSE: printf("INFO: requestUrl: %s\n", requestUrl)
+        if VERBOSE: logger.info("requestUrl: %s", requestUrl)
         response = requests.get(requestUrl, auth=(username, password))
         if response.status_code == 200:
             responseJson = response.json()
             if errorsInResponse(responseJson):
                 sys.exit(1)
-            if VERBOSE: printf("\nINFO: response: %s\n", responseJson)
+            if VERBOSE: logger.info("response: %s", responseJson)
             status = responseJson['status']
-            printf('WCS WORKSPACE STATUS: %s\n', status)
+            logger.info('WCS WORKSPACE STATUS: %s', status)
             if status == 'Available':
                 break
             else:
                 # sleep some time and check messages again
                 if checkWorkspaceTime > CHECK_WORKSPACE_TIME_MAX:
-                    eprintf('ERROR: Workspace have not become available before timeout, timeout: %d, response:\n%s\n', CHECK_MESSAGES_TIME_MAX, json.dumps(responseJson, indent=4, sort_keys=True, ensure_ascii=False).encode('utf8'))
+                    logger.error('Workspace have not become available before timeout, timeout: %d, response: %s', CHECK_MESSAGES_TIME_MAX, json.dumps(responseJson, indent=4, sort_keys=True, ensure_ascii=False).encode('utf8'))
                     sys.exit(1)
                 time.sleep(CHECK_WORKSPACE_TIME_DELAY)
                 checkWorkspaceTime = checkWorkspaceTime + CHECK_WORKSPACE_TIME_DELAY
         elif response.status_code == 400:
-            eprintf('ERROR: WA not available.\n')
+            logger.error('WA not available.')
             sys.exit(1)
         else:
-            printf('ERROR: Unknown status code:%s.\n', response.status_code)
+            logger.error('Unknown status code:%s.', response.status_code)
 
     # run tests
     url = workspacesUrl + '/' + workspaceId + '/message?version=' + version
@@ -88,7 +92,7 @@ if __name__ == '__main__':
                             if receivedOutputJson and 'context' in receivedOutputJson and receivedOutputJson['context']:
                                 inputJson['context'] = receivedOutputJson['context'] # use context from last dialog turn
                         dialogId = loadedJson['dialog_id']
-                        if VERBOSE: printf("INFO: url: %s", url)
+                        if VERBOSE: logger.info("url: %s", url)
                         response = requests.post(url, auth=(username, password), headers={'Content-Type': 'application/json'}, data=json.dumps(inputJson, indent=4, ensure_ascii=False).encode('utf8'))
                         if response.status_code == 200:
                             receivedOutputJson = response.json()
@@ -97,17 +101,22 @@ if __name__ == '__main__':
                             outputFile.write(json.dumps(receivedOutputJson, ensure_ascii=False).encode('utf8'))
                             first = False
                         elif response.status_code == 400:
-                            eprintf('ERROR: error while testing.\n')
+                            logger.error('Error while testing.')
                             errorsInResponse(response.json())
                             sys.exit(1)
                         else:
-                            printf('ERROR: Unknown status code:%s.\n', response.status_code)
+                            logger.error('Unknown status code:%s.', response.status_code)
                             sys.exit(1)
             except IOError:
-                eprintf('ERROR: Cannot open test output file %s\n', args.outputFileName)
+                logger.error('Cannot open test output file %s', args.outputFileName)
                 sys.exit(1)
     except IOError:
-        eprintf('ERROR: Cannot open test input file %s\n', args.inputFileName)
+        logger.error('Cannot open test input file %s', args.inputFileName)
         sys.exit(1)
 
-print('\nFINISHING: '+ os.path.basename(__file__) + '\n')
+    logger.info('FINISHING: '+ os.path.basename(__file__))
+
+if __name__ == '__main__':
+    setLoggerConfig()
+    main(sys.argv[1:])
+

@@ -15,7 +15,11 @@ limitations under the License.
 
 import json, sys, argparse, requests, os, time, datetime, re
 import lxml.etree as LET
-from wawCommons import printf, eprintf
+from wawCommons import setLoggerConfig, getScriptLogger
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 try:
     basestring            # Python 2
@@ -25,40 +29,40 @@ except NameError:
 
 def areSame(expectedOutputJson, receivedOutputJson, failureData, parentPath):
 
-    printf("ARE SAME: %s and %s\n", expectedOutputJson, receivedOutputJson)
+    logger.info("ARE SAME: %s and %s", expectedOutputJson, receivedOutputJson)
 
     if isinstance(expectedOutputJson, basestring):
         if not isinstance(receivedOutputJson, basestring):
             failureData['message'] = 'Received output differs in type from expected output.' + " (" + parentPath + ")"
             failureData['expectedElement'] = "Element of the type string (" + expectedOutputJson + ")"
             failureData['receivedElement'] = "Element of the type " + receivedOutputJson.__class__.__name__
-            printf("Different type: %s and %s\n", expectedOutputJson, receivedOutputJson)
+            logger.info("Different type: %s and %s", expectedOutputJson, receivedOutputJson)
             return False
         if expectedOutputJson != receivedOutputJson:
             failureData['message'] = 'Received output differs from expected output.' + " (" + parentPath + ")"
             failureData['expectedElement'] = expectedOutputJson
             failureData['receivedElement'] = receivedOutputJson
-            printf("NOT SAME: %s and %s\n", expectedOutputJson, receivedOutputJson)
+            logger.info("NOT SAME: %s and %s", expectedOutputJson, receivedOutputJson)
             return False
         else:
-            printf('SAME: basestring %s and %s are same\n', expectedOutputJson, receivedOutputJson)
+            logger.info('SAME: basestring %s and %s are same', expectedOutputJson, receivedOutputJson)
             return True
 
-    if isinstance(expectedOutputJson, int):
+    elif isinstance(expectedOutputJson, int):
         if not isinstance(receivedOutputJson, int):
             failureData['message'] = 'Received output differs in type from expected output.' + " (" + parentPath + ")"
             failureData['expectedElement'] = "Element of the type int (" + str(expectedOutputJson) + ")"
             failureData['receivedElement'] = "Element of the type " + receivedOutputJson.__class__.__name__
-            printf("Different type: %s and %s\n", expectedOutputJson, receivedOutputJson)
+            logger.info("Different type: %s and %s", expectedOutputJson, receivedOutputJson)
             return False
         if expectedOutputJson != receivedOutputJson:
             failureData['message'] = 'Received output differs from expected output.' + " (" + parentPath + ")"
             failureData['expectedElement'] = str(expectedOutputJson)
             failureData['receivedElement'] = str(receivedOutputJson)
-            printf("NOT SAME: %s and %s\n", expectedOutputJson, receivedOutputJson)
+            logger.info("NOT SAME: %s and %s", expectedOutputJson, receivedOutputJson)
             return False
         else:
-            printf('SAME: int %s and %s are same\n', expectedOutputJson, receivedOutputJson)
+            logger.info('SAME: int %s and %s are same', expectedOutputJson, receivedOutputJson)
             return True
 
     elif isinstance(expectedOutputJson, list):
@@ -66,21 +70,21 @@ def areSame(expectedOutputJson, receivedOutputJson, failureData, parentPath):
             failureData['message'] = 'Received output differs in type from expected output.' + " (" + parentPath + ")"
             failureData['expectedElement'] = "Element of the type list"
             failureData['receivedElement'] = "Element of the type " + receivedOutputJson.__class__.__name__
-            printf("Different type: %s and %s\n", expectedOutputJson, receivedOutputJson)
+            logger.info("Different type: %s and %s", expectedOutputJson, receivedOutputJson)
             return False
         if len(expectedOutputJson) != len(receivedOutputJson):
             failureData['message'] = 'List in received output differs in length from list in expected output.' + " (" + parentPath + ")"
             failureData['expectedElement'] = "List of the length " + str(len(expectedOutputJson))
             failureData['receivedElement'] = "List of the length " + str(len(receivedOutputJson))
-            printf('ERROR: Different list length!\n')
-            printf('expected %s\n', expectedOutputJson)
-            printf('received %s\n', receivedOutputJson)
+            logger.error('Different list length!')
+            logger.error('expected %s', expectedOutputJson)
+            logger.error('received %s', receivedOutputJson)
             return False
         else:
             for i in range(len(expectedOutputJson)):
-                printf("STEP: Item %d\n", i)
+                logger.info("STEP: Item %d", i)
                 if not areSame(expectedOutputJson[i], receivedOutputJson[i], failureData, parentPath + " - " + str(i) + "th item in list"):
-                    printf('ERROR: Different list items in positon %d!\n', i)
+                    logger.error('Different list items in positon %d!', i)
                     return False
             return True
 
@@ -89,27 +93,27 @@ def areSame(expectedOutputJson, receivedOutputJson, failureData, parentPath):
             failureData['message'] = 'Received output differs in type from expected output.' + " (" + parentPath + ")"
             failureData['expectedElement'] = "Element of the type dict"
             failureData['receivedElement'] = "Element of the type " + receivedOutputJson.__class__.__name__
-            printf("Different type: %s and %s\n", expectedOutputJson, receivedOutputJson)
+            logger.info("Different type: %s and %s", expectedOutputJson, receivedOutputJson)
             return False
         for elementKey in expectedOutputJson:
-            printf("STEP: Element key %s\n", elementKey)
+            logger.info("STEP: Element key %s", elementKey)
             if expectedOutputJson[elementKey] is None:
-                printf("NONE: Element with key %s is none\n", elementKey)
+                logger.info("NONE: Element with key %s is none", elementKey)
                 continue
             if elementKey not in receivedOutputJson or receivedOutputJson[elementKey] is None:
                 failureData['message'] = 'Received output has no key ' + elementKey + '.' + " (" + parentPath + ")"
                 failureData['expectedElement'] = "Dict with key " + elementKey
                 failureData['receivedElement'] = "None"
-                printf('ERROR: Missing key in received json!\n')
+                logger.error('Missing key in received json!')
                 return False
             else:
                 if not areSame(expectedOutputJson[elementKey], receivedOutputJson[elementKey], failureData, parentPath + " - " + elementKey):
-                    printf('ERROR: Different dict items for key %s!\n', elementKey)
+                    logger.error('Different dict items for key %s!', elementKey)
                     return False
         return True
 
     else:
-        eprintf('ERROR: Unsupported type of element %s, type %s!\n', str(expectedOutputJson), expectedOutputJson.__class__.__name__)
+        logger.error('Unsupported type of element %s, type %s!', str(expectedOutputJson), expectedOutputJson.__class__.__name__)
         return False
 
 def createLineFailureXML(failureData):
@@ -117,15 +121,15 @@ def createLineFailureXML(failureData):
     lineFailureXml.attrib['message'] = failureData['message']
     # expected element
     lineFailureExpectedXml = LET.Element('expected')
-    lineFailureExpectedXml.text = failureData['expectedElement']
     lineFailureXml.append(lineFailureExpectedXml)
+    lineFailureExpectedXml.text = failureData['expectedElement']
     # received element
     lineFailureReceivedXml = LET.Element('received')
-    lineFailureReceivedXml.text = failureData['receivedElement']
     lineFailureXml.append(lineFailureReceivedXml)
+    lineFailureReceivedXml.text = failureData['receivedElement']
     return lineFailureXml
 
-if __name__ == '__main__':
+def main(argv):
     parser = argparse.ArgumentParser(description='Compares all dialog flows from given files and generate xml report', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('expectedFileName', help='file with expected JSONs (One at each line at key \'output_message\')')
@@ -133,7 +137,7 @@ if __name__ == '__main__':
     # optional arguments
     parser.add_argument('-o','--output', required=False, help='name of generated xml file', default='test.junit.xml')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
 
     VERBOSE = args.verbose
 
@@ -154,12 +158,13 @@ if __name__ == '__main__':
             outputXml = LET.Element('testsuites')
 
             # print (whole test)
-            printf('--------------------------------------------------------------------------------\n')
-            printf('-- TEST: ' + testName + '\n')
-            printf('--------------------------------------------------------------------------------\n')
+            logger.info('--------------------------------------------------------------------------------')
+            logger.info('-- TEST: ' + testName)
+            logger.info('--------------------------------------------------------------------------------')
 
             # XML (new dialouge)
             dialogXml = LET.Element('testsuite')
+            outputXml.append(dialogXml)
 
             expectedJsonLine = expectedJsonFile.readline()
             receivedJsonLine = receivedJsonFile.readline()
@@ -174,7 +179,7 @@ if __name__ == '__main__':
             while expectedJsonLine:
                 line += 1
                 if not receivedJsonLine: # no more received line
-                    eprintf('ERROR: Missing output JSON in file %s, line %d', args.receivedFileName, line)
+                    logger.error('Missing output JSON in file %s, line %d', args.receivedFileName, line)
                     sys.exit(1)
                 expectedData = json.loads(expectedJsonLine)
                 expectedJson = expectedData['output_message']
@@ -184,19 +189,22 @@ if __name__ == '__main__':
 
                     if nDialogs > 0:
                         # end previous dialog
-                        printf('--------------------------------------------------------------------------------\n')
+                        logger.info('--------------------------------------------------------------------------------')
                         if nFailuresInDialog: # at least one failure in this dialog
-                            printf('-- TEST RESULT: FAILED, TOTAL FAILURES: %d, LINE OF THE FIRST FAILURE: %d\n', nFailuresInDialog, firstFailedLine)
+                            logger.info('-- TEST RESULT: FAILED, TOTAL FAILURES: %d, LINE OF THE FIRST FAILURE: %d', nFailuresInDialog, firstFailedLine)
                             nDialogsFailed += 1
                         else:
-                            printf('-- TEST RESULT: OK\n')
-                        printf('--------------------------------------------------------------------------------\n')
+                            logger.info('-- TEST RESULT: OK')
+                        logger.info('--------------------------------------------------------------------------------')
 
                         # XML previous dialog
                         dialogXml.attrib['name'] = 'dialog ' + str(dialogId)
                         dialogXml.attrib['tests'] = str(nTestsinDialog)
                         dialogXml.attrib['failures'] = str(nFailuresInDialog)
                         dialogXml.attrib['time'] = str(time.time() - timeDialogStart)
+
+                        # XML (new dialouge)
+                        dialogXml = LET.Element('testsuite')
                         outputXml.append(dialogXml)
 
                     # init new dialog
@@ -206,9 +214,6 @@ if __name__ == '__main__':
                     timeDialogStart = time.time()
                     dialogId = expectedData['dialog_id']
 
-                    # XML (new dialouge)
-                    dialogXml = LET.Element('testsuite')
-
                 nTestsinDialog += 1
                 timeLineStart = time.time()
                 checkMessagesTime = 0
@@ -216,9 +221,9 @@ if __name__ == '__main__':
 
                 # XML
                 lineXml = LET.Element('testcase')
+                dialogXml.append(lineXml)
                 lineXml.attrib['name'] = 'line ' + str(line)
                 lineXml.attrib['time'] = str(time.time() - timeLineStart)
-                dialogXml.append(lineXml)
 
                 if not areSame(expectedJson, receivedJson, failureData, "root"):
                     # line failure
@@ -228,29 +233,43 @@ if __name__ == '__main__':
                     if firstFailedLine is None:
                         firstFailedLine = line
 
-                    printf('EXPECTED OUTPUT: ' + json.dumps(expectedJson, indent=4, ensure_ascii=False).encode('utf8') + '\n')
-                    printf('RECEIVED OUTPUT: ' + json.dumps(receivedJson, indent=4, ensure_ascii=False).encode('utf8') + '\n')
+                    logger.info('EXPECTED OUTPUT: ' + json.dumps(expectedJson, indent=4, ensure_ascii=False).encode('utf8'))
+                    logger.info('RECEIVED OUTPUT: ' + json.dumps(receivedJson, indent=4, ensure_ascii=False).encode('utf8'))
                     resultText = 'FAILED'
 
                 else:
                     resultText = 'OK'
 
-                printf('  LINE: %d, RESULT: %s, TIME: %.2f sec\n', line, resultText, checkMessagesTime)
+                logger.info('  LINE: %d, RESULT: %s, TIME: %.2f sec', line, resultText, checkMessagesTime)
 
                 expectedJsonLine = expectedJsonFile.readline()
                 receivedJsonLine = receivedJsonFile.readline()
 
             # end for each line
+            # end previous dialog
+            logger.info('--------------------------------------------------------------------------------')
+            if nFailuresInDialog: # at least one failure in this dialog
+                logger.info('-- TEST RESULT: FAILED, TOTAL FAILURES: %d, LINE OF THE FIRST FAILURE: %d', nFailuresInDialog, firstFailedLine)
+                nDialogsFailed += 1
+            else:
+                logger.info('-- TEST RESULT: OK')
+            logger.info('--------------------------------------------------------------------------------')
 
-            if receivedJsonLine: eprintf('ERROR: More than expected lines in file %s, line %d', args.receivedFileName, line)
+            # XML previous dialog
+            dialogXml.attrib['name'] = 'dialog ' + str(dialogId)
+            dialogXml.attrib['tests'] = str(nTestsinDialog)
+            dialogXml.attrib['failures'] = str(nFailuresInDialog)
+            dialogXml.attrib['time'] = str(time.time() - timeDialogStart)
+
+            if receivedJsonLine: logger.error('More than expected lines in file %s, line %d', args.receivedFileName, line)
 
         # close files
 
-    printf('\n--------------------------------------------------------------------------------\n')
-    printf('--------------------------------------------------------------------------------\n')
-    if nDialogsFailed: printf('-- SUMMARY - DIALOUGES: %s, RESULT: FAILED, FAILED DIALOGS: %d\n', nDialogs, nDialogsFailed)
-    else: printf('-- SUMMARY - DIALOUGES: %s, RESULT: OK\n', nDialogs)
-    printf('--------------------------------------------------------------------------------\n')
+    logger.info('-------------------------------------------------------------------------------')
+    logger.info('--------------------------------------------------------------------------------')
+    if nDialogsFailed: logger.info('-- SUMMARY - DIALOUGES: %s, RESULT: FAILED, FAILED DIALOGS: %d', nDialogs, nDialogsFailed)
+    else: logger.info('-- SUMMARY - DIALOUGES: %s, RESULT: OK', nDialogs)
+    logger.info('--------------------------------------------------------------------------------')
 
     outputXml.attrib['name'] = testName
     outputXml.attrib['tests'] = str(nDialogs)
@@ -260,3 +279,7 @@ if __name__ == '__main__':
 
     with open(args.output, "w") as outputFile:
         outputFile.write(LET.tostring(outputXml, pretty_print=True, encoding='utf8'))
+
+if __name__ == '__main__':
+    setLoggerConfig()
+    main(sys.argv[1:])

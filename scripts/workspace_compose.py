@@ -12,15 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from __future__ import print_function
-
 import os, json, sys, argparse, codecs
 import io
 from cfgCommons import Cfg
-from wawCommons import printf, eprintf
+from wawCommons import setLoggerConfig, getScriptLogger
+import logging
 
-if __name__ == '__main__':
-    printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
+
+logger = getScriptLogger(__file__)
+
+def main(argv):
+    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Concatenate intents, entities and dialogue jsons to Watson Conversation Service workspace .json format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
@@ -34,7 +36,7 @@ if __name__ == '__main__':
     parser.add_argument('-wl','--conversation_language', required=False, help='language of generated workspace')
     parser.add_argument('-wd','--conversation_description', required=False, help='description')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
     config = Cfg(args)
     VERBOSE = hasattr(config, 'common_verbose')
 
@@ -53,7 +55,7 @@ if __name__ == '__main__':
         workspace['description'] = ''
 
     if not hasattr(config, 'common_outputs_directory'):
-        print('outputs_directory is not defined!')
+        logger.info('outputs_directory is not defined!')
         exit(1)
 
     # process intents
@@ -63,7 +65,7 @@ if __name__ == '__main__':
             intentsJSON = json.load(intentsFile)
         workspace['intents'] = intentsJSON
     else:
-        print('output_intents not specified, omitting intents.')
+        logger.info('output_intents not specified, omitting intents.')
 
     # process entities
     entitiesJSON = {}
@@ -72,7 +74,7 @@ if __name__ == '__main__':
             entitiesJSON = json.load(entitiesFile)
         workspace['entities'] = entitiesJSON
     else:
-        print('output_entities not specified, omitting entities.')
+        logger.info('output_entities not specified, omitting entities.')
 
     # process dialog
     dialogJSON = {}
@@ -81,7 +83,7 @@ if __name__ == '__main__':
             dialogJSON = json.load(dialogFile)
             workspace['dialog_nodes'] = dialogJSON
     else:
-        print('outputs_dialogs not specified, omitting dialog.')
+        logger.info('outputs_dialogs not specified, omitting dialog.')
 
     # process counterexamples
     intentExamplesJSON = {} # counterexamples in "intent format"
@@ -93,12 +95,17 @@ if __name__ == '__main__':
                 counterexamplesJSON.extend(intentExampleJSON['examples'])
             workspace['counterexamples'] = counterexamplesJSON
     else:
-        print('outputs_counterexamples not specified, omitting counterexamples.')
+        logger.info('outputs_counterexamples not specified, omitting counterexamples.')
 
     if hasattr(config, 'common_outputs_workspace'):
         with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace')), 'w', encoding='utf8') as outputFile:
             outputFile.write(json.dumps(workspace, indent=4, ensure_ascii=False, encoding='utf8'))
     else:
-        print('output_workspace not specified, generating to console.')
+        logger.info('output_workspace not specified, generating to console.')
 
-    print('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    logger.info('FINISHING: ' + os.path.basename(__file__))
+
+if __name__ == '__main__':
+    setLoggerConfig()
+    main(sys.argv[1:])
+

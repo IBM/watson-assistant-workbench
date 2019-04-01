@@ -12,11 +12,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from __future__ import print_function
 
 import json, sys, argparse, os
 import lxml.etree as LET
-from wawCommons import printf, eprintf
+from wawCommons import setLoggerConfig, getScriptLogger
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 try:
     basestring            # Python 2
@@ -33,7 +36,7 @@ def convertDialog(dialogNodesJSON):
     rootJSON = findNode(dialogNodesJSON, None, None)
     expandNode(dialogNodesJSON, dialogXML, rootJSON)
     if (len(dialogNodesJSON) > 0):
-        sys.stderr.write("There are " + str(len(dialogNodesJSON)) + " unprocessed nodes: " + str(dialogNodesJSON) + "\n")
+        logger.error("There are " + str(len(dialogNodesJSON)) + " unprocessed nodes: " + str(dialogNodesJSON))
     return dialogXML
 
 # dialogNodesJSON: rest of nodes to process
@@ -59,7 +62,7 @@ def expandNode(dialogNodesJSON, upperNodeXML, nodeJSON):
 def convertNode(nodeJSON):
     nodeXML = LET.Element('node')
     nodeXML.attrib['name'] = nodeJSON['dialog_node']
-    if VERBOSE: printf("DEBUG: node '%s'\n", nodeXML.attrib['name'])
+    if VERBOSE: logger.debug("node '%s'", nodeXML.attrib['name'])
 
     #title
     if 'title' in nodeJSON:
@@ -130,14 +133,14 @@ def convertNode(nodeJSON):
                 # generic is not none or empty
                 for genericItemXML in nodeXML.find('output').findall('generic'):
                     if genericItemXML.find('response_type') is None:
-                        eprintf("ERROR: 'response_type' is missing in the output of the node " + nodeJSON['dialog_node'] + "\n")
+                        logger.error("'response_type' is missing in the output of the node " + nodeJSON['dialog_node'])
                     elif genericItemXML.find('response_type').text == 'text': # TODO check other response_types
                         if genericItemXML.findall('values') is not None:
                             if len(genericItemXML.findall('values')) == 1:
                                 if not 'structure' in genericItemXML.find('values').attrib: # structure is not specified yet
                                     # values has to be of type array
                                     genericItemXML.find('values').attrib['structure'] = 'listItem'
-                                    if VERBOSE: printf("DEBUG: setting 'listitem' attribute to 'values' tag\n")
+                                    if VERBOSE: logger.debug("setting 'listitem' attribute to 'values' tag")
 
     #goto
     if 'next_step' in nodeJSON:
@@ -247,83 +250,83 @@ def convertAll(upperNodeXML, nodeJSON, keyJSON, nameXML = None):
         nameXML = keyJSON
     else:
         structure = "listItem"
-        if VERBOSE: printf("DEBUG: structure 'listItem'\n")
-    if VERBOSE: printf("DEBUG: name '%s'\n", nameXML)
+        if VERBOSE: logger.debug("structure 'listItem'")
+    if VERBOSE: logger.debug("name '%s'", nameXML)
 
     # None
     if nodeJSON[keyJSON] is None:
-        if VERBOSE: printf("DEBUG: node is None\n")
+        if VERBOSE: logger.debug("node is None")
         nodeXML = LET.Element(str(nameXML))
         upperNodeXML.append(nodeXML)
         if structure is not None and nameXML != "action" and nameXML != "actions":
             nodeXML.attrib['structure'] = "listItem"
-            if VERBOSE: printf("DEBUG: adding structure 'listItem' to node\n")
+            if VERBOSE: logger.debug("adding structure 'listItem' to node")
         nodeXML.attrib[XSI+'nil'] = "true"
     # list
     elif isinstance(nodeJSON[keyJSON], list):
-        if VERBOSE: printf("DEBUG: node is list\n")
+        if VERBOSE: logger.debug("node is list")
         if len(nodeJSON[keyJSON]) == 0:
             nodeXML = LET.Element(str(nameXML))
             upperNodeXML.append(nodeXML)
             nodeXML.attrib['structure'] = "emptyList"
-            if VERBOSE: printf("DEBUG: node is 'emptyList'\n")
-            if VERBOSE: printf("DEBUG: node '%s' is 'emptyList'\n", nodeXML.tag)
+            if VERBOSE: logger.debug("node is 'emptyList'")
+            if VERBOSE: logger.debug("node '%s' is 'emptyList'", nodeXML.tag)
 
         else:
             if upperNodeXML.tag != "output" and upperNodeXML.tag != "context" and upperNodeXML.tag != "node":
                 pass
 #                upperNodeXML.attrib['structure'] = "listItem"
-#                if VERBOSE: printf("DEBUG: setting listItem\n")
+#                if VERBOSE: logger.debug("setting listItem")
             for i in range(len(nodeJSON[keyJSON])):
                 listItemJSON = nodeJSON[keyJSON][i]
                 convertAll(upperNodeXML, nodeJSON[keyJSON], i, keyJSON)
     # dict
     elif isinstance(nodeJSON[keyJSON], dict):
-        if VERBOSE: printf("DEBUG: node is dict\n")
+        if VERBOSE: logger.debug("node is dict")
         if not nodeJSON[keyJSON]: #empty dict
             nodeXML = LET.Element(str(nameXML))
             upperNodeXML.append(nodeXML)
             nodeXML.attrib['structure'] = "emptyDict"
-            if VERBOSE: printf("DEBUG: node '%s' is 'emptyDict'\n", nodeXML.tag)
+            if VERBOSE: logger.debug("node '%s' is 'emptyDict'", nodeXML.tag)
         else:
             nodeXML = LET.Element(str(nameXML))
             upperNodeXML.append(nodeXML)
             if structure is not None and nameXML != "action" and nameXML != "actions":
                 nodeXML.attrib['structure'] = "listItem"
-                if VERBOSE: printf("DEBUG: add structure 'listItem' for '%s'\n", nameXML)
+                if VERBOSE: logger.debug("add structure 'listItem' for '%s'", nameXML)
             for subKeyJSON in nodeJSON[keyJSON]:
                 convertAll(nodeXML, nodeJSON[keyJSON], subKeyJSON)
     # string
     elif isinstance(nodeJSON[keyJSON], basestring):
-        if VERBOSE: printf("DEBUG: node is string\n")
+        if VERBOSE: logger.debug("node is string")
         nodeXML = LET.Element(str(nameXML))
         upperNodeXML.append(nodeXML)
         if structure is not None and nameXML != "action" and nameXML != "actions":
             nodeXML.attrib['structure'] = "listItem"
-            if VERBOSE: printf("DEBUG: add structure 'listItem' for '%s'\n", nameXML)
+            if VERBOSE: logger.debug("add structure 'listItem' for '%s'", nameXML)
         nodeXML.text = nodeJSON[keyJSON]
     # bool
     elif isinstance(nodeJSON[keyJSON], bool):
-        if VERBOSE: printf("DEBUG: node is boolean\n")
+        if VERBOSE: logger.debug("node is boolean")
         nodeXML = LET.Element(str(nameXML))
         upperNodeXML.append(nodeXML)
         if structure is not None and nameXML != "action" and nameXML != "actions":
             nodeXML.attrib['structure'] = "listItem"
-            if VERBOSE: printf("DEBUG: add structure 'listItem' for '%s'\n", nameXML)
+            if VERBOSE: logger.debug("add structure 'listItem' for '%s'", nameXML)
         nodeXML.text = str(nodeJSON[keyJSON])
         nodeXML.attrib['type'] = "boolean"
     # int, long, float, complex
     elif isNumber(nodeJSON[keyJSON]):
-        if VERBOSE: printf("DEBUG: node is number\n")
+        if VERBOSE: logger.debug("node is number")
         nodeXML = LET.Element(str(nameXML))
         upperNodeXML.append(nodeXML)
         if structure is not None and nameXML != "action" and nameXML != "actions":
             nodeXML.attrib['structure'] = "listItem"
-            if VERBOSE: printf("DEBUG: add structure 'listItem' for '%s'\n", nameXML)
+            if VERBOSE: logger.debug("add structure 'listItem' for '%s'", nameXML)
         nodeXML.text = str(nodeJSON[keyJSON])
         nodeXML.attrib['type'] = "number"
     else:
-        eprintf("ERROR: Unknown value type\n")
+        logger.error("Unknown value type")
 
 # find and return node with specific parent and previous sibling
 # removing it from the list
@@ -348,19 +351,24 @@ def isNumber(s):
     except ValueError:
         return False
 
-if __name__ == '__main__':
+def main(argv):
     parser = argparse.ArgumentParser(description='Decompose Bluemix conversation service dialog in .json format to dialog files in .xml format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('dialog', nargs='?', type=argparse.FileType('r'), default=sys.stdin, help='file with dialog in .json format, if not specified, dialog is read from standard input')
     # optional arguments
     parser.add_argument('-d', '--dialogDir', required=False, help='directory with dialog files. If not specified, output is printed to standard output')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
 
+    global VERBOSE
+    global STDOUT
     VERBOSE = args.verbose
     STDOUT = not args.dialogDir
 
     # XML namespaces
+    global XSI_NAMESPACE
+    global XSI
+    global NSMAP
     XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
     XSI = "{%s}" % XSI_NAMESPACE
     NSMAP = {"xsi" : XSI_NAMESPACE}
@@ -380,3 +388,7 @@ if __name__ == '__main__':
     else:
         # print to standard output
         print(LET.tostring(dialogsXML, pretty_print=True, encoding='utf8'))
+
+if __name__ == '__main__':
+    setLoggerConfig()
+    main(sys.argv[1:])

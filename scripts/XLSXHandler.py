@@ -37,11 +37,15 @@ limitations under the License.
 import os, re
 import unicodedata, unidecode
 from openpyxl import load_workbook
-from wawCommons import printf, eprintf, toIntentName
+from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName
 from zipfile import BadZipfile
 from xml.sax.saxutils import escape
 import DialogData as Dialog
 from DialogData import DialogData
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 class XLSXHandler(object):
     """ Converts Excel spreadsheet forom multiple fles to an internal data representation in DialogData.
@@ -68,9 +72,9 @@ class XLSXHandler(object):
             stores the data as tuples (domain, prefix, intent, rawBlock) in _dataBlocks,
             THIS IS THE FIRST PASS THROUGH INPUT  (a single file of the INPUT)
         """
-        printf('Processing xlsx file: %s\n', filename)
+        logger.info('Processing xlsx file: %s', filename)
         if not os.path.exists(filename):
-            eprintf('Error: File does not exist: %s\n', filename)
+            logger.error('File does not exist: %s', filename)
             return {}
 
         # Derive domain name from file name (use the same naming policy as for intents)
@@ -82,13 +86,13 @@ class XLSXHandler(object):
                 domainName = str(domainName)               # Python 3
             workbook = load_workbook(filename=filename, read_only=True)
         except (IOError, BadZipfile):
-            eprintf('Error: File does not seem to be a valid Excel spreadsheet: %s\n', filename)
+            logger.error('File does not seem to be a valid Excel spreadsheet: %s', filename)
             return {}
 
         # Process all the tabs of the file
         for sheet in workbook.worksheets:
             # get prefix is a sheet title
-            printf(' Sheet: %s\n', sheet.title)
+            logger.info(' Sheet: %s', sheet.title)
             try:
                 prefix = unicode(sheet.title, 'utf-8')  # Python 2
             except NameError:
@@ -123,7 +127,7 @@ class XLSXHandler(object):
     def __createBlock(self, domain, prefix, block):
         """ Add the block to the block list """
         if not block or not block[0][0]:
-            printf('WARNING: First cell of the data block does not contain any data. (domain=%s, prefix=%s)\n', domain, prefix)
+            logger.warning('First cell of the data block does not contain any data. (domain=%s, prefix=%s)', domain, prefix)
             return
         self._blocks.append((domain, prefix, block))
 
@@ -151,13 +155,13 @@ class XLSXHandler(object):
         if firstCell.startswith(u':') and len(block[0][0]) > 1:
             label = firstCell[1:]
             if self._dialogData.isLabel(label):
-                printf(
-                    'WARNING: Found a label that has already been assigned to an intent and will be overwritten. Label: %s\n',
+                logger.warning(
+                    'Found a label that has already been assigned to an intent and will be overwritten. Label: %s',
                     label)
             del block[0]  # delete line with label
             if not block or not firstCell:
-                printf(
-                    'ERROR: First cell of the goto block does not contain any data. \n')
+                logger.error(
+                    'First cell of the goto block does not contain any data.')
                 exit()
         return label
 
@@ -175,7 +179,7 @@ class XLSXHandler(object):
         for domain, prefix, block in self._blocks: #For each block
             # Validity check of parameters
             if not block or not isinstance(block[0], tuple) or not block[0][0]:
-                printf('WARNING: First cell of the data block does not contain any data. (domain=%s, prefix=%s)\n', domain, prefix)
+                logger.warning('First cell of the data block does not contain any data. (domain=%s, prefix=%s)', domain, prefix)
                 continue
 
             # separate label, strip it from block
@@ -188,7 +192,7 @@ class XLSXHandler(object):
             blockHasHeader = self.__is_header(block)
             conditionHasX = Dialog.X_PLACEHOLDER in firstCell
             if conditionHasX and not blockHasHeader:
-                printf('WARNING: Value next to header. (domain=%s, prefix=%s, row=%s)\n', domain, prefix, block[0])
+                logger.warning('Value next to header. (domain=%s, prefix=%s, row=%s)', domain, prefix, block[0])
                 exit()
 
             if self.__is_condition_block(block): # Condition block does not define an intent nor entity,
@@ -218,13 +222,13 @@ class XLSXHandler(object):
             Node conditions are obtained by replacing <x>  by filler from the first column
        """
         if block[0][1]:
-            eprintf('ERROR: Found occupied cell after the header of conditional block: %s\n', block[0])
+            logger.error('Found occupied cell after the header of conditional block: %s', block[0])
             exit()
         if not block[1][0]:
-            eprintf('ERROR: Header with X is not followed by any value %s\n', block[0])
+            logger.error('Header with X is not followed by any value %s', block[0])
             exit()
         if not block[1][1]:
-            eprintf('ERROR: Header with X should be followed by at least one output %s\n', block[0])
+            logger.error('Header with X should be followed by at least one output %s', block[0])
             exit()
 
         # there are as many nodes as outputs
@@ -234,30 +238,30 @@ class XLSXHandler(object):
             node_name = self._dialogData.createUniqueNodeName(node_condition)  # make it unique
             nodeData = self._dialogData.createNode(node_name, domain)  # create space for new node, remembers node_name
             if nodeData is None:
-                eprintf('ERROR: Can not create node:%s\n', node_name)
+                logger.error('Can not create node:%s', node_name)
                 exit()
             nodeData.setCondition(node_condition)
             if row[1]:
                 nodeData.addRawOutput(row[1:], self._dialogData.getLabelsMap())
             else:
-                eprintf('Warning: Format error, no output defined for the condition :%s', row)
+                logger.warning('Format error, no output defined for the condition :%s', row)
 
     def __handle_condition_block(self, block, domain, label):
         """ Handles simple pair condition-output,
               condition is one, output can have more outputs
         """
         if not (block[0][1]):
-            eprintf('ERROR: Format error. condition does not have a output : %s\n', block[0])
+            logger.error('Format error. condition does not have a output : %s', block[0])
             exit()
         if len(block) > 1 and block[1][0]:
-            eprintf('ERROR: Format error. condititional block without header shold have just one condition: %s\n', block[0])
+            logger.error('Format error. condititional block without header shold have just one condition: %s', block[0])
             exit()
         node_condition = re.sub(u"#\$ ", u"", block[0][0])
         node_name = self._dialogData.createUniqueNodeName(block[0][0])  # derive node name from explicit condition and make it unique
         node_condition = node_condition
         nodeData = self._dialogData.createNode(node_name, domain)  # create space for new node, remembers node_name
         if nodeData is None:
-            eprintf('ERROR: Can not create node:%s\n', node_name)
+            logger.error('Can not create node:%s', node_name)
             exit()
 
         #nodeData.setName(node_name)
@@ -267,8 +271,8 @@ class XLSXHandler(object):
             if row[1]:
                 nodeData.addRawOutput(row[1:], self._dialogData.getAllEntities())
             else:
-                eprintf(
-                    'ERROR: Format error. empty output in a conditional block does not make sense. %s\n', block[0])
+                logger.error(
+                    'Format error. empty output in a conditional block does not make sense. %s', block[0])
                 exit()
         if label: # add lable - if any
             self._dialogData.addLabel(label, node_name)
@@ -280,7 +284,7 @@ class XLSXHandler(object):
         """
         startsWithHeader = block[0][0].startswith(u'@')  # Is it header? If so, it starts with @
         if not startsWithHeader and not block[0][1]:
-            eprintf('ERROR: Internal error. __handle_entity_block handling ConditionBlock : %s\n', block[0])
+            logger.error('Internal error. __handle_entity_block handling ConditionBlock : %s', block[0])
             exit()
         if startsWithHeader:
             entity_name = block[0][0][1:]  # header is name (including hash)
@@ -290,7 +294,7 @@ class XLSXHandler(object):
 
         entityData = self._dialogData.createEntity(entity_name)  # create space for new entity
         if entityData is None:
-            eprintf('ERROR: Can not create entity:%s\n', entity_name)
+            logger.error('Can not create entity:%s', entity_name)
             exit()
 
 
@@ -299,7 +303,7 @@ class XLSXHandler(object):
             node_name = self._dialogData.createUniqueNodeName(entity_name)  # derive node name from explicit intent name, make it unique
             nodeData = self._dialogData.createNode(node_name, domain) #create space for new node, remembers node_name
             if nodeData is None:
-                eprintf('ERROR: Can not create node:%s\n', node_name)
+                logger.error('Can not create node:%s', node_name)
                 exit()
 
             # nodeData.setName(node_name)
@@ -309,7 +313,7 @@ class XLSXHandler(object):
                 self._dialogData.addLabel(label, node_name)
         else:  # only entity definition
             if label: # this block does not generate node, label does no make sense
-                eprintf('ERROR: Format error. Label is next to the block which is not generating node : %s\n', block[0])
+                logger.error('Format error. Label is next to the block which is not generating node : %s', block[0])
                 exit()
         for row in block:
             if row[0] and not row[0].startswith(u'@'):              # we skip header if any
@@ -317,7 +321,7 @@ class XLSXHandler(object):
 
             if row[1]:
                 if not first_output:
-                    eprintf('ERROR: Format error. Adjacent outputs are not in a sigle block : %s\n', block[0])
+                    logger.error('Format error. Adjacent outputs are not in a sigle block : %s', block[0])
                     exit()
                 else:
                     nodeData.addRawOutput(row[1:], self._dialogData.getAllEntities())
@@ -330,7 +334,7 @@ class XLSXHandler(object):
         """
         startsWithHeader = block[0][0].startswith(u'#')  # is header?
         if not startsWithHeader and not block[0][1]:
-            eprintf('ERROR: Internal error. __handle_intent_block handling ConditionBlock : %s\n', block[0])
+            logger.error('Internal error. __handle_intent_block handling ConditionBlock : %s', block[0])
             exit()
         if startsWithHeader:
             intent_name =  block[0][0][1:] # header is name (including hash)
@@ -340,7 +344,7 @@ class XLSXHandler(object):
 
         intentData = self._dialogData.createIntent(intent_name)  # create space for new intent
         if intentData is None:
-            eprintf('ERROR: Can not create entity:%s\n', intent_name)
+            logger.error('Can not create entity:%s', intent_name)
             exit()
 
         first_output= block[1][1] if startsWithHeader else block[0][1]  # if we have a header, the first output is in second row
@@ -348,7 +352,7 @@ class XLSXHandler(object):
             node_name = self._dialogData.createUniqueNodeName(intent_name)  # derive node name from explicit intent name, make it unique
             nodeData = self._dialogData.createNode(node_name, domain) #create space for new node, remembers node_name
             if nodeData is None:
-                eprintf('ERROR: Can not create node:%s\n', node_name)
+                logger.error('Can not create node:%s', node_name)
                 exit()
             #nodeData.setName(node_name)  #- not needed- set by createNode
             node_condition = '#'+intent_name
@@ -357,7 +361,7 @@ class XLSXHandler(object):
                 self._dialogData.addLabel(label, node_name)
         else:  # only intent definition
             if label: # this block does not generate node, label does no make sense
-                eprintf('ERROR: Format error. Label is next to the block which is not generating node : %s\n', block[0])
+                logger.error('Format error. Label is next to the block which is not generating node : %s', block[0])
                 exit()
 
         for row in block:
@@ -365,7 +369,7 @@ class XLSXHandler(object):
                 intentData.addExample(row[0])  # Collect intent definition
             if row[1]:
                 if not first_output:
-                    eprintf('ERROR: Format error. Adjacent outputs are not in a sigle block : %s\n', block[0])
+                    logger.error('Format error. Adjacent outputs are not in a sigle block : %s', block[0])
                     exit()
                 else:
                     nodeData.addRawOutput(row[1:], self._dialogData.getAllEntities())

@@ -13,11 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json,sys,argparse
+import json,sys,argparse, os
 import lxml.etree as LET
-from wawCommons import printf, eprintf, toCode
+from wawCommons import setLoggerConfig, getScriptLogger,  toCode
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 if __name__ == '__main__':
+    setLoggerConfig()
     parser = argparse.ArgumentParser(description='Replaces sentences in text tags with codes and creates resource file with translations from codes to sentences.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('dialog', help='dialog nodes in xml format.')
@@ -57,7 +62,7 @@ if __name__ == '__main__':
     # REPLACE ALL TEXTS WITH CODES
     for tagToReplace in tagsToReplace:
         text = tagToReplace.text
-        if VERBOSE: printf("%s: %s\n", tagToReplace.tag, tagToReplace.text)
+        if VERBOSE: logger.info("%s: %s", tagToReplace.tag, tagToReplace.text)
         # if this tag text is not in translations dictionary (it has not a code),
         # create new code for it and add it to dictionary
         if not text in translations.values():
@@ -66,7 +71,7 @@ if __name__ == '__main__':
         # replace tag text by its code
         code = translations.keys()[translations.values().index(text)] # returns key (code) for this value (text)
         tagToReplace.text = '%%' + code
-        if VERBOSE: printf("-> encoded as %s\n", code)
+        if VERBOSE: logger.info("-> encoded as %s", code)
 
     # OUTPUT NEW DIALOG
     if args.output is not None:
@@ -89,4 +94,4 @@ if __name__ == '__main__':
     with open (args.resource, 'w') as resourceFile:
         resourceFile.write(json.dumps(translations, indent=4, ensure_ascii=False).encode('utf8'))
 
-    if VERBOSE: eprintf('Texts were successfully replaced with codes.\n')
+    if VERBOSE: logger.info('Texts were successfully replaced with codes.')

@@ -14,9 +14,13 @@ limitations under the License.
 """
 
 import json, sys, argparse, os
-from wawCommons import printf, eprintf, toIntentName
+from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName
+import logging
 
-if __name__ == '__main__':
+
+logger = getScriptLogger(__file__)
+
+def main(argv):
     parser = argparse.ArgumentParser(description='Decompose Bluemix conversation service intents in .json format to intent files in .csv format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('intents', help='file with intents in .json format')
@@ -25,7 +29,7 @@ if __name__ == '__main__':
     parser.add_argument('-ni', '--common_intents_nameCheck', action='append', nargs=2, help="regex and replacement for intent name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
 
     VERBOSE = args.verbose
     NAME_POLICY = 'soft' if args.soft else 'hard'
@@ -45,4 +49,9 @@ if __name__ == '__main__':
             for example in examples:
                 intentFile.write((example + "\n").encode('utf8'))
 
-    if VERBOSE: printf("Intents from file '%s' were successfully extracted\n", args.intents)
+    if VERBOSE: logger.info("Intents from file '%s' were successfully extracted\n", args.intents)
+
+if __name__ == '__main__':
+    setLoggerConfig()
+    main(sys.argv[1:])
+

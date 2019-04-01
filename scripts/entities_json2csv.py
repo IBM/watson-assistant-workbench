@@ -14,9 +14,12 @@ limitations under the License.
 """
 
 import json, sys, argparse, os
-from wawCommons import printf, eprintf, toEntityName
+from wawCommons import setLoggerConfig, getScriptLogger,  toEntityName
+import logging
 
-if __name__ == '__main__':
+logger = getScriptLogger(__file__)
+
+def main(argv):
     parser = argparse.ArgumentParser(description='Decompose Bluemix conversation service entities in .json format to entity files in .csv format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('entities', help='file with entities in .json format')
@@ -25,7 +28,7 @@ if __name__ == '__main__':
     parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
 
     VERBOSE = args.verbose
     NAME_POLICY = 'soft' if args.soft else 'hard'
@@ -74,4 +77,9 @@ if __name__ == '__main__':
         for systemEntity in systemEntities:
             systemEntitiesFile.write(systemEntity + "\n")
 
-    if VERBOSE: printf("Entities from file '%s' were successfully extracted\n", args.entities)
+    if VERBOSE: logger.info("Entities from file '%s' were successfully extracted\n", args.entities)
+
+if __name__ == '__main__':
+    setLoggerConfig()
+    main(sys.argv[1:])
+

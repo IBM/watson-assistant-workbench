@@ -12,16 +12,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from __future__ import print_function
-
 import json,sys,argparse,os,re,csv,io,copy
 import lxml.etree as LET
 from xml.sax.saxutils import unescape
 from cfgCommons import Cfg
-from wawCommons import printf, eprintf
+from wawCommons import setLoggerConfig, getScriptLogger
 import time
 import datetime
 import io
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 try:
     unicode        # Python 2
@@ -155,9 +157,9 @@ def validate(xml):
     global schema, VERBOSE
     try:
         schema.assertValid(xml)
-        if VERBOSE: eprintf("XML is valid\n")
+        if VERBOSE: logger.info("XML is valid")
     except LET.XMLSchemaError:
-        eprintf("Invalid XML %s!\n")
+        logger.error("Invalid XML %s!")
 
 
 def getNodeWithTheSameCondition(root, testNode):
@@ -171,7 +173,7 @@ def importText(importTree, config):
     imports = importTree.xpath('//importText')
     for imp in imports:
         filename = imp.text.split('/')
-        if VERBOSE: eprintf('Importing %s\n', os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*filename))
+        if VERBOSE: logger.info('Importing %s', os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*filename))
         fp = io.open(os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*filename) ,'r', encoding='utf-8')
         importTxt = fp.read()
         fp.close()
@@ -187,7 +189,7 @@ def importNodes(root, config):
         defaultNode = root[len(root)-1]
 
     for node in root.findall('import'):
-        if VERBOSE: eprintf('Importing %s\n', os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),node.text))
+        if VERBOSE: logger.info('Importing %s', os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),node.text))
         importPath = node.text.split('/')
         importTree = LET.parse(os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*importPath))
         importText(importTree, config)
@@ -199,26 +201,26 @@ def importNodes(root, config):
         importRoot = importTree.getroot()
         childIndex = 1
         for importChild in importRoot.findall('node'):
-            #eprintf('  Importing node: %s\n', importChild)
+            #logger.info('  Importing node: %s', importChild)
             nodeWithTheSameCondition = getNodeWithTheSameCondition(root, importChild)
             """
             if nodeWithTheSameCondition is not None:
                 # SKIP NODES WITH SAME CONDITIONS
-                #eprintf('    Skipping node (same condition): %s\n', nodeWithTheSameCondition)
+                #logger.info('    Skipping node (same condition): %s', nodeWithTheSameCondition)
                 if importChild.find('context') is not None:
-                    #eprintf('      Context found for node: %s\n', importChild)
+                    #logger.info('      Context found for node: %s', importChild)
                     if nodeWithTheSameCondition.find('context') is None:
-                        #eprintf('      Creating context for node: %s\n', nodeWithTheSameCondition)
+                        #logger.info('      Creating context for node: %s', nodeWithTheSameCondition)
                         nodeWithTheSameConditionContext = LET.Element('context')
                         nodeWithTheSameCondition.append(nodeWithTheSameConditionContext)
                     # COPY ALL CONTEXT TO NODE WITH SAME CONDITION
                     for context in importChild.find('context'):
-                        #eprintf('      Appending context: %s\n', context)
+                        #logger.info('      Appending context: %s', context)
                         nodeWithTheSameCondition.find('context').append(context)
             else:
                 # INSERT NODE
 
-                #eprintf('    Appending node: %s\n', importChild)
+                #logger.info('    Appending node: %s', importChild)
             """
             root.insert(root.index(node) + childIndex, importChild)
             childIndex += 1
@@ -263,7 +265,7 @@ def findAllNodeNames(tree):
     nodesWithNames = tree.xpath('//node[@name]')
     for nodeWithName in nodesWithNames:
         if nodeWithName.get('name') in names:
-            eprintf("ERROR: Duplicit node name found: '%s'\n", nodeWithName.get('name'))
+            logger.error("Duplicit node name found: '%s'", nodeWithName.get('name'))
             exit(1)
         else:
             names.append(nodeWithName.get('name'))
@@ -286,7 +288,7 @@ def generateNodeName(node, prefix):
             nodeName.text = "node_" + str(counter)
             node.append(nodeName)
             counter += 1
-#        eprintf('Generate node name: %s\n', nodeName.text)
+#        logger.error('Generate node name: %s', nodeName.text)
     if prefix:
         node.find('name').text = prefix + node.find('name').text
     validateNodeName(node)
@@ -297,10 +299,10 @@ def validateNodeName(node):
     # check characters (Node names can only contain letters, numbers, hyphens and underscores)
     pattern = re.compile("[\w-]+", re.UNICODE)
     if not pattern.match(name):
-        eprintf("Illegal name of the node: '%s'\nNode names can only contain letters, numbers, hyphens and underscores.\n", name)
+        logger.error("Illegal name of the node: '%s' - Node names can only contain letters, numbers, hyphens and underscores.", name)
         exit(1)
 #    else:
-#        eprintf('\nName of the node:%s is ok.', name)
+#        logger.error('Name of the node:%s is ok.', name)
 
 def isTrue(autogenerate, attributeName):
         attributeValue = autogenerate.get(attributeName)
@@ -309,7 +311,7 @@ def isTrue(autogenerate, attributeName):
         elif attributeValue == 'true':
             return True
         else:
-            eprintf('Unknown value of \'%s\' tag: %s.\n', attributeName, attributeValue)
+            logger.error('Unknown value of \'%s\' tag: %s.', attributeName, attributeValue)
             return False
 
 def isFalse(autogenerate, attributeName):
@@ -319,7 +321,7 @@ def isFalse(autogenerate, attributeName):
         elif attributeValue == 'false':
             return True
         else:
-            eprintf('Unknown value of \'%s\' tag: %s.\n', attributeName, attributeValue)
+            logger.error('Unknown value of \'%s\' tag: %s.', attributeName, attributeValue)
             return False
 
 def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parentBackSettings, parentRepeatSettings, parentGenericSettings):
@@ -327,7 +329,7 @@ def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parent
     # GENERATE NAMES
     for node in root.findall('node'):
         generateNodeName(node, '')
-        if VERBOSE: eprintf('Found node: %s in: %s\n', node.find('name').text, parent.find('name').text if parent is not None else 'root')
+        if VERBOSE: logger.error('Found node: %s in: %s', node.find('name').text, parent.find('name').text if parent is not None else 'root')
 
     # READ NODES PROPERTIES
     abortSettings = None
@@ -338,19 +340,19 @@ def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parent
 
     for autogenerate in root.findall('autogenerate'):
         if autogenerate.get('type') == 'abort':
-            if VERBOSE: eprintf('Abort settings found in parent: %s\n', parent.find('name').text if parent is not None else 'root')
+            if VERBOSE: logger.error('Abort settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
             abortSettings = autogenerate
         if autogenerate.get('type') == 'again':
-            if VERBOSE: eprintf('Again settings found in parent: %s\n', parent.find('name').text if parent is not None else 'root')
+            if VERBOSE: logger.error('Again settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
             againSettings = autogenerate
         if autogenerate.get('type') == 'back':
-            if VERBOSE: eprintf('Back settings found in parent: %s\n', parent.find('name').text if parent is not None else 'root')
+            if VERBOSE: logger.error('Back settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
             backSettings = autogenerate
         if autogenerate.get('type') == 'repeat':
-            if VERBOSE: eprintf('Repeat settings found in parent: %s\n', parent.find('name').text if parent is not None else 'root')
+            if VERBOSE: logger.error('Repeat settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
             repeatSettings = autogenerate
         if autogenerate.get('type') == 'generic':
-            if VERBOSE: eprintf('Generic settings found in parent: %s\n', parent.find('name').text if parent is not None else 'root')
+            if VERBOSE: logger.error('Generic settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
             genericSettings = autogenerate
 
     abortSettings = mergeSettings(abortSettings, parentAbortSettings)
@@ -418,10 +420,10 @@ def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parent
 
 def mergeSettings(childSettings, parentSettings):
     if childSettings is None:
-        if VERBOSE: eprintf('Returning parent settings\n')
+        if VERBOSE: logger.error('Returning parent settings')
         return parentSettings
     if parentSettings is None:
-        if VERBOSE: eprintf('Returning child settings\n')
+        if VERBOSE: logger.error('Returning child settings')
         return childSettings
     # for all child elements
     for element in parentSettings:
@@ -431,7 +433,7 @@ def mergeSettings(childSettings, parentSettings):
     for attributeName in parentSettings.attrib:
         if childSettings.get(attributeName) is None:
             childSettings.set(attributeName, parentSettings.get(attributeName))
-    if VERBOSE: eprintf('Returning merged settings\n')
+    if VERBOSE: logger.error('Returning merged settings')
     return childSettings
 
 def generateAbortNode(root, parent, settings):
@@ -439,7 +441,7 @@ def generateAbortNode(root, parent, settings):
     # node
     abortNode = LET.Element('node')
     generateNodeName(abortNode, 'ABORT_')
-    if VERBOSE: eprintf('Generate abort node for parent: %s named: %s\n', parent.find('name').text if parent is not None else 'root', abortNode.find('name').text)
+    if VERBOSE: logger.error('Generate abort node for parent: %s named: %s', parent.find('name').text if parent is not None else 'root', abortNode.find('name').text)
     # condition
     abortNodeCondition = LET.Element('condition')
     abortNodeCondition.text = DEFAULT_CONDITION_ABORT + (' and intent.confidence >' + settings.get('confidence') if 'confidence' in settings.attrib else '')
@@ -462,7 +464,7 @@ def generateAgainNode(root, parent, settings):
     # node
     againNode = LET.Element('node')
     generateNodeName(againNode ,'AGAIN_')
-    if VERBOSE: eprintf('Generate again node for parent: %s named: %s\n', parent.find('name').text if parent is not None else 'root', againNode.find('name').text)
+    if VERBOSE: logger.error('Generate again node for parent: %s named: %s', parent.find('name').text if parent is not None else 'root', againNode.find('name').text)
     # condition
     againNodeCondition = LET.Element('condition')
     againNodeCondition.text = DEFAULT_CONDITION_AGAIN + (' and intent.confidence >' + settings.get('confidence') if 'confidence' in settings.attrib else '')
@@ -484,7 +486,7 @@ def generateBackNode(root, parent, settings):
     # node
     backNode = LET.Element('node')
     generateNodeName(backNode, 'BACK_')
-    if VERBOSE: eprintf('Generate back node for parent: %s named: %s\n', parent.find('name').text if parent is not None else 'root', backNode.find('name').text)
+    if VERBOSE: logger.error('Generate back node for parent: %s named: %s', parent.find('name').text if parent is not None else 'root', backNode.find('name').text)
     # condition
     backNodeCondition = LET.Element('condition')
     backNodeCondition.text = DEFAULT_CONDITION_BACK + (' and intent.confidence >' + settings.get('confidence') if 'confidence' in settings.attrib else '')
@@ -513,7 +515,7 @@ def generateBackNode(root, parent, settings):
 def generateRepeatNodes(root, parent, settings):
     global VERBOSE
     if parent is None: return
-    if VERBOSE: eprintf('Generate repeat nodes for parent: %s START\n', parent.find('name').text if parent is not None else 'root')
+    if VERBOSE: logger.error('Generate repeat nodes for parent: %s START', parent.find('name').text if parent is not None else 'root')
     # ADD VARIABLE 'attempts_*' TO PARENT'S CONTEXT AND SET IT TO ZERO (FOR SURE)
     repeatVarName = 'attempts_' + parent.find('name').text.replace('-', '') # remove hyphens (they cause problems in mathematical expressions where they act as minus signs)
     # context
@@ -526,35 +528,35 @@ def generateRepeatNodes(root, parent, settings):
     context.append(contextRepeat)
     # goto for repetation
     if root.find('node') is None:
-      eprintf('Repeat node without options to input something!!!\n')
+      logger.error('Repeat node without options to input something!!!')
     repeatNodeGoto = LET.Element('goto')
     repeatNodeGotoTarget = LET.Element('target')
     repeatNodeGotoTarget.text = root.find('node').find('name').text
     repeatNodeGoto.append(repeatNodeGotoTarget)
     # max attempts
     maxAttempts = int(settings.find('attempts').text) if settings is not None and settings.find('attempts') is not None else DEFAULT_REPEAT_ATTEMPTS
-    if VERBOSE: eprintf('maxAttempts: %s\n', maxAttempts)
+    if VERBOSE: logger.error('maxAttempts: %s', maxAttempts)
     # output sentences
     outputs = settings.find('outputs').findall('output') if settings.find('outputs') is not None and len(settings.find('outputs').findall('output')) > 0 else DEFAULT_REPEAT_MESS_TEMPLATES['default']
-    if VERBOSE: eprintf('nOutputs: %s\n', len(outputs))
+    if VERBOSE: logger.error('nOutputs: %s', len(outputs))
     # LAST NODE (RETURNING TO THE MAIN MENU)
     generateRepeatNode(parent, root, outputs[-1], maxAttempts-1, repeatVarName, 0, settings.find('goto'))
-    if VERBOSE: eprintf('LAST NODE\n')
+    if VERBOSE: logger.error('LAST NODE')
     # MIDDLE NODE
     for i in range(min(maxAttempts-1, len(outputs)-1) -1, 0, -1):
         generateRepeatNode(parent, root, outputs[i], i, repeatVarName, '<?$' + repeatVarName +' + 1?>', repeatNodeGoto)
-        if VERBOSE: eprintf('MIDDLE NODE number: %d\n', i)
+        if VERBOSE: logger.error('MIDDLE NODE number: %d', i)
     # FIRST (DEFAULT) NODE
     generateRepeatNode(parent, root, outputs[0], 0, repeatVarName, '<? $' + repeatVarName + ' == null ? 0 : $' + repeatVarName + ' + 1 ?>', repeatNodeGoto)
-    if VERBOSE: eprintf('FIRST NODE\n')
-    if VERBOSE: eprintf('Generate repeat nodes for parent: %s \n', parent.find('name').text if parent is not None else 'root')
+    if VERBOSE: logger.error('FIRST NODE')
+    if VERBOSE: logger.error('Generate repeat nodes for parent: %s ', parent.find('name').text if parent is not None else 'root')
 
 def generateRepeatNode(parent, root, output, attempts, varName, varValue, goto):
     global VERBOSE
     # node
     repeatNode = LET.Element('node')
     generateNodeName(repeatNode, 'REPEAT_')
-    if VERBOSE: eprintf('Generate repeat node for parent: %s named: %s START\n', parent.find('name').text if parent is not None else 'root', repeatNode.find('name').text)
+    if VERBOSE: logger.error('Generate repeat node for parent: %s named: %s START', parent.find('name').text if parent is not None else 'root', repeatNode.find('name').text)
     # condition
     repeatNodeCondition = LET.Element('condition')
     repeatNodeCondition.text = ('$' + varName + ' == null or ' if attempts == 0 else '') + '$' + varName + ' >= ' + str(attempts)
@@ -573,7 +575,7 @@ def generateRepeatNode(parent, root, output, attempts, varName, varValue, goto):
     if goto is not None:
         repeatNode.append(copy.deepcopy(goto))
     root.append(repeatNode)
-    if VERBOSE: eprintf('Generate repeat node for parent: %s named: %s END\n', parent.find('name').text if parent is not None else 'root', repeatNode.find('name').text)
+    if VERBOSE: logger.error('Generate repeat node for parent: %s named: %s END', parent.find('name').text if parent is not None else 'root', repeatNode.find('name').text)
 
 def printNodes(root, parent, dialogJSON):
     """Converts parsed XML to JSON structure
@@ -596,7 +598,9 @@ def printNodes(root, parent, dialogJSON):
             validateNodeName(nodeXML)
         nodeJSON = {'dialog_node':nodeXML.find('name').text}
         dialogJSON.append(nodeJSON)
-        if VERBOSE: printf("DEBUG: ===============================\nDEBUG: name %s\n", nodeXML.find('name').text)
+        if VERBOSE:
+            logger.debug("===============================")
+            logger.debug("name %s", nodeXML.find('name').text)
 
         children = []
 
@@ -616,7 +620,7 @@ def printNodes(root, parent, dialogJSON):
                 nodeJSON['disabled'] = False
             else:
                 nodeJSON['disabled'] = nodeXML.find('disabled').text
-                eprintf("ERROR: Unable to parse boolean " + nodeXML.find('disabled').text + "\n")
+                logger.error("Unable to parse boolean " + nodeXML.find('disabled').text)
         # EVENTNAME
         if nodeXML.get('eventName') is not None:
             nodeJSON['event_name'] = nodeXML.get('eventName')
@@ -690,7 +694,7 @@ def printNodes(root, parent, dialogJSON):
         # GO TO
         if nodeXML.find('goto') is not None:
             if nodeXML.find('goto').find('target') is None:
-                eprintf('WARNING: missing goto target in node: %s\n', nodeXML.find('name').text)
+                logger.warning('missing goto target in node: %s', nodeXML.find('name').text)
             elif nodeXML.find('goto').find('target').text == '::FIRST_SIBLING':
                 nodeXML.find('goto').find('target').text = next(x for x in root if x.tag == 'node').find('name').text
             gotoJson = {'dialog_node':nodeXML.find('goto').find('target').text}
@@ -747,30 +751,30 @@ def convertAll(upperNodeJson, nodeXml):
         nodeXml (Element): Parsed XML representation to be translated
     """
     key = nodeXml.tag #key is index/selector to upperNodeJson, it is either name (e.g. generic)
-    if VERBOSE: printf("DEBUG: tag '%s'\n", nodeXml.tag)
+    if VERBOSE: logger.debug("tag '%s'", nodeXml.tag)
     if type(upperNodeJson) is list:  # or an index of the last element of the array
         key = len(upperNodeJson) - 1
-    if VERBOSE: printf("DEBUG: key '%s'\n", str(key))
+    if VERBOSE: logger.debug("key '%s'", str(key))
     if nodeXml.get(XSI+'nil') is not None:
         if nodeXml.get(XSI+'nil') in ["True", "true"]:
-            if VERBOSE: printf("DEBUG: Tag is None\n")
+            if VERBOSE: logger.debug("Tag is None")
             upperNodeJson[key] = None
             return
         elif nodeXml.text in ["False", "false"]:
             pass
         else:
-            eprintf("ERROR: Unable to parse boolean " + nodeXml.get(XSI+'nil') + "\n")
+            logger.error("Unable to parse boolean " + nodeXml.get(XSI+'nil'))
 
     if not list(nodeXml): # it has no children (subtags) - it is a terminal
-        if VERBOSE: printf("DEBUG: Tag is terminal\n")
-        if VERBOSE: printf("DEBUG:  structure '%s'\n", str(nodeXml.get('structure')))
+        if VERBOSE: logger.debug("Tag is terminal")
+        if VERBOSE: logger.debug(" structure '%s'", str(nodeXml.get('structure')))
         if nodeXml.get('structure') is not None:
             if nodeXml.get('structure') == 'emptyList':
-#                if VERBOSE: printf("DEBUG: Tag is emptyList\n")
+#                if VERBOSE: logger.debug("Tag is emptyList")
                 upperNodeJson[key] = []
                 return
             elif nodeXml.get('structure') == 'emptyDict':
-#                if VERBOSE: printf("DEBUG: Tag is emptyDict\n")
+#                if VERBOSE: logger.debug("Tag is emptyDict")
                 upperNodeJson[key] = {}
                 return
 #            elif nodeXml.get('structure') == 'listItem' and nodeXml.text:
@@ -782,7 +786,7 @@ def convertAll(upperNodeJson, nodeXml):
 #            upperNodeJson[key] = None
 # text cannot be none, just empty
         if nodeXml.text:  # if a single element with text - terminal (string, number or none)
-            if VERBOSE: printf("DEBUG: Tag has text\n")
+            if VERBOSE: logger.debug("Tag has text")
             if nodeXml.get('type') is not None and nodeXml.get('type') == 'number':
                 try:
                     upperNodeJson[key] = int(nodeXml.text)
@@ -790,7 +794,7 @@ def convertAll(upperNodeJson, nodeXml):
                     try:
                         upperNodeJson[key] = float(nodeXml.text)
                     except ValueError:
-                        eprintf("ERROR: Unable to parse number '%s'\n", nodeXml.text)
+                        logger.error("Unable to parse number '%s'", nodeXml.text)
             elif nodeXml.get('type') is not None and nodeXml.get('type') == 'boolean':
                 if nodeXml.text in ["True", "true"]:
                     upperNodeJson[key] = True
@@ -798,15 +802,15 @@ def convertAll(upperNodeJson, nodeXml):
                     upperNodeJson[key] = False
                 else:
                     upperNodeJson[key] = nodeXml.text
-                    eprintf("ERROR: Unable to parse boolean " + nodeXml.text + "\n")
+                    logger.error("Unable to parse boolean " + nodeXml.text)
             else:
-                if VERBOSE: printf("DEBUG: of type text\n")
+                if VERBOSE: logger.debug("of type text")
                 upperNodeJson[key] = unescape(nodeXml.text.strip())
-                if VERBOSE: printf("DEBUG: adding '%s' to [%s]\n", unescape(nodeXml.text.strip()), str(key))
+                if VERBOSE: logger.debug("adding '%s' to [%s]", unescape(nodeXml.text.strip()), str(key))
         else:
             upperNodeJson[key] = '' # empty string
     else: # it has subtags
-        if VERBOSE: printf("DEBUG: Tag has subtags\n")
+        if VERBOSE: logger.debug("Tag has subtags")
         #if there is an array of subelements within elemnt - separate elements of each tag value to a separate nodeNameMap field
         upperNodeJson[key] = {}
 
@@ -824,18 +828,18 @@ def convertAll(upperNodeJson, nodeXml):
             #if len(nodeNameMap[name]) == 1 and nodeNameMap[name][0].get('structure') != 'listItem' and name!='values':
             if len(nodeNameMap[name]) == 1 and nodeNameMap[name][0].get('structure') != 'listItem' :
                 convertAll(upperNodeJson[key], nodeNameMap[name][0])
-                if VERBOSE: printf("DEBUG: Subtag is tag\n")
+                if VERBOSE: logger.debug("Subtag is tag")
             else:
                 upperNodeJson[key][name] = []
-                if VERBOSE: printf("DEBUG: Subtag is list\n")
+                if VERBOSE: logger.debug("Subtag is list")
                 for element in nodeNameMap[name]:
-                    if VERBOSE: printf("DEBUG: adding [%s][%s] element '%s'\n", str(key), name, str(element))
+                    if VERBOSE: logger.debug("adding [%s][%s] element '%s'", str(key), name, str(element))
                     upperNodeJson[key][name].append(None)  # just to get index
                     convertAll(upperNodeJson[key][name], element)
 
 
-if __name__ == '__main__':
-    printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
+def main(argv):
+    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Converts dialog nodes from .xml format to Bluemix conversation service workspace .json format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-dm','--common_dialog_main', required=False, help='main dialog file with dialogue nodes in xml format')
     parser.add_argument('-c','--common_configFilePaths', help='configuaration file', action='append')
@@ -850,11 +854,18 @@ if __name__ == '__main__':
     parser.add_argument('-cfp','--cloudfunctions_password', required=False, help='cloud functions password')
     parser.add_argument('-cfa','--cloudfunctions_package', required=False, help='cloud functions package')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
+
+    global config
     config = Cfg(args)
+
+    global VERBOSE
     VERBOSE = hasattr(config, 'common_verbose')
 
     # XML namespaces
+    global XSI_NAMESPACE
+    global XSI
+    global NSMAP
     XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
     XSI = "{%s}" % XSI_NAMESPACE
     NSMAP = {"xsi" : XSI_NAMESPACE}
@@ -872,17 +883,19 @@ if __name__ == '__main__':
     schemaDirname, this_filename = os.path.split(os.path.abspath(__file__))
     if not hasattr(config, 'common_schema') or getattr(config, 'common_schema') is None:
         setattr(config, 'common_schema', schemaDirname+'/../data_spec/dialog_schema.xml')
-        printf('WARNING: Schema not found, using default path /../data_spec/dialog_schema.xml\n;')
+        logger.warning('Schema not found, using default path /../data_spec/dialog_schema.xml;')
     schemaFile = os.path.join(schemaDirname, getattr(config, 'common_schema'))
     if not os.path.exists(schemaFile):
-        eprintf('ERROR: Schema file %s not found.\n', schemaFile)
+        logger.error('Schema file %s not found.', schemaFile)
         exit(1)
     schemaTree = LET.parse(schemaFile)
+    global schema
     schema = LET.XMLSchema(schemaTree)
     validate(dialogTree)
 
     # process dialog tree
     root = dialogTree.getroot()
+    global rootGlobal
     rootGlobal = root
     importNodes(root, config)
 
@@ -893,11 +906,11 @@ if __name__ == '__main__':
     removeOutOfScopeNodes(dialogTree)
 
     # find all node names
+    global names
     names = findAllNodeNames(dialogTree)
 
     parent_map = dict((c, p) for p in dialogTree.getiterator() for c in p)
     generateNodes(root, None, DEFAULT_ABORT, DEFAULT_AGAIN, DEFAULT_BACK, DEFAULT_REPEAT, DEFAULT_GENERIC)
-    if VERBOSE: eprintf('\n')
 
     # create dialog structure for JSON
     dialogNodes = []
@@ -908,14 +921,19 @@ if __name__ == '__main__':
     if hasattr(config, 'common_outputs_directory') and hasattr(config, 'common_outputs_dialogs'):
         if not os.path.exists(getattr(config, 'common_outputs_directory')):
             os.makedirs(getattr(config, 'common_outputs_directory'))
-            printf("Created new output directory %s\n", getattr(config, 'common_outputs_directory'))
+            logger.info("Created new output directory %s", getattr(config, 'common_outputs_directory'))
         with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'w', encoding='utf-8') as outputFile:
             outputFile.write(json.dumps(dialogNodes, indent=4, ensure_ascii=False, encoding='utf8'))
-        printf("File %s created\n", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')))
+        logger.info("File %s created", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')))
     else:
         print(json.dumps(dialogNodes, indent=4))
 
     if hasattr(config, 'common_output_config'):
         config.saveConfiguration(getattr(config, 'common_output_config'))
 
-    printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    logger.info('FINISHING: ' + os.path.basename(__file__))
+
+if __name__ == '__main__':
+    setLoggerConfig()
+    main(sys.argv[1:])
+

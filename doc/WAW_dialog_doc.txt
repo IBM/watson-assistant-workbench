@@ -194,7 +194,7 @@
 	**************************************************
 	** <goto>
 	**************************************************
-	Represents a jump to an another node or another type of next step.
+	Represents a jump to another node or to another type of next step.
 	Elements (in this order)
 		<behavior> (only once)
 		<target> REQUIRED (only once)

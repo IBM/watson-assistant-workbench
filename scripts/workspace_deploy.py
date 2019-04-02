@@ -53,7 +53,7 @@ def main(argv):
     # workspace info
     try:
         workspaceFilePath = os.path.join(getRequiredParameter(config, 'common_outputs_directory'), getRequiredParameter(config, 'common_outputs_workspace'))
-        with openFile(workspaceFilePath, 'r') as workspaceFile
+        with openFile(workspaceFilePath, 'r') as workspaceFile:
             workspace = json.load(workspaceFile)
     except IOError:
         logger.error('Cannot load workspace file %s', workspaceFilePath)

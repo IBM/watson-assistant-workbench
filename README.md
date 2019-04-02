@@ -30,6 +30,8 @@ Description of T2C  and xml/csv WAW formats can be found in `doc` folder.
 
 Release notes can be found in [release_notes.md](/release_notes.md).
 
+Instructions on how to use logging can be found in [logging.md](/logging.md).
+
 If you want to run unit tests locally, you first need to install development dependencies from [requirements_dev.txt](/requirements_dev.txt). You can run
 ```
 pip install -r requirements_dev.txt

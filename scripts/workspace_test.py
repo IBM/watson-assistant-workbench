@@ -42,9 +42,7 @@ def main(argv):
     workspacesUrl = getRequiredParameter(config, 'conversation_url')
     version = getRequiredParameter(config, 'conversation_version')
     username = getRequiredParameter(config, 'conversation_username')
-    logger.info('WCS USERNAME: %s', username)
     password = getRequiredParameter(config, 'conversation_password')
-    logger.info('WCS PASSWORD: %s', password)
     workspaceId = getWorkspaceId(config, workspacesUrl, version, username, password)
 
     # wait until workspace is done with training

@@ -194,14 +194,16 @@
 	**************************************************
 	** <goto>
 	**************************************************
-	Represents a jump to an another node.
+	Represents a jump to another node or to another type of next step.
 	Elements (in this order)
+		<behavior> (only once)
 		<target> REQUIRED (only once)
 		<selector> (only once)
 	Attributes
-		none
+		scope
 	Example
 		<goto>
+			<behavior>jump_to</behavior>
 			<target>node_to_go<target>
 			<selector>user_input<selector>
 		</goto>
@@ -305,6 +307,19 @@
 	e.g
 	structure="listItem"
 	if only one <values> item is specified
+
+	**************************************************
+	** <behavior>
+	**************************************************
+	Specifies what should happen after evaluation of this node.
+	Allowed values
+		'skip_user_input'
+		'get_user_input'
+		'jump_to'
+		'reprompt'
+		'skip_slot'
+		'skip_all_slots'
+	Default value: 'jump_to'
 
 	**************************************************
 	** <target>

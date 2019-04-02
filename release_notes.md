@@ -8,21 +8,22 @@
  - It is now possible to deploy workspace by its name (by setting `workspace_name_unique` to true)
  - [Dialog testing script](/scripts/evaluate_tests.py) now outputs `junit.xml` file with test results
  - [requirements.txt](/requirements.txt) and [requirements_dev.txt](/requirements_dev.txt) were added to simplify installation process
- - Configuration files was splitted to three ones: [common.cfg](/example/en_app/common.cfg) (common project settings), [private.cfg](/example/en_app/private.cfg.template) (credentials - not to push) and [builg.cfg](/example/en_app/build.cfg) (setting specific for the build - usualy not to push)
+ - Sample configuration file was split into three: [common.cfg](/example/en_app/common.cfg) (common project settings), [private.cfg](/example/en_app/private.cfg.template) (filled-in template contains credentials, not to be pushed) and [builg.cfg](/example/en_app/build.cfg) (settings specific for concrete build environment, usually not to be pushed). These are just proposal split, not mandatory.
 
 #### WAW xml format
 
- - Following node tags were added into [WAW xml format](/data_spec/dialog_schema.xml) `disabled`, `metadata`, `type` and digression-connected tags
+ - Following node tags were added into [WAW xml format](/data_spec/dialog_schema.xml) `disabled`, `metadata`, `type`, `digress_in`, `digress_out` and `digress_out_slots` tags
  - `event_name` tag was added for handlers
+ - `result_variable` tag was added for actions
  - Nodes have new attribute `title`
- - In `goto` structure, there is a new tag `next_step` defaulting to `jump_to`
+ - In `goto` structure, there is a new tag `behavior` defaulting to `jump_to`
  - It is possible to add [`scope`](/doc/WAW_dialog_doc.txt) attribute to most of the nodes. Scope can be used for creating customized dialogs from a default one.
  - Output structure was updated accordingly to WA changes to contain `generic` tag
 
 #### T2Cformat
  - [T2C format](/doc/T2C_doc.md) now supports folders in a form of an extra channel
  - Options (buttons) in T2C are translated to a format which is understood by clientv2 (it is not yet compliant with response types)
- - Foldables are supported by T2C. Foldables are texts present in a short and a long form. If client supports rendering of them (clentv2 does), user can switch between these two forms by clicking on the text.
+ - Foldables are supported by T2C. Foldables are texts present in a short and a long form. If client supports their rendering (clentv2 does), user can switch between these two forms by clicking on the text.
 
 ### Bug fixes
  - It is now possible to load intents from multiple folders
@@ -40,7 +41,7 @@
  - Artifactory cleanup takes place on each run
  - CI scripts were rewritten to `pytest`
  - Unit testing is enabled for scripts and will be part of all future features
- - `flake8` tests are now part of the CI process
+ - `flake8` tests are now part of the CI process, their results are just informative
  - Python 3.6 was added to CI in `allow_failures` mode
  - Check for back and forth conversion (json2xml + xml2json) was added to CI
 

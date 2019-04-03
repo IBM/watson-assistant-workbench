@@ -1,0 +1,44 @@
+<nodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <node name="WELCOME">
+        <condition>conversation_start</condition>
+        <context>
+            <ws_img_type>.png</ws_img_type>
+            <ws_img_base_url><replace>ws_img_base_url</replace></ws_img_base_url>
+            <ws_img_flag><replace>ws_img_flag</replace></ws_img_flag>
+            <version_name><replace>version_name</replace></version_name>
+            <build_date_time><replace>build_date_time</replace></build_date_time>
+            <welcome_msg> </welcome_msg>
+            <capabilities_msg>My name is Bob and I serve as example of using WAW and T2C. </capabilities_msg>
+        </context>
+        <output structure="emptyDict">
+            <response>
+                <condition> now().before('12:00:00')</condition>
+                <output>
+<!--                   <graphics> <![CDATA[<img src='https://cdn.psfk.com/wp-content/uploads/2016/07/ibm-weather-company-psfk.com_.jpg', width='100%', height='100%'>    ]]></graphics>
+ -->
+                    <text>Good morning. $welcome_msg</text>
+                    <text>$capabilities_msg</text>
+                </output>
+            </response>
+               <response>
+                <condition> now().after('12:00:00')</condition>
+                <output>
+  <!--                   <graphics> <![CDATA[<img src='https://cdn.psfk.com/wp-content/uploads/2016/07/ibm-weather-company-psfk.com_.jpg', width='100%', height='100%'>    ]]></graphics>
+ -->
+                    <text>Good afternoon. $welcome_msg</text>
+                    <text>$capabilities_msg</text>
+               </output>
+            </response>
+            <response>
+                <condition> now().after('17:00:00')</condition>
+                <output>
+<!--                   <graphics> <![CDATA[<img src='https://cdn.psfk.com/wp-content/uploads/2016/07/ibm-weather-company-psfk.com_.jpg', width='100%', height='100%'>    ]]></graphics>
+ -->
+                    <text>Good evening. $welcome_msg</text>
+                    <text>$capabilities_msg</text>
+                </output>
+            </response>
+        </output>
+    </node>
+
+</nodes>

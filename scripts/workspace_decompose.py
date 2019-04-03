@@ -13,10 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, sys, argparse
-from wawCommons import printf, eprintf
+import json, sys, argparse, os
+from wawCommons import setLoggerConfig, getScriptLogger
+import logging
 
-if __name__ == '__main__':
+
+logger = getScriptLogger(__file__)
+
+def main(argv):
     parser = argparse.ArgumentParser(description='Decompose Bluemix conversation service workspace in .json format to intents json, entities json and dialog json', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('workspace', help='workspace in .json format')
@@ -26,7 +30,7 @@ if __name__ == '__main__':
     parser.add_argument('-d','--dialog', required=False, help='file with dialog in .json format (not extracted if not specified)')
     parser.add_argument('-c','--counterexamples', required=False, help='file with counterexamples in .json format (not extracted if not specified)')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
 
     VERBOSE = args.verbose
 
@@ -56,4 +60,9 @@ if __name__ == '__main__':
             counterexamplesJSON.append(counterexampleIntentJSON)
             counterexamplesFile.write(json.dumps(counterexamplesJSON, indent=4, ensure_ascii=False).encode('utf8'))
 
-    if VERBOSE: printf("Workspace %s was successfully decomposed\n", args.workspace)
+    if VERBOSE: logger.info("Workspace %s was successfully decomposed", args.workspace)
+
+if __name__ == '__main__':
+    setLoggerConfig()
+    main(sys.argv[1:])
+

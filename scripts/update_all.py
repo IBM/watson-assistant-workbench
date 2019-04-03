@@ -12,14 +12,24 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import print_function
 
-import os, sys, logging
+import os, sys
 import subprocess, argparse
-from wawCommons import printf, eprintf
+import logging
+from wawCommons import setLoggerConfig, getScriptLogger
+
+import dialog_xls2xml, dialog_xml2json
+import clean_generated,  entities_csv2json, intents_csv2json, functions_deploy
+import workspace_compose, workspace_addjson, workspace_deploy
+
+
+logger = getScriptLogger(__file__)
 
 if __name__ == '__main__':
-    printf('\nSTARTING: ' + os.path.basename(__file__) + '\n')
-    printf('\nUsing WAW directory: ' + os.path.dirname(__file__) + '\n')
+    setLoggerConfig()
+    logger.info('STARTING: ' + os.path.basename(__file__))
+    logger.info('Using WAW directory: ' + os.path.dirname(__file__))
     scriptsPath=os.path.dirname(__file__)
     defaultParamList=['shared.cfg', 'private.cfg']
 
@@ -31,56 +41,57 @@ if __name__ == '__main__':
     VERBOSE = args.verbose
 
     #Assemble command line parameters out of parameters or defaults
-    paramsAll=''
-    if hasattr(args, 'config') and args.config!=None: # if config files provided - ignore defaults
+    paramsAll = []
+    if hasattr(args, 'config') and args.config != None: # if config files provided - ignore defaults
         for strParamsItem in args.config:
             if os.path.isfile(strParamsItem):
-                paramsAll+= ' -c '+strParamsItem
+                paramsAll += ['-c', strParamsItem]
             else:
-                print('ERROR: Configuration file %s not found.', strParamsItem)
+                logger.error('Configuration file %s not found.', strParamsItem)
                 exit(1)
     else:
         # create list of default config files
         for strParamsItem in defaultParamList:
             if os.path.isfile(strParamsItem):
-                paramsAll += ' -c ' + strParamsItem
+                paramsAll += ['-c', strParamsItem]
             else:
-                print('WARNING: Default configuration file %s was not found, ignoring.', strParamsItem)
-    if len(paramsAll)==0:
-        print('ERROR: Please provide at least one configuration file.', strParamsItem)
+                logger.warning('Default configuration file %s was not found, ignoring.', strParamsItem)
+    if len(paramsAll) == 0:
+        logger.error('Please provide at least one configuration file.')
         exit(1)
     if VERBOSE:
-        paramsAll+=' -v'
+        paramsAll += ['-v']
 
 
     #Execute all steps
-    cmd='python '+scriptsPath+'/clean_generated.py ' + paramsAll
-    if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/dialog_xls2xml.py '+ paramsAll
-    if VERBOSE:print(cmd)
-    print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/dialog_xml2json.py ' + paramsAll
-    if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/entities_csv2json.py ' + paramsAll
-    if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/intents_csv2json.py ' + paramsAll
-    if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/dialog_xml2json.py ' + paramsAll
-    if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/workspace_compose.py ' + paramsAll
-    if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/workspace_deploy.py ' + paramsAll
-    if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
-    cmd='python '+scriptsPath+'/functions_deploy.py ' + paramsAll
-    if VERBOSE:print(cmd)
-    retValue=os.system(cmd)
+    if VERBOSE:logger.info('python clean_generated.py '+' '.join(paramsAll))
+    clean_generated.main(paramsAll)
 
-    printf('\nFINISHING: ' + os.path.basename(__file__) + '\n')
+    if VERBOSE:logger.info('python dialog_xls2xml.py '+' '.join(paramsAll))
+    dialog_xls2xml.main(paramsAll)
+
+    if VERBOSE:logger.info('python dialog_xml2json.py '+' '.join(paramsAll))
+    dialog_xml2json.main(paramsAll)
+
+    if VERBOSE:logger.info('python entities_csv2json.py '+' '.join(paramsAll))
+    entities_csv2json.main(paramsAll)
+
+    if VERBOSE:logger.info('python intents_csv2json.py '+' '.join(paramsAll))
+    intents_csv2json.main(paramsAll)
+
+    if VERBOSE:logger.info('python clean_generated.py '+' '.join(paramsAll))
+    dialog_xml2json.main(paramsAll)
+
+    if VERBOSE:logger.info('python workspace_compose.py '+' '.join(paramsAll))
+    workspace_compose.main(paramsAll)
+
+    if VERBOSE:logger.info('python workspace_addjson.py '+' '.join(paramsAll))
+    workspace_addjson.main(paramsAll)
+
+    if VERBOSE:logger.info('python workspace_deploy.py '+' '.join(paramsAll))
+    workspace_deploy.main(paramsAll)
+
+    if VERBOSE:logger.info('python functions_deploy.py '+' '.join(paramsAll))
+    functions_deploy.main(paramsAll)
+
+    logger.info('FINISHING: ' + os.path.basename(__file__))

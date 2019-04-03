@@ -1,4 +1,4 @@
-outputs/
+**/outputs/
 #*.cfg
 *.pyc
 generated/
@@ -11,3 +11,8 @@ generated/
 test.junit.xml
 data/intents/WEATHER-FAQ-CZ*
 log.log
+tests/data/dialog/g_dialogs
+.DS_Store
+**/.pytest_cache/
+ci/outputs.tar.gz
+ci/unit_tests/workspace_addjson/main_data/workspace_forAddJsonTest.json

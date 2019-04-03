@@ -14,57 +14,61 @@ limitations under the License.
 """
 
 import lxml.etree as XML
-from wawCommons import eprintf, toIntentName
+from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName
+import os
+import logging
+
+
+logger = getScriptLogger(__file__)
+
+NAME_POLICY = 'soft'
 
 # Watson Assistant limits number of options currently to 5, we cut the end of the list of options if it is longer
-MAX_OPTIONS = 5
+MAX_OPTIONS = 50
+
 class XMLHandler(object):
 
     def __init__(self):
         pass
 
-    def convertDialogData(self, dialogData, intents):
-        """ Convert Dialog Data into XML and return pointer to the root XML element. """
+    def convertDialogData(self, dialogData, nodes):
+        """ Converts Dialog Data of a single domain into XML and returns pointer to the root XML element. """
         nodesXml = XML.Element('nodes')
-        for intent in intents:
-            intentData = dialogData.getIntentData(intent)
-            if not intentData.generateNodes():
+        for node_name in nodes: #for each node in the domain
+            nodeData = dialogData.getNode(node_name)
+            if nodeData == None:
+                logger.warning("Not found a definition for a node name %s",node_name)
                 continue
 
-            normName = toIntentName('soft', None, intent)
-            # construct the XML structure for each intent
-            nodeXml = XML.Element('node', name=normName.decode('utf-8'))
-
+            # construct the XML structure for each node
+            nodeXml = XML.Element('node', name=node_name)
+            #Condition
             conditionXml = XML.Element('condition')
-            conditionXml.text = intent.decode('utf-8') if intent.decode('utf-8').startswith(u'#') else u'#' + intent.decode('utf-8')
+            conditionXml.text = nodeData.getCondition()
             nodeXml.append(conditionXml)
-
-            nodeXml.append(self._createOutputElement(intentData.getChannelOutputs(), intentData.getButtons()))
-            if intentData.getVariables():
-                nodeXml.append(self._createContextElement(intentData.getVariables()))
-            if intentData.getJumpToTarget() and intentData.getJumpToSelector():
-                nodeXml.append(self._createGotoElement(intentData.getJumpToTarget(), intentData.getJumpToSelector()))
-
+            #output
+            nodeXml.append(self._createOutputElement(nodeData.getChannelOutputs(), nodeData.getButtons(), nodeData.getFoldable()))
+            if nodeData.getVariables():
+                nodeXml.append(self._createContextElement(nodeData.getVariables()))
+            if nodeData.getJumpToTarget() and nodeData.getJumpToSelector():
+                nodeXml.append(self._createGotoElement(nodeData.getJumpToTarget(), nodeData.getJumpToSelector()))
             nodesXml.append(nodeXml)
-
         return nodesXml
 
-
     def printXml(self, xmlDocument, prettyPrint=True):
+        """ Converts xmlDocument to string. """
         if prettyPrint:
             return XML.tostring(xmlDocument, pretty_print=prettyPrint, encoding='unicode')
         else:
             return XML.tostring(xmlDocument, method='c14n').decode('utf-8')
 
-
-    def _createOutputElement(self, channels, buttons):
-        """ Convert output channels into XML structure. """
+    def _createOutputElement(self, channels, buttons, foldables):
+        """ Converts output channels into XML structure. """
         outputXml = XML.Element('output')
         if channels:
             for channelName, channelValues in channels.iteritems():
                 if channelName == '1':
                     textValuesXml = XML.Element('textValues')
-
                     for item in channelValues:
                         textValuesXml.append(self._createXmlElement('values', item))
                         outputXml.append(textValuesXml)
@@ -73,35 +77,30 @@ class XMLHandler(object):
                 output = self._concatenateOutputs(channelValues)
                 if channelName == '2':
                     outputXml.append(self._createXmlElement('timeout', output))
-
                 elif channelName == '3':
                     outputXml.append(self._createXmlElement('sound', output))
-
                 elif channelName == '4':
                     outputXml.append(self._createXmlElement('tts', output))
-
                 elif channelName == '5':
                     outputXml.append(self._createXmlElement('talking_head', output))
-
                 elif channelName == '6':
                     outputXml.append(self._createXmlElement('paper_head', output))
-
                 elif channelName == '7':
                     outputXml.append(self._createXmlElement('graphics', output))
-
                 elif channelName == '8':
                     outputXml.append(self._createXmlElement('url', output))
-
                 else:
-                    eprintf('WARNING: Unrecognized channel: %s, value: %s\n', channelName, output)
+                    logger.warning('Unrecognized channel: %s, value: %s', channelName, output)
 
         if buttons:
-            genericXml = XML.Element('generic', structure='listItem')
+            #segment generating buttons to generic - we might return to it when WA format gets more stable
+            '''
+            genericXml = XML.Element('generic', structure = 'listItem')
             genericXml.append(self._createXmlElement('response_type', "option"))
             genericXml.append(self._createXmlElement('preference', "button"))
             genericXml.append(self._createXmlElement('title', "Fast selection buttons"))
 
-            buttonIndex=0
+            buttonIndex = 0
             for buttonLabel, buttonValue in buttons.iteritems():
                 if buttonIndex < MAX_OPTIONS :
                     optionsXml = XML.Element('options')
@@ -109,12 +108,50 @@ class XMLHandler(object):
                     optionsXml.append(self._createXmlOption('value', buttonValue))
                     genericXml.append(optionsXml)
                 else:
-                    eprintf('Warning: Number of buttons is larger then %s, ignoring: %s, %s\n', MAX_OPTIONS, buttonLabel, buttonLabel)
-                buttonIndex+=1
+                    logger.warning('Number of buttons is larger then %s, ignoring: %s, %s', MAX_OPTIONS, buttonLabel, buttonLabel)
+                buttonIndex += 1
             outputXml.append(genericXml)
+            '''
 
+            buttonIndex = 0
+            for buttonLabel, buttonValue in buttons.iteritems():
+                if buttonIndex < MAX_OPTIONS :
+                    # sanity check, string length 64 is the limit of WA
+                    if len(buttonLabel) >64 :
+                        buttonLabel = buttonLabel[:64]
+                        logger.warning('Button label is > 64 char, truncating to: %s', buttonLabel)
+                    if len(buttonValue) >64 :
+                        buttonValue = buttonValue[:64]
+                        logger.warning('Button label is > 64 char, truncating to: %s', buttonValue)
+
+                    xmlSuggestion = XML.Element('suggestions', structure = 'listItem')
+                    xmlLabel = XML.Element('label')
+                    xmlLabel.text = buttonLabel
+                    xmlValue = XML.Element('value')
+                    xmlValue.text = buttonValue
+                    xmlSuggestion.append(xmlLabel)
+                    xmlSuggestion.append(xmlValue)
+                    outputXml.append(xmlSuggestion)
+                else:
+                    logger.warning('Number of buttons is larger then %s, ignoring: %s, %s', MAX_OPTIONS, buttonLabel, buttonValue)
+                buttonIndex += 1
+        if foldables:
+            #Example: {"output": {"text": "this is regular text", "more": [{"title": "this is title", "body": "this is body"}]}}
+            foldableIndex = 0
+            for foldableTitle, foldableBody in foldables.iteritems():
+                if foldableIndex < MAX_OPTIONS :
+                    xmlFoldable = XML.Element('more', structure = 'listItem')
+                    xmlTitle = XML.Element('title')
+                    xmlTitle.text = foldableTitle
+                    xmlBody = XML.Element('body')
+                    xmlBody.text = foldableBody
+                    xmlFoldable.append(xmlTitle)
+                    xmlFoldable.append(xmlBody)
+                    outputXml.append(xmlFoldable)
+                else:
+                    logger.warning('Number of foldables is larger then %s, ignoring: %s, %s', MAX_OPTIONS, foldableTitle, foldableBody)
+                foldableIndex += 1
         return outputXml
-
 
     def _createContextElement(self, variables):
         contextXml = XML.Element('context')
@@ -122,13 +159,11 @@ class XMLHandler(object):
             contextXml.append(self._createXmlElement(name, value))
         return contextXml
 
-
     def _createGotoElement(self, target, selector):
         gotoXml = XML.Element('goto')
         gotoXml.append(self._createXmlElement('target', target))
         gotoXml.append(self._createXmlElement('selector', selector))
         return gotoXml
-
 
     def _createXmlElement(self, name, value):
         if name=='values':
@@ -147,7 +182,6 @@ class XMLHandler(object):
         xmlInput.append(xmlIext)
         xmlIext.text = value
         return xmlValue
-
 
     def _concatenateOutputs(self, channelOutputs):
         output = u''

@@ -1,6 +1,6 @@
 # Scripts
 This file shows how to run scripts to create and upload workspace and how to convert it back to WAW representation.
-Part of this pipeline is covered by update_all.py script (see below) Except update_all.py script all scripts are ran from the root directory.
+Part of this pipeline is covered by `update_all.py` script (see below) Except `update_all.py` script, all scripts are ran from the root directory.
 
 
 ## Convert dialog from T2C xlsx to WAW xml
@@ -73,7 +73,7 @@ python scripts/workspace_delete.py example/en_app/private.cfg -v
 ```
 
 ## Decompose workspace
-Decomposes WCS .json workspace to intents, entities, dialogs and counterexamples files in WCS .json format 
+Decomposes WCS .json workspace to intents, entities, dialogs and counterexamples files in WCS .json format
 
 ```
 python scripts/workspace_decompose.py example/en_app/outputs/workspace.json -i example/en_app/outputs/intentsNew.json -e example/en_app/outputs/entitiesNew.json -d example/en_app/outputs/dialogNew.json -c counterexamplesNew.json -v
@@ -126,8 +126,22 @@ mkdir -p example/en_app/outputs/dialog
 python scripts/dialog_json2xml.py example/en_app/outputs/dialogNew.json -d example/en_app/outputs/dialog/ -v
 ```
 
+## Add additional json to the workspace dialog_nodes part
+The `workspace_addjson.py` script takes the workspace as the -w parameter, directory with the workspace as the -d parameter, JSON file to be added as the -j parameter, and the target key as the -t parameter. The script finds all occurrences of the target key in the workspace["dialog_nodes"] and adds the JSON file there.
+
+```
+python scripts/workspace_addjson.py -w workspace.json -d ./outputs/ -j complex_context_object.json -t my_context_data_object
+```
+
+It can be also used in the update_all.py script. The `[includejsondata]` section has to be added to the common.cfg where the JSON file and the target key are defined as follows (the workspace is the one defined in the `[outputs]` section):
+```
+[includejsondata]
+jsonfile = complex_context_object.json
+targetkey = my_context_data_object
+```
+
 ## Update all
-Cleans folders for generated and output files, converts dialogs from T2C and WAW xml format and intents and entities from csv format to WCS .json workspace and deploys it to the Watson Conversation Service (Cleans folders specified in config files as "outputs" and "generated" and runs all scripts from dialog_xls2xml.py to workspace_deploy.py)
+Cleans folders for generated and output files, converts dialogs from T2C and WAW xml format and intents and entities from csv format to WCS .json workspace and deploys it to the Watson Conversation Service (Cleans folders specified in config files as "outputs" and "generated" and runs all scripts from `dialog_xls2xml.py` to `workspace_deploy.py`)
 
 _You have to run update\_all script from app directory:_
 
@@ -138,5 +152,5 @@ cd example/en_app/
 _Don't forget to create an example/en\_app/private.cfg file with your WCS credentials (you can use example/en\_app/private.cfg.template file as a template). You will probably need to change paths in your config files to not contain "example/en\_app/" part._
 
 ```
-python ../../scripts/update_all.py -c common.cfg -c private.cfg
+python ../../scripts/update_all.py -c common.cfg -c private.cfg -c build.cfg
 ```

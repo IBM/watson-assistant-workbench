@@ -1,0 +1,6 @@
+[
+    {
+        "input": "@no.json",
+        "outputExpected": "@test_single_payload.json"
+    }
+]

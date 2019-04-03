@@ -12,18 +12,32 @@ It aims at
 - support for internationalization
 - and more :)
 
-It countains a bundle of tools for generating WA workspace from the structure data (and viceversa), testing and uploading (working with the WCS API).
+It contains a bundle of tools for generating WA workspace from the structure data (and viceversa), testing and uploading (working with the WCS API).
 
 Currently supported conversation version is 2017-02-03 except:
-- Fuzzy matching, Folders, Digression and Pattern defined entities are not supported.
+- Fuzzy matching, Folders and Digression are not supported.
 - A name of a dialog node still has to be unique as it is used as node ID.
 - Missing "slot_in_focus" property.
-- Slots and are not supported in json to xml conversion scripts.
+- Slots are not supported in json to xml conversion scripts.
 
-Scripts use python 2.7
+Scripts use python 2.7, used modules are listed in the [requirements.txt](/requirements.txt) file. To satisfy all requirements run
+```
+pip install -r requirements.txt
+```
+For brief summary how to run scripts please see [scripts.md](/scripts.md).
 
-Please install following python modules: configparser, openpyxl, cryptography, unidecode, requests
+Description of T2C  and xml/csv WAW formats can be found in `doc` folder.
 
-For brief summary how to run scripts please see scripts.md.
+Release notes can be found in [release_notes.md](/release_notes.md).
 
-Release notes can be found in 'release_notes.md'
+Instructions on how to use logging can be found in [logging.md](/logging.md).
+
+If you want to run unit tests locally, you first need to install development dependencies from [requirements_dev.txt](/requirements_dev.txt). You can run
+```
+pip install -r requirements_dev.txt
+```
+The unit and app tests can be started with this commands (from top directory of this repository)
+```
+PYTHONPATH=./scripts:$PYTHONPATH pytest ci/unit_tests
+PYTHONPATH=./scripts:$PYTHONPATH pytest ci/app_tests
+```

@@ -14,9 +14,12 @@ limitations under the License.
 """
 
 import json, sys, argparse, os
-from wawCommons import printf, eprintf, toEntityName
+from wawCommons import setLoggerConfig, getScriptLogger,  toEntityName
+import logging
 
-if __name__ == '__main__':
+logger = getScriptLogger(__file__)
+
+def main(argv):
     parser = argparse.ArgumentParser(description='Decompose Bluemix conversation service entities in .json format to entity files in .csv format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('entities', help='file with entities in .json format')
@@ -25,11 +28,10 @@ if __name__ == '__main__':
     parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
 
     VERBOSE = args.verbose
-    if args.soft: NAME_POLICY = 'soft'
-    else: NAME_POLICY = 'hard'
+    NAME_POLICY = 'soft' if args.soft else 'hard'
 
     with open(args.entities, 'r') as entitiesFile:
         entitiesJSON = json.load(entitiesFile)
@@ -38,7 +40,7 @@ if __name__ == '__main__':
     # process all entities
     for entityJSON in entitiesJSON:
         # process system entity
-        if entityJSON["entity"].strip().lower() .startswith("sys-"):
+        if entityJSON["entity"].strip().lower().startswith("sys-"):
             # issue #82: make entity name check parameter-dependent
             #systemEntities.append(toEntityName(NAME_POLICY, entityJSON["entity"]))
             systemEntities.append(entityJSON["entity"])
@@ -48,11 +50,20 @@ if __name__ == '__main__':
             # process all entity values
             for valueJSON in entityJSON["values"]:
                 value = []
-                value.append(valueJSON["value"].strip())
-                # add all synonyms
+                # synonyms entities
                 if 'synonyms' in valueJSON:
+                    value.append(valueJSON["value"].strip().encode("utf-8"))
+                    # add all synonyms
                     for synonym in valueJSON['synonyms']:
-                        value.append(synonym.strip())
+                        # empty-string synonyms are ignored when exported from WA json
+                        if synonym.strip().encode("utf-8") != '':
+                            value.append(synonym.strip().encode("utf-8"))
+                # for pattern entities add tilde to the value
+                if 'patterns' in valueJSON:
+                    value.append("~" + valueJSON["value"].strip().encode("utf-8"))
+                    # add all synonyms
+                    for pattern in valueJSON["patterns"]:
+                        value.append(pattern.strip().encode("utf-8"))
                 values.append(value)
             # new entity file
             entityFileName = os.path.join(args.entitiesDir, toEntityName(NAME_POLICY, args.common_entities_nameCheck, entityJSON["entity"])) + ".csv"
@@ -66,4 +77,9 @@ if __name__ == '__main__':
         for systemEntity in systemEntities:
             systemEntitiesFile.write(systemEntity + "\n")
 
-    if VERBOSE: printf("Entities from file '%s' were successfully extracted\n", args.entities)
+    if VERBOSE: logger.info("Entities from file '%s' were successfully extracted\n", args.entities)
+
+if __name__ == '__main__':
+    setLoggerConfig()
+    main(sys.argv[1:])
+

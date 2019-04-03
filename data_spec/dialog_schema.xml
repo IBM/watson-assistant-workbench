@@ -5,10 +5,19 @@
 
 <xs:complexType name="nodesSchema">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-        <xs:element name="import" type="xs:string"/>
+        <xs:element name="import" type="importSchema"/>
         <xs:element name="autogenerate" type="autogenerateSchema"/>
         <xs:element name="node" type="nodeSchema"/>
     </xs:choice>
+    <xs:attribute name="scope" type="xs:string"/>
+</xs:complexType>
+
+<xs:complexType name="importSchema">
+    <xs:simpleContent>
+        <xs:extension base="xs:string">
+            <xs:attribute name="scope" type="xs:string"/>
+        </xs:extension>
+    </xs:simpleContent>
 </xs:complexType>
 
 <xs:complexType name="autogenerateSchema">
@@ -20,11 +29,13 @@
     <xs:attribute name="type" use="required" type="autogenerateTypeSchema"/>
     <xs:attribute name="propagate" type="trueFalseSchema"/>
     <xs:attribute name="on" type="trueFalseSchema"/>
+    <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
 
 <xs:complexType name="nodeSchema">
     <xs:all>
         <xs:element name="condition" type="conditionSchema" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="type" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="context" type="contextSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="output" type="outputSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="goto" type="gotoSchema" minOccurs="0" maxOccurs="1"/>
@@ -32,15 +43,24 @@
         <xs:element name="handlers" type="handlersSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="slots" type="slotsSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="actions" type="actionsSchema" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="digress_in" type="digressInSchema" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="digress_out" type="digressOutSchema" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="digress_out_slots" type="digressOutSlotsSchema" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="event_name" type="eventNameSchema" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="metadata" type="metadataSchema" minOccurs="0" maxOccurs="1" nillable="true"/>
+        <xs:element name="disabled" type="trueFalseSchema" minOccurs="0" maxOccurs="1"/>
     </xs:all>
     <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="title" type="xs:string"/>
     <xs:attribute name="scope" type="xs:string"/>
+
 </xs:complexType>
 
 <xs:complexType name="conditionSchema">
     <xs:simpleContent>
         <xs:extension base="xs:string">
             <xs:attribute name="confidenceThreshold" type="xs:string"/>
+            <xs:attribute name="scope" type="xs:string"/>
         </xs:extension>
     </xs:simpleContent>
 </xs:complexType>
@@ -49,6 +69,7 @@
     <xs:sequence minOccurs="1" maxOccurs="1">
         <xs:element name="output" type="outputSchema" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
+    <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
 
 <xs:simpleType name="autogenerateTypeSchema">
@@ -74,12 +95,22 @@
     <xs:sequence minOccurs="1" maxOccurs="1">
         <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
+    <xs:attribute name="scope" type="xs:string"/>
+    <xs:attribute name="structure">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="listItem"/>
+              <xs:enumeration value="emptyList"/>
+              <xs:enumeration value="emptyDict"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
 </xs:complexType>
 
 <xs:complexType name="outputSchema">
     <xs:choice minOccurs="1" maxOccurs="1">
         <xs:sequence minOccurs="1" maxOccurs="1">
-            <xs:element name="text" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="text" type="textSchema" minOccurs="0" maxOccurs="1"/>
             <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:sequence minOccurs="1" maxOccurs="1">
@@ -91,28 +122,59 @@
             <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:choice>
+    <xs:attribute name="scope" type="xs:string"/>
+    <xs:attribute name="structure">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="listItem"/>
+              <xs:enumeration value="emptyList"/>
+              <xs:enumeration value="emptyDict"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+</xs:complexType>
+
+<xs:complexType name="textSchema">
+    <xs:simpleContent>
+        <xs:extension base="xs:string">
+            <xs:attribute name="scope" type="xs:string"/>
+        </xs:extension>
+    </xs:simpleContent>
 </xs:complexType>
 
 <xs:complexType name="textValuesSchema">
     <xs:sequence minOccurs="1" maxOccurs="1">
-        <xs:element name="values" type="valuesSchema" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="values" type="valuesSchema" minOccurs="0" maxOccurs="unbounded" nillable="true"/>
         <xs:element name="append" type="trueFalseSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="selection_policy" type="selectionPolicySchema" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
+    <xs:attribute name="scope" type="xs:string"/>
+    <xs:attribute name="structure">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="listItem"/>
+              <xs:enumeration value="emptyList"/>
+              <xs:enumeration value="emptyDict"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
 </xs:complexType>
 
 <xs:complexType name="valuesSchema">
-  <xs:simpleContent>
-    <xs:extension base="xs:string">
-      <xs:attribute name="structure">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:enumeration value="listItem"/>
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
-    </xs:extension>
-  </xs:simpleContent>
+    <xs:simpleContent>
+        <xs:extension base="xs:string">
+            <xs:attribute name="structure">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:enumeration value="listItem"/>
+                      <xs:enumeration value="emptyList"/>
+                      <xs:enumeration value="emptyDict"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="scope" type="xs:string"/>
+        </xs:extension>
+    </xs:simpleContent>
 </xs:complexType>
 
 <xs:simpleType name="selectionPolicySchema">
@@ -124,60 +186,110 @@
 
 <xs:complexType name="gotoSchema">
     <xs:sequence minOccurs="1" maxOccurs="1">
+        <xs:element name="behavior" type="behaviorSchema" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element name="target" type="xs:string" minOccurs="1" maxOccurs="1"/>
         <xs:element name="selector" type="selectorSchema" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
+    <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
 
 <xs:complexType name="handlersSchema">
     <xs:sequence minOccurs="1" maxOccurs="1">
         <xs:element name="handler" type="handlerSchema" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
+    <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
 
 <xs:complexType name="slotsSchema">
     <xs:sequence minOccurs="1" maxOccurs="1">
         <xs:element name="slot" type="slotSchema" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
+    <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
+
+<xs:complexType name="metadataSchema">
+    <xs:sequence minOccurs="1" maxOccurs="1">
+        <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="scope" type="xs:string"/>
+    <xs:attribute name="structure">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="listItem"/>
+              <xs:enumeration value="emptyList"/>
+              <xs:enumeration value="emptyDict"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+</xs:complexType>
+
+<xs:simpleType name="behaviorSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="skip_user_input"/>
+        <xs:enumeration value="get_user_input"/>
+        <xs:enumeration value="jump_to"/>
+        <xs:enumeration value="reprompt"/>
+        <xs:enumeration value="skip_slot"/>
+        <xs:enumeration value="skip_all_slots"/>
+    </xs:restriction>
+</xs:simpleType>
 
 <xs:simpleType name="selectorSchema">
     <xs:restriction base="xs:string">
         <xs:enumeration value="user_input"/>
         <xs:enumeration value="condition"/>
         <xs:enumeration value="body"/>
+        <xs:enumeration value="client"/>
     </xs:restriction>
 </xs:simpleType>
 
 <xs:complexType name="handlerSchema">
     <xs:all>
-        <xs:element name="condition" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="condition" type="conditionSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="context" type="contextSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="output" type="outputSchema" minOccurs="0" maxOccurs="1"/>
     </xs:all>
-    <xs:attribute name="eventName" use="required" type="xs:string"/>
+    <xs:attribute name="eventName" use="required" type="eventNameSchema"/>
+    <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
+
+<xs:simpleType name="eventNameSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="focus"/>
+        <xs:enumeration value="input"/>
+        <xs:enumeration value="filled"/>
+        <xs:enumeration value="validate"/>
+        <xs:enumeration value="filled_multiple"/>
+        <xs:enumeration value="generic"/>
+        <xs:enumeration value="nomatch"/>
+        <xs:enumeration value="nomatch_responses_depleted"/>
+        <xs:enumeration value="digression_return_prompt"/>
+    </xs:restriction>
+</xs:simpleType>
 
 <xs:complexType name="slotSchema">
     <xs:all>
         <xs:element name="handlers" type="handlersSchema" minOccurs="0" maxOccurs="1"/>
     </xs:all>
     <xs:attribute name="variable" use="required" type="xs:string"/>
+    <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
 
 <xs:complexType name="responseSchema">
     <xs:all>
-        <xs:element name="condition" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="condition" type="conditionSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="context" type="contextSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="output" type="outputSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="goto" type="gotoSchema" minOccurs="0" maxOccurs="1"/>
     </xs:all>
+    <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
 
 <xs:complexType name="actionsSchema">
     <xs:sequence minOccurs="1" maxOccurs="1">
         <xs:element name="action" type="actionSchema" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
+    <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
 
 <xs:complexType name="actionSchema">
@@ -185,8 +297,10 @@
         <xs:element name="name" type="actionNameSchema" minOccurs="1" maxOccurs="1"/>
         <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
         <xs:element name="parameters" type="parametersSchema" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="result_variable" type="xs:string" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="result_variable" type="resultVariableSchema" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="credentials" type="credentialsSchema" minOccurs="0" maxOccurs="1"/>
     </xs:all>
+    <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
 
 <xs:complexType name="actionNameSchema" mixed="true">
@@ -194,12 +308,63 @@
         <xs:element name="replace" type="xs:string" minOccurs="0" />
         <xs:element name="importText" type="xs:string" minOccurs="0" />
     </xs:all>
+    <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
 
 <xs:complexType name="parametersSchema">
     <xs:sequence minOccurs="1" maxOccurs="1">
         <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
+    <xs:attribute name="scope" type="xs:string"/>
+    <xs:attribute name="structure">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="listItem"/>
+              <xs:enumeration value="emptyList"/>
+              <xs:enumeration value="emptyDict"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+</xs:complexType>
+
+<xs:simpleType name="digressInSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="not_available"/>
+        <xs:enumeration value="returns"/>
+        <xs:enumeration value="does_not_return"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="digressOutSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="allow_returning"/>
+        <xs:enumeration value="allow_all"/>
+        <xs:enumeration value="allow_all_never_return"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="digressOutSlotsSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="not_allowed"/>
+        <xs:enumeration value="allow_returning"/>
+        <xs:enumeration value="allow_all"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:complexType name="resultVariableSchema">
+    <xs:simpleContent>
+        <xs:extension base="xs:string">
+            <xs:attribute name="scope" type="xs:string"/>
+        </xs:extension>
+    </xs:simpleContent>
+</xs:complexType>
+
+<xs:complexType name="credentialsSchema">
+    <xs:simpleContent>
+        <xs:extension base="xs:string">
+            <xs:attribute name="scope" type="xs:string"/>
+        </xs:extension>
+    </xs:simpleContent>
 </xs:complexType>
 
 </xs:schema>

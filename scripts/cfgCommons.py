@@ -13,8 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging, configparser, sys
-from wawCommons import printf, eprintf
+import configparser, sys, os
+from wawCommons import setLoggerConfig, getScriptLogger
+import logging
+
+logger = getScriptLogger(__file__)
 
 class Cfg:
 
@@ -24,8 +27,7 @@ class Cfg:
         return section + Cfg.sectionDelimiter + option
 
     def __init__(self, args):
-        logging.basicConfig(filename='log.log', level=logging.INFO)
-        logging.info('cfg.__init__')
+        logger.info('cfg.__init__')
         self.config = {}
 
         # Sections (names can not contain '_')
@@ -37,7 +39,6 @@ class Cfg:
         replaceSection = 'replace'
         versionSection = 'version'
         contextSection = 'context'
-        commonSection = 'common'
 
         # List of attributes of framework section to be appended rather then ovewrriden (if the same parameter is defined in more config files)
         frameworkAppend = ['xls', 'intents', 'entities', 'dialogs', 'functions', 'generated_intents',
@@ -46,8 +47,7 @@ class Cfg:
         if args.common_configFilePaths:
             try:
                 for common_configFilePath in args.common_configFilePaths: # go over all the config files and collect all parameters
-                    logging.info("Processing config file:" + common_configFilePath)
-                    print("Processing config file:" + common_configFilePath)
+                    logger.info("Processing config file:" + common_configFilePath)
                     configPart = configparser.ConfigParser()
                     configPart.read(common_configFilePath)
                     # Collect all attributes from all sections
@@ -57,26 +57,23 @@ class Cfg:
                             optionUniqueName = self.toOptionName(section, option)
                             # value can be list
                             newValueList = configPart.get(section, option).split(',')
-                            if len(newValueList) > 1: # create list
-                                newValue = newValueList
-                            else: # only single value
+                            if (len(newValueList) < 2) and not(option in frameworkAppend): # only single value not in framework append
                                 newValue = newValueList[0]
+                            else: # multiple values
+                                newValue = newValueList
                             if hasattr(self, optionUniqueName):
                                 warning = "WARNING: '" + optionUniqueName + " already exists. "
                                 if (section == commonSection) and (option in frameworkAppend): # appended
-                                    logging.debug(warning + "Appending '[" + ' '.join(newValue) +"]' to [" + ' '.join(getattr(self, optionUniqueName)) + "]");
+                                    logger.debug(warning + "Appending '[" + ' '.join(newValue) +"]' to [" + ' '.join(getattr(self, optionUniqueName)) + "]")
                                     setattr(self, optionUniqueName, newValue)
                                 else: # replace
                                     oldValue = getattr(self, optionUniqueName)
-                                    logging.debug(warning + "Replacing '" + oldValue + "' by '[" + ' '.join(newValue) +"]'");
+                                    logger.debug(warning + "Replacing '" + oldValue + "' by '[" + ' '.join(newValue) +"]'")
                                     setattr(self, optionUniqueName, newValue)
                             else:
-                                if (section == commonSection) and (option in frameworkAppend): # create list
-                                    setattr(self, optionUniqueName, [newValue])
-                                else: # set value
-                                    setattr(self, optionUniqueName, newValue)
+                                setattr(self, optionUniqueName, newValue)
             except IOError:
-                eprintf('ERROR: Cannot load config file %s\n', args.configFileName)
+                logger.error('Cannot load config file %s', args.configFileName)
                 sys.exit(1)
 
         # Set command line parameters
@@ -84,7 +81,7 @@ class Cfg:
         for arg in vars(args):
             if hasattr(args, arg) and getattr(args, arg): # attribute is present and not empty
                 if hasattr(self, arg):
-                    eprintf("WARNING: Overwriting config file parameter '%s' with value '%s' from comman line argumets.\n", arg, getattr(args, arg))
+                    logger.warning("Overwriting config file parameter '%s' with value '%s' from comman line argumets.", arg, getattr(args, arg))
                 setattr(self, arg, getattr(args, arg))
         if hasattr(self, 'common_output_config'):
             self.saveConfiguration(getattr(self, 'common_output_config'))
@@ -98,7 +95,7 @@ class Cfg:
                 section = namesList[0]
                 option = Cfg.sectionDelimiter.join(namesList[1:])
             else:
-                eprintf("WARNING: Missing section name in parameter name '%s', skipping.\n", optionUniqueName)
+                logger.warning("Missing section name in parameter name '%s', skipping.", optionUniqueName)
                 continue
             # create non existing sections
             if not outputConfig.has_section(section):
@@ -114,4 +111,4 @@ class Cfg:
             with open(configFileName, 'w') as configFile:
                 outputConfig.write(configFile)
         except IOError:
-            eprintf('ERROR: Cannot save config file %s\n', configFileName)
+            logger.error('Cannot save config file %s', configFileName)

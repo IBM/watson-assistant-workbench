@@ -14,7 +14,11 @@ limitations under the License.
 """
 
 import sys, argparse, os, re
-from wawCommons import printf, eprintf, toIntentName, toEntityName
+from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName, toEntityName
+import logging
+
+
+logger = getScriptLogger(__file__)
 
 def getEntities(entityDir, NAME_POLICY):
     """Retrieves entity value to entity name mapping from the directory with entity lists"""
@@ -40,6 +44,7 @@ def tagEntities(line, entities):
     return line
 
 if __name__ == '__main__':
+    setLoggerConfig()
     parser = argparse.ArgumentParser(description='Converts intents files to one file in NLU tsv format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('intentsDir', help='directory with intents files - all of them will be included in output file')
@@ -77,13 +82,13 @@ if __name__ == '__main__':
                         line = tagEntities(line, entities)
                     if line:
                         outputFile.write("1\t" + intentName + "\t" + line)
-    if VERBOSE: printf("Intents file '%s' was successfully created\n", args.output)
+    if VERBOSE: logger.info("Intents file '%s' was successfully created", args.output)
 
     if args.list:
         with open(args.list, 'w') as intentsListFile:
             for intentName in intentNames:
                 intentsListFile.write(intentName + "\n")
-    if VERBOSE: printf("Intents list '%s' was successfully created\n", args.list)
+    if VERBOSE: logger.info("Intents list '%s' was successfully created", args.list)
 
     if args.map:
         domIntMap = {}
@@ -98,4 +103,4 @@ if __name__ == '__main__':
         with open(args.map, 'w') as intentsMapFile:
             for domainPart in domIntMap.keys():
                 intentsMapFile.write(domainPart + domIntMap[domainPart] + "\n")
-        if VERBOSE: printf("Domain-intent map '%s' was successfully created\n", args.output)
+        if VERBOSE: logger.info("Domain-intent map '%s' was successfully created", args.output)

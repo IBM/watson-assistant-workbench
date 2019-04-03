@@ -27,8 +27,8 @@ class TestMain(unittest.TestCase):
         with codecs.open(os.path.join(referenceResult), 'r', encoding='utf8') as inputpath:
             referenceWorkspace = json.load(inputpath)
 
-        referenceWorkspaceString = json.dumps(referenceWorkspace)
-        newWorkspaceString = json.dumps(newWorkspace)
+        referenceWorkspaceString = json.dumps(referenceWorkspace, sort_keys=True)
+        newWorkspaceString = json.dumps(newWorkspace, sort_keys=True)
 
         assert referenceWorkspaceString == newWorkspaceString
 
@@ -50,8 +50,8 @@ class TestMain(unittest.TestCase):
         with codecs.open(os.path.join(referenceResult), 'r', encoding='utf8') as inputpath:
             referenceWorkspace = json.load(inputpath)
 
-        referenceWorkspaceString = json.dumps(referenceWorkspace)
-        newWorkspaceString = json.dumps(newWorkspace)
+        referenceWorkspaceString = json.dumps(referenceWorkspace, sort_keys=True)
+        newWorkspaceString = json.dumps(newWorkspace, sort_keys=True)
 
         assert referenceWorkspaceString == newWorkspaceString
 

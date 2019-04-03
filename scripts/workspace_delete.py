@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import sys, argparse, requests, configparser, os
-from wawCommons import setLoggerConfig, getScriptLogger
+from wawCommons import setLoggerConfig, getScriptLogger, openFile
 import logging
 
 
@@ -35,7 +35,8 @@ if __name__ == '__main__':
     conversationSection = 'conversation'
     try:
         config = configparser.ConfigParser()
-        config.read(args.config)
+        with openFile(args.config) as configFile:
+            config.read_file(configFile)
         workspacesUrl = config.get(conversationSection, 'url')
         version = config.get(conversationSection, 'version')
         username = config.get(conversationSection, 'username')
@@ -66,5 +67,5 @@ if __name__ == '__main__':
 
     # delete workspaceId from config file
     config.remove_option(conversationSection, 'workspace_id')
-    with open(args.config, 'wb') as configFile:
+    with openFile(args.config, 'wb') as configFile:
         config.write(configFile)

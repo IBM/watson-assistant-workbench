@@ -15,7 +15,7 @@ limitations under the License.
 
 import json,sys,argparse, re, os
 import lxml.etree as LET
-from wawCommons import setLoggerConfig, getScriptLogger,  toCode
+from wawCommons import setLoggerConfig, getScriptLogger,  toCode, openFile
 import logging
 
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
         tagsToReplace.extend(dialogXML.xpath(tagXPath))
 
     # LOAD RESOURCE FILE (TRANSLATIONS)
-    with open(args.resource, 'r') as resourceFile:
+    with openFile(args.resource, 'r') as resourceFile:
         translations = json.load(resourceFile)
 
     # REPLACE ALL CODES WITH TEXTS
@@ -69,10 +69,10 @@ if __name__ == '__main__':
 
     # OUTPUT NEW DIALOG
     if args.output is not None:
-        with open (args.output, 'w') as outputFile:
+        with openFile(args.output, 'w') as outputFile:
             outputFile.write(LET.tostring(dialogXML, pretty_print=True, encoding='utf8'))
     elif args.inplace:
-        with open (args.dialog, 'w') as outputFile:
+        with openFile(args.dialog, 'w') as outputFile:
             outputFile.write(LET.tostring(dialogXML, pretty_print=True, encoding='utf8'))
     else:
         sys.stdout.write(LET.tostring(dialogXML, pretty_print=True, encoding='utf8'))

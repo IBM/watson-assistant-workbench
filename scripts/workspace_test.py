@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import json, sys, os, time, argparse, requests, configparser
-from wawCommons import setLoggerConfig, getScriptLogger, getWorkspaceId, getRequiredParameter, errorsInResponse
+from wawCommons import setLoggerConfig, getScriptLogger, getWorkspaceId, getRequiredParameter, errorsInResponse, openFile
 from cfgCommons import Cfg
 import logging
 
@@ -77,9 +77,9 @@ def main(argv):
     url = workspacesUrl + '/' + workspaceId + '/message?version=' + version
     receivedOutputJson = []
     try:
-        with open(args.inputFileName, "r") as inputFile:
+        with openFile(args.inputFileName, "r") as inputFile:
             try:
-                with open(args.outputFileName, "w") as outputFile:
+                with openFile(args.outputFileName, "w") as outputFile:
                     first = True
                     dialogId = ""
                     # for every input line
@@ -96,7 +96,7 @@ def main(argv):
                             receivedOutputJson = response.json()
                             if not first:
                                 outputFile.write("\n")
-                            outputFile.write(json.dumps(receivedOutputJson, ensure_ascii=False).encode('utf8'))
+                            outputFile.write(json.dumps(receivedOutputJson, ensure_ascii=False))
                             first = False
                         elif response.status_code == 400:
                             logger.error('Error while testing.')

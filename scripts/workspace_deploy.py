@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import os, json, sys, argparse, requests, configparser
-from wawCommons import setLoggerConfig, getScriptLogger,  getWorkspaceId, errorsInResponse, getOptionalParameter, getRequiredParameter
+from wawCommons import setLoggerConfig, getScriptLogger,  getWorkspaceId, errorsInResponse, getOptionalParameter, getRequiredParameter, openFile
 from cfgCommons import Cfg
 import datetime
 import logging
@@ -53,7 +53,7 @@ def main(argv):
     # workspace info
     try:
         workspaceFilePath = os.path.join(getRequiredParameter(config, 'common_outputs_directory'), getRequiredParameter(config, 'common_outputs_workspace'))
-        with open(workspaceFilePath, 'r') as workspaceFile:
+        with openFile(workspaceFilePath, 'r') as workspaceFile:
             workspace = json.load(workspaceFile)
     except IOError:
         logger.error('Cannot load workspace file %s', workspaceFilePath)
@@ -127,7 +127,7 @@ def main(argv):
         if clientFileName:
             clientFilePath = os.path.join(getRequiredParameter(config, 'common_outputs_directory'), clientFileName)
             try:
-                with open(clientFilePath, "w") as clientFile:
+                with openFile(clientFilePath, "w") as clientFile:
                     clientFile.write('<meta http-equiv="refresh" content=\"0; url=' + clientv2URL + '\" />')
                     clientFile.write('<p><a href=\"' + clientv2URL + '\">Redirect</a></p>')
                 clientFile.close()

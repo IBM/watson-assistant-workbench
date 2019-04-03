@@ -15,7 +15,7 @@ limitations under the License.
 import os, json, sys, argparse, codecs
 import io
 from cfgCommons import Cfg
-from wawCommons import setLoggerConfig, getScriptLogger
+from wawCommons import setLoggerConfig, getScriptLogger, openFile
 import logging
 
 
@@ -61,7 +61,7 @@ def main(argv):
     # process intents
     intentsJSON = {}
     if hasattr(config, 'common_outputs_intents'):
-        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'r', encoding='utf8') as intentsFile:
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'r', encoding='utf8') as intentsFile:
             intentsJSON = json.load(intentsFile)
         workspace['intents'] = intentsJSON
     else:
@@ -70,7 +70,7 @@ def main(argv):
     # process entities
     entitiesJSON = {}
     if hasattr(config, 'common_outputs_entities'):
-        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), 'r', encoding='utf8') as entitiesFile:
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), 'r', encoding='utf8') as entitiesFile:
             entitiesJSON = json.load(entitiesFile)
         workspace['entities'] = entitiesJSON
     else:
@@ -79,7 +79,7 @@ def main(argv):
     # process dialog
     dialogJSON = {}
     if hasattr(config, 'common_outputs_dialogs'):
-        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'r', encoding='utf8') as dialogFile:
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'r', encoding='utf8') as dialogFile:
             dialogJSON = json.load(dialogFile)
             workspace['dialog_nodes'] = dialogJSON
     else:
@@ -89,7 +89,7 @@ def main(argv):
     intentExamplesJSON = {} # counterexamples in "intent format"
     counterexamplesJSON = [] # simple list of counterexamples ("text": "example sentence")
     if hasattr(config, 'common_outputs_counterexamples'):
-        with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_counterexamples')), 'r', encoding='utf8') as counterexamplesFile:
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_counterexamples')), 'r', encoding='utf8') as counterexamplesFile:
             intentExamplesJSON = json.load(counterexamplesFile)
             for intentExampleJSON in intentExamplesJSON:
                 counterexamplesJSON.extend(intentExampleJSON['examples'])
@@ -98,8 +98,8 @@ def main(argv):
         logger.info('outputs_counterexamples not specified, omitting counterexamples.')
 
     if hasattr(config, 'common_outputs_workspace'):
-        with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace')), 'w', encoding='utf8') as outputFile:
-            outputFile.write(json.dumps(workspace, indent=4, ensure_ascii=False, encoding='utf8'))
+        with openFile(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace')), 'w', encoding='utf8') as outputFile:
+            outputFile.write(json.dumps(workspace, indent=4, ensure_ascii=False))
     else:
         logger.info('output_workspace not specified, generating to console.')
 

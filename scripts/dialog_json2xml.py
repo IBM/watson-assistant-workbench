@@ -15,7 +15,7 @@ limitations under the License.
 
 import json, sys, argparse, os
 import lxml.etree as LET
-from wawCommons import setLoggerConfig, getScriptLogger
+from wawCommons import setLoggerConfig, getScriptLogger, openFile
 import logging
 
 
@@ -374,7 +374,7 @@ def main(argv):
     NSMAP = {"xsi" : XSI_NAMESPACE}
 
     # load dialogs JSON
-    dialogsJSON = json.load(args.dialog)
+    dialogsJSON = json.load(args.dialog, encoding='utf-8')
 
     # convert dialogs
     dialogsXML = convertDialog(dialogsJSON)
@@ -383,11 +383,11 @@ def main(argv):
     if args.dialogDir:
         # print to file
         dialogFileName = os.path.join(args.dialogDir, "dialog.xml")
-        with open(dialogFileName, "w") as dialogFile:
-            dialogFile.write(LET.tostring(dialogsXML, pretty_print=True, encoding='utf8'))
+        with openFile(dialogFileName, "w") as dialogFile:
+            dialogFile.write(LET.tostring(dialogsXML, pretty_print=True, encoding='unicode'))
     else:
         # print to standard output
-        print(LET.tostring(dialogsXML, pretty_print=True, encoding='utf8'))
+        print(LET.tostring(dialogsXML, pretty_print=True, encoding='unicode'))
 
 if __name__ == '__main__':
     setLoggerConfig()

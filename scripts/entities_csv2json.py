@@ -16,7 +16,7 @@ limitations under the License.
 import json,sys,argparse,os
 import io
 from cfgCommons import Cfg
-from wawCommons import setLoggerConfig, getScriptLogger,  toEntityName, getFilesAtPath
+from wawCommons import setLoggerConfig, getScriptLogger,  toEntityName, getFilesAtPath, openFile
 import logging
 
 
@@ -31,7 +31,7 @@ def main(argv):
     parser.add_argument('-ge', '--common_generated_entities', help='directory with generated entity csv files to be processed (all of them will be included in output json)', action='append')
     parser.add_argument('-od', '--common_outputs_directory', required=False, help='directory where the otputs will be stored (outputs is default)')
     parser.add_argument('-oe', '--common_outputs_entities', help='file with output json with all the entities')
-    parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
+    parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\\L' for lowercase")
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('-s', '--common_soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     args = parser.parse_args(argv)
@@ -56,7 +56,7 @@ def main(argv):
     filesAtPath = getFilesAtPath(pathList)
     for entityFileName in sorted(filesAtPath):
 
-        with io.open(entityFileName, mode='r', encoding='utf8') as entityFile:
+        with openFile(entityFileName, mode='r', encoding='utf8') as entityFile:
 
             entityName = os.path.splitext(os.path.basename(entityFileName))[0]
 
@@ -120,7 +120,7 @@ def main(argv):
             os.makedirs(getattr(config, 'common_outputs_directory'))
             logger.info('Created new output directory ' + getattr(config, 'common_outputs_entities'))
         with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), mode='w', encoding='utf-8') as outputFile:
-            outputFile.write(json.dumps(entitiesJSON, indent=4, ensure_ascii=False, encoding='utf8'))
+            outputFile.write(json.dumps(entitiesJSON, indent=4, ensure_ascii=False))
         if VERBOSE: logger.info("Entities json '%s' was successfully created", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')))
     else:
         print(json.dumps(entitiesJSON, indent=4, ensure_ascii=False).encode('utf8'))

@@ -15,7 +15,7 @@ limitations under the License.
 
 import sys, argparse, os, re
 from collections import defaultdict
-from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName, toEntityName
+from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName, toEntityName, openFile
 import logging
 
 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     intEntMap = defaultdict(dict)
 
     if args.sentences:
-        with open(args.sentences, "r") as sentencesFile:
+        with openFile(args.sentences, "r") as sentencesFile:
             for line in sentencesFile.readlines():
                 line = line.rstrip()
                 if not line: continue
@@ -58,7 +58,7 @@ if __name__ == '__main__':
                     intEntMap[intentPart][entity] = 1
 
     if args.domEnt:
-        with open(args.domEnt, 'w') as domEntFile:
+        with openFile(args.domEnt, 'w') as domEntFile:
             for domain in sorted(domEntMap.keys()):
                 entities="NONE;"
                 for entity in sorted(domEntMap[domain].keys()):
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         if VERBOSE: logger.info("Domain-entity map '%s' was successfully created", args.domEnt)
 
     if args.domEnt:
-        with open(args.intEnt, 'w') as intEntFile:
+        with openFile(args.intEnt, 'w') as intEntFile:
             for intent in sorted(intEntMap.keys()):
                 entities="NONE;"
                 for entity in sorted(intEntMap[intent].keys()):
@@ -76,7 +76,7 @@ if __name__ == '__main__':
         if VERBOSE: logger.info("Intent-entity map '%s' was successfully created", args.domEnt)
 
     if args.list:
-        with open(args.list, 'w') as listFile:
+        with openFile(args.list, 'w') as listFile:
             # process entities
             entityNames = []
             for entityFileName in os.listdir(args.entitiesDir):

@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import sys, argparse, os, re
-from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName, toEntityName
+from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName, toEntityName, openFile
 import logging
 
 
@@ -25,7 +25,7 @@ def getEntities(entityDir, NAME_POLICY):
     entities = {}
     for entityFileName in os.listdir(entityDir):
         entityName = toEntityName(NAME_POLICY, args.common_entities_nameCheck, os.path.splitext(entityFileName)[0])
-        with open(os.path.join(args.entityDir, entityFileName), "r") as entityFile:
+        with openFile(os.path.join(args.entityDir, entityFileName), "r") as entityFile:
             for line in entityFile.readlines():
                 # remove comments
                 line = line.split('#')[0]
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     if args.entityDir:
         entities = getEntities(args.entityDir, NAME_POLICY)
 
-    with open(args.output, 'w') as outputFile:
+    with openFile(args.output, 'w') as outputFile:
         # process intents
         intentNames = []
         for intentFileName in os.listdir(args.intentsDir):
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     if VERBOSE: logger.info("Intents file '%s' was successfully created", args.output)
 
     if args.list:
-        with open(args.list, 'w') as intentsListFile:
+        with openFile(args.list, 'w') as intentsListFile:
             for intentName in intentNames:
                 intentsListFile.write(intentName + "\n")
     if VERBOSE: logger.info("Intents list '%s' was successfully created", args.list)
@@ -100,7 +100,7 @@ if __name__ == '__main__':
                 domIntMap[domainPart] = domIntMap[domainPart] + ";" + intentPart
             else:
                 domIntMap[domainPart] = ";" + intentPart
-        with open(args.map, 'w') as intentsMapFile:
+        with openFile(args.map, 'w') as intentsMapFile:
             for domainPart in domIntMap.keys():
                 intentsMapFile.write(domainPart + domIntMap[domainPart] + "\n")
         if VERBOSE: logger.info("Domain-intent map '%s' was successfully created", args.output)

@@ -18,7 +18,7 @@ import sys, argparse, os, codecs
 from cfgCommons import Cfg
 from XLSXHandler import XLSXHandler
 from XMLHandler import XMLHandler
-from wawCommons import setLoggerConfig, getScriptLogger
+from wawCommons import setLoggerConfig, getScriptLogger, openFile
 import logging
 
 
@@ -33,7 +33,7 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
     domains = dialogData.getAllDomains()
     for domain_name in domains:   # For all domains
         filename = getattr(config, 'common_generated_dialogs') + '/' + domain_name + '.xml'
-        with codecs.open(filename, 'w', encoding='utf8') as dialogFile:
+        with openFile(filename, 'w', encoding='utf8') as dialogFile:
             xmlData = handler.convertDialogData(dialogData, domains[domain_name]) #process all nodes of the domain
             dialogFile.write(handler.printXml(xmlData))
 
@@ -50,9 +50,9 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
             if len(intentData.getExamples()) > 0:
                 intent_name = intent[1:] if intent.startswith(u'#') else intent
 
-                with open(os.path.join(generatedIntentsFolder, intent_name.encode('ascii', 'ignore') + '.csv'), 'w') as intentFile:
+                with openFile(os.path.join(generatedIntentsFolder, intent_name + '.csv'), 'w') as intentFile:
                     for example in intentData.getExamples():
-                        intentFile.write(example.encode('utf8') + '\n')
+                        intentFile.write(example + '\n')
 
     # generate entities if 'common_generated_entities' folder is specified
     if hasattr(config, 'common_generated_entities'):
@@ -64,9 +64,9 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
             logger.info('Created new directory ' + generatedEntitiesFolder )
         # One file per entity
         for entity_name, entityData in dialogData.getAllEntities().items():
-            with open(os.path.join(generatedEntitiesFolder, entity_name.encode('ascii', 'ignore') + '.csv'), 'w') as entityFile:
+            with openFile(os.path.join(generatedEntitiesFolder, entity_name + '.csv'), 'w') as entityFile:
                 for entityList in entityData.getValues():
-                    entityFile.write(entityList.encode('utf8') + '\n')
+                    entityFile.write(entityList + '\n')
 
 def main(argv):
     logger.info('STARTING: ' + os.path.basename(__file__))

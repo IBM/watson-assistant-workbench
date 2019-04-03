@@ -214,7 +214,7 @@ def main(argv):
 
         testCounter += 1
 
-    outputFile.write(json.dumps(inputJson, indent=4, ensure_ascii=False).encode('utf8') + '\n')
+    outputFile.write(json.dumps(inputJson, indent=4, ensure_ascii=False) + '\n')
     logger.info('FINISHING: '+ os.path.basename(__file__))
 
 if __name__ == '__main__':

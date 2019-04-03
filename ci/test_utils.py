@@ -41,13 +41,13 @@ class BaseTestCaseCapture(object):
         ERR = 1
         LOG = 2
 
-    def t_tooFewArgs(self, args=[], kwargs={}):
-        ''' Runs predefined function (callfunc) with given arguments and tests if it fails and error message contains \'too few arguments\' '''
-        self.t_fun_tooFewArgs(self.callfunc, args, kwargs)
+    def t_missingRequiredArgs(self, args=[], kwargs={}):
+        ''' Runs predefined function (callfunc) with given arguments and tests if it fails and error message contains \'the following arguments are required\' '''
+        self.t_fun_missingRequiredArgs(self.callfunc, args, kwargs)
 
-    def t_fun_tooFewArgs(self, function, args=[], kwargs={}):
-        ''' Runs function with given arguments and tests if it fails and error message contains \'too few arguments\' '''
-        self.t_fun_exitCodeAndErrMessage(function, 2, 'too few arguments', args, kwargs)
+    def t_fun_missingRequiredArgs(self, function, args=[], kwargs={}):
+        ''' Runs function with given arguments and tests if it fails and error message contains \'the following arguments are required\' '''
+        self.t_fun_exitCodeAndErrMessage(function, 2, 'the following arguments are required', args, kwargs)
 
     def t_unrecognizedArgs(self, args=[], kwargs={}):
         ''' Runs predefined function (callfunc) with given arguments and tests if it fails and error message contains \'unrecognized arguments\' '''

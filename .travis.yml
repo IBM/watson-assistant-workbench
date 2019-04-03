@@ -2,7 +2,6 @@ group: travis_latest
 language: python
 cache: pip
 python:
-  - 2.7
   - 3.6
 
 install:
@@ -17,9 +16,7 @@ before_script:
   - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
 script:
-  # TEMPORARILY allow Python 3.6 to fail the ./ci/travis.sh tests
-  # TODO: Once Python 3 passes the tests, revert the next lines to remove " || test ${TRAVIS_PYTHON_VERSION} == 3.6"
-  - pytest ci -v || test ${TRAVIS_PYTHON_VERSION} == 3.6
+  - pytest ci -v
 
 after_script:
   # deploy all 'outputs' folders to Artifactory

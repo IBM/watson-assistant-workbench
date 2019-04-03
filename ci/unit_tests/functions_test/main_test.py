@@ -64,8 +64,8 @@ class TestMain(BaseTestCaseCapture):
 
     def test_args_basic(self):
         ''' Tests some basic sets of args '''
-        self.t_tooFewArgs([[]])
-        self.t_tooFewArgs([['/some/random/path']])
+        self.t_missingRequiredArgs([[]])
+        self.t_missingRequiredArgs([['/some/random/path']])
         self.t_unrecognizedArgs([['/some/random/path', '-s', 'randomNonPositionalArg']])
 
     def test_args_advanced(self):

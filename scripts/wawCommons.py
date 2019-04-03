@@ -15,12 +15,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys, re, codecs, os, fnmatch
-import unicodedata, unidecode, requests
+import sys, re, codecs, os, io, unidecode, types, fnmatch, requests
 import lxml.etree as Xml
 import logging
 from logging.config import fileConfig
 
+
+def openFile(name, *args, **kwargs):
+    if 'encoding' not in kwargs.keys():
+        kwargs['encoding'] = 'utf-8'
+    f = io.open(name,*args, **kwargs)
+    return f
 
 restrictionTextNamePolicy = "NAME_POLICY can be only set to either 'soft', 'soft_verbose' or 'hard'"
 
@@ -29,12 +34,9 @@ def toCode(NAME_POLICY, code):
     restrictionTextCode = "The code can only contain uppercase letters (in Unicode), numbers, underscores, and hyphens."
     code = code.strip()
     newCode = re.sub(' ', '_', code, re.UNICODE).upper()
-    if isinstance(newCode, str):
-        newIntentSubname = newCode.decode('utf-8')
-        # use unidecode.unidecode ?
-        newCode = unicodedata.normalize('NFKD', newCode.decode('utf-8')).encode('ASCII', 'ignore')  # remove accents
+    newCode = unidecode.unidecode(newCode) #unicodedata.normalize('NFKD', newCode.decode('utf-8')).encode('ASCII', 'ignore')  # remove accents
     # remove everything that is not unicode letter or hyphen
-    newCode = re.sub('[^\w-]', '', newCode, re.UNICODE)
+    newCode = re.sub('[^\\w-]', '', newCode, re.UNICODE)
     if newCode != code:
         if NAME_POLICY == 'soft_verbose':
             logger.warning("Illegal value of the code: '%s'- %s", code, restrictionTextCode)
@@ -51,6 +53,8 @@ def normalizeIntentName(intentName):
     """Normalizes intent name to uppercase, with no dashes or underscores"""
     return re.sub('[-_]', '', intentName).upper()
 
+
+#TODO uncomplicate
 def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
     """Concatenates intent names with underscores,
     checks if the intent name satisfies all restrictions given by WA and user.
@@ -58,7 +62,7 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
      - replace spaces and semicolons with uderscores
      - remove everything that is not unicode letter, hyphen or period
     User defined replacements:
-     e.g. userReplacements = [['$special', '\L'], ['-', '_']] which change all letters to lowercase and replace all hyphens for underscores
+     e.g. userReplacements = [['$special', '\\L'], ['-', '_']] which change all letters to lowercase and replace all hyphens for underscores
     If the name does not satisfy all restrictions, this function will return corrected name and print warning (NAME_POLICY soft_verbose)
     or it will end up with an error (NAME_POLICY hard)"""
     """Removes all unexpected characters from the intent names, normalize them to upper case and concatenate them with the underscores"""
@@ -68,10 +72,10 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
     for intentSubname in intentSubnames:
         if not intentSubname: continue
         intentSubname = intentSubname.strip()
-        uIntentSubname = intentSubname.decode('utf-8') if isinstance(intentSubname, str) else intentSubname
+        uIntentSubname = intentSubname
         # apply WA restrictions (https://console.bluemix.net/docs/services/conversation/intents.html#defining-intents)
         uIntentSubnameWA = re.sub(' ;', '_', uIntentSubname, re.UNICODE) # replace space and ; by underscore
-        uIntentSubnameWA = re.sub(u'[^\wÀ-ÖØ-öø-ÿĀ-ž-\.]', '', uIntentSubnameWA, re.UNICODE) # remove everything that is not unicode letter, hyphen or period
+        uIntentSubnameWA = re.sub(u'[^\\wÀ-ÖØ-öø-ÿĀ-ž-\\.]', '', uIntentSubnameWA, re.UNICODE) # remove everything that is not unicode letter, hyphen or period
         if uIntentSubnameWA != uIntentSubname: # WA restriction triggered
             restrictionTextIntentName.append("The intent name can only contain letters (in Unicode), numbers, underscores, hyphens, and periods.")
         # apply user-defined restrictions
@@ -96,7 +100,7 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
                         exit(1)
                 # use regex
                 else:
-                    uNewIntentSubnameUser = re.sub(replacementPair[0].decode('utf-8'), replacementPair[1].decode('utf-8'), uIntentSubnameUser, re.UNICODE)
+                    uNewIntentSubnameUser = re.sub(replacementPair[0], replacementPair[1], uIntentSubnameUser, re.UNICODE)
                     triggeredUserRegexToAppend = replacementPair[0] + "' should be replaced with '" + replacementPair[1]
                 # this replacement pair triggered
                 if uNewIntentSubnameUser != uIntentSubnameUser:
@@ -136,24 +140,24 @@ def toIntentName(NAME_POLICY, userReplacements, *intentSubnames):
             logger.error("empty intent name")
             exit(1)
         uNewIntentName = uNewIntentName + u'_' + uIntentSubnameUser if uNewIntentName else uIntentSubnameUser
-    return uNewIntentName.encode('utf-8')
-
+    return uNewIntentName
+# TODO uncomplicate
 def toEntityName(NAME_POLICY, userReplacements, entityName):
     """Checks if the entity name satisfies all restrictions given by WA and user.
     WA replacements:
      - replace spaces with uderscores
      - remove everything that is not unicode letter or hyphen
     User defined replacements:
-     e.g. userReplacements = [['$special', '\L'], ['-', '_']] which change all letters to lowercase and replace all hyphens for underscores
+     e.g. userReplacements = [['$special', '\\L'], ['-', '_']] which change all letters to lowercase and replace all hyphens for underscores
     If the name does not satisfy all restrictions, this function will return corrected name and print warning (NAME_POLICY soft)
     or it will end up with an error (NAME_POLICY hard)"""
     global restrictionTextNamePolicy
     restrictionTextEntityName = []
     entityName = entityName.strip()
-    uEntityName = entityName.decode('utf-8') if isinstance(entityName, str) else entityName
+    uEntityName = entityName
     # apply WA restrictions (https://console.bluemix.net/docs/services/conversation/entities.html#defining-entities)
     uEntityNameWA = re.sub(' ', '_', uEntityName, re.UNICODE) # replace spaces with underscores
-    uEntityNameWA = re.sub(u'[^\wÀ-ÖØ-öø-ÿĀ-ž-]', '', uEntityNameWA, re.UNICODE) # remove everything that is not unicode letter or hyphen
+    uEntityNameWA = re.sub(u'[^\\wÀ-ÖØ-öø-ÿĀ-ž-]', '', uEntityNameWA, re.UNICODE) # remove everything that is not unicode letter or hyphen
     if uEntityNameWA != uEntityName: # WA restriction triggered
         restrictionTextEntityName.append("The entity name can only contain letters (in Unicode), numbers, underscores, and hyphens.")
     # apply user-defined restrictions
@@ -178,7 +182,7 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
                     exit(1)
             # use regex
             else:
-                uNewEntityNameUser = re.sub(replacementPair[0].decode('utf-8'), replacementPair[1].decode('utf-8'), uEntityNameUser, re.UNICODE)
+                uNewEntityNameUser = re.sub(replacementPair[0], replacementPair[1], uEntityNameUser, re.UNICODE)
                 triggeredUserRegexToAppend = replacementPair[0] + "' should be replaced with '" + replacementPair[1]
             # this replacement pair triggered
             if uNewEntityNameUser != uEntityNameUser:
@@ -200,7 +204,7 @@ def toEntityName(NAME_POLICY, userReplacements, entityName):
     if not uEntityNameUser:
         logger.error("empty entity name")
         exit(1)
-    return uEntityNameUser.encode('utf-8')
+    return uEntityNameUser
 
 def getFilesAtPath(pathList, patterns=['*']):
     """

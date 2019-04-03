@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import json, sys, argparse, os
-from wawCommons import setLoggerConfig, getScriptLogger,  toEntityName
+from wawCommons import setLoggerConfig, getScriptLogger,  toEntityName, openFile
 import logging
 
 logger = getScriptLogger(__file__)
@@ -25,7 +25,7 @@ def main(argv):
     parser.add_argument('entities', help='file with entities in .json format')
     parser.add_argument('entitiesDir', help='directory with entities files')
     # optional arguments
-    parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
+    parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(argv)
@@ -33,7 +33,7 @@ def main(argv):
     VERBOSE = args.verbose
     NAME_POLICY = 'soft' if args.soft else 'hard'
 
-    with open(args.entities, 'r') as entitiesFile:
+    with openFile(args.entities, 'r') as entitiesFile:
         entitiesJSON = json.load(entitiesFile)
 
     systemEntities = []
@@ -52,27 +52,27 @@ def main(argv):
                 value = []
                 # synonyms entities
                 if 'synonyms' in valueJSON:
-                    value.append(valueJSON["value"].strip().encode("utf-8"))
+                    value.append(valueJSON["value"].strip())
                     # add all synonyms
                     for synonym in valueJSON['synonyms']:
                         # empty-string synonyms are ignored when exported from WA json
-                        if synonym.strip().encode("utf-8") != '':
-                            value.append(synonym.strip().encode("utf-8"))
+                        if synonym.strip() != '':
+                            value.append(synonym.strip())
                 # for pattern entities add tilde to the value
                 if 'patterns' in valueJSON:
-                    value.append("~" + valueJSON["value"].strip().encode("utf-8"))
+                    value.append("~" + valueJSON["value"].strip())
                     # add all synonyms
                     for pattern in valueJSON["patterns"]:
-                        value.append(pattern.strip().encode("utf-8"))
+                        value.append(pattern.strip())
                 values.append(value)
             # new entity file
             entityFileName = os.path.join(args.entitiesDir, toEntityName(NAME_POLICY, args.common_entities_nameCheck, entityJSON["entity"])) + ".csv"
-            with open(entityFileName, "w") as entityFile:
+            with openFile(entityFileName, "w") as entityFile:
                 for value in values:
                     entityFile.write(';'.join(value) + "\n")
 
     # write file with system entities
-    with open(os.path.join(args.entitiesDir, "system_entities.csv"), 'w') as systemEntitiesFile:
+    with openFile(os.path.join(args.entitiesDir, "system_entities.csv"), 'w') as systemEntitiesFile:
         systemEntitiesFile.write("# a special list for the system entities - only one value at each line\n")
         for systemEntity in systemEntities:
             systemEntitiesFile.write(systemEntity + "\n")

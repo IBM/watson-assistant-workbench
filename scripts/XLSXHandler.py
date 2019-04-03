@@ -23,7 +23,7 @@ limitations under the License.
   The second pass: (processing all files together)
        - populating DialogData by Intent definitions (IntentData), Node definitions (NodeData) and entity definitions (EntityData).
        - populating node_names and mapping label-nodeName
-  The third pass:  Generating XML, CSV  - XML per original document - this is done in XMLHandler
+  The third pass:  Generating XML, CSV - XML per original document - this is done in XMLHandler
        - generate jump-to based on label map
 
   Rational: what are the dependences
@@ -256,7 +256,7 @@ class XLSXHandler(object):
         if len(block) > 1 and block[1][0]:
             logger.error('Format error. condititional block without header shold have just one condition: %s', block[0])
             exit()
-        node_condition = re.sub(u"#\$ ", u"", block[0][0])
+        node_condition = re.sub(u"#\\$ ", u"", block[0][0])
         node_name = self._dialogData.createUniqueNodeName(block[0][0])  # derive node name from explicit condition and make it unique
         node_condition = node_condition
         nodeData = self._dialogData.createNode(node_name, domain)  # create space for new node, remembers node_name

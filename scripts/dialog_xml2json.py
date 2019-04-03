@@ -16,7 +16,7 @@ import json,sys,argparse,os,re,csv,io,copy
 import lxml.etree as LET
 from xml.sax.saxutils import unescape
 from cfgCommons import Cfg
-from wawCommons import setLoggerConfig, getScriptLogger
+from wawCommons import setLoggerConfig, getScriptLogger, openFile
 import time
 import datetime
 import io
@@ -297,7 +297,7 @@ def validateNodeName(node):
     global names
     name = node.find('name').text
     # check characters (Node names can only contain letters, numbers, hyphens and underscores)
-    pattern = re.compile("[\w-]+", re.UNICODE)
+    pattern = re.compile("[\\w-]+", re.UNICODE)
     if not pattern.match(name):
         logger.error("Illegal name of the node: '%s' - Node names can only contain letters, numbers, hyphens and underscores.", name)
         exit(1)
@@ -875,6 +875,7 @@ def main(argv):
 
     # load dialogue from XML
     if hasattr(config, 'common_dialog_main'):
+        #TODO might need UTF-8
         dialogTree = LET.parse(getattr(config, 'common_dialog_main'))
     else:
         dialogTree = LET.parse(sys.stdin)
@@ -888,6 +889,7 @@ def main(argv):
     if not os.path.exists(schemaFile):
         logger.error('Schema file %s not found.', schemaFile)
         exit(1)
+    #TODO might need UTF-8
     schemaTree = LET.parse(schemaFile)
     global schema
     schema = LET.XMLSchema(schemaTree)
@@ -923,10 +925,10 @@ def main(argv):
             os.makedirs(getattr(config, 'common_outputs_directory'))
             logger.info("Created new output directory %s", getattr(config, 'common_outputs_directory'))
         with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')), 'w', encoding='utf-8') as outputFile:
-            outputFile.write(json.dumps(dialogNodes, indent=4, ensure_ascii=False, encoding='utf8'))
+            outputFile.write(json.dumps(dialogNodes, indent=4, ensure_ascii=False))
         logger.info("File %s created", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_dialogs')))
     else:
-        print(json.dumps(dialogNodes, indent=4))
+        print(json.dumps(dialogNodes, indent=4, ensure_ascii=False))
 
     if hasattr(config, 'common_output_config'):
         config.saveConfiguration(getattr(config, 'common_output_config'))

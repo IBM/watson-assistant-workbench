@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import json, sys, argparse, os
-from wawCommons import setLoggerConfig, getScriptLogger
+from wawCommons import setLoggerConfig, getScriptLogger, openFile
 import logging
 
 
@@ -34,31 +34,31 @@ def main(argv):
 
     VERBOSE = args.verbose
 
-    workspace_file=json.loads(open(args.workspace).read())
+    workspace_file=json.loads(openFile(args.workspace).read())
 
-    with open(args.workspace, 'r') as workspaceFile:
+    with openFile(args.workspace, 'r') as workspaceFile:
         workspaceJSON = json.load(workspaceFile)
 
     if args.intents:
-        with open(args.intents, 'w') as intentsFile:
-            intentsFile.write(json.dumps(workspaceJSON['intents'], indent=4, ensure_ascii=False).encode('utf8'))
+        with openFile(args.intents, 'w') as intentsFile:
+            intentsFile.write(json.dumps(workspaceJSON['intents'], indent=4, ensure_ascii=False))
 
     if args.entities:
-        with open(args.entities, 'w') as entitiesFile:
-            entitiesFile.write(json.dumps(workspaceJSON['entities'], indent=4, ensure_ascii=False).encode('utf8'))
+        with openFile(args.entities, 'w') as entitiesFile:
+            entitiesFile.write(json.dumps(workspaceJSON['entities'], indent=4, ensure_ascii=False))
 
     if args.dialog:
-        with open(args.dialog, 'w') as dialogFile:
-            dialogFile.write(json.dumps(workspaceJSON['dialog_nodes'], indent=4, ensure_ascii=False).encode('utf8'))
+        with openFile(args.dialog, 'w') as dialogFile:
+            dialogFile.write(json.dumps(workspaceJSON['dialog_nodes'], indent=4, ensure_ascii=False))
 
     if args.counterexamples:
-        with open(args.counterexamples, 'w') as counterexamplesFile:
+        with openFile(args.counterexamples, 'w') as counterexamplesFile:
             counterexamplesJSON = []
             counterexampleIntentJSON = {}
             counterexampleIntentJSON['intent'] = "IRRELEVANT"
             counterexampleIntentJSON['examples'] = workspaceJSON['counterexamples']
             counterexamplesJSON.append(counterexampleIntentJSON)
-            counterexamplesFile.write(json.dumps(counterexamplesJSON, indent=4, ensure_ascii=False).encode('utf8'))
+            counterexamplesFile.write(json.dumps(counterexamplesJSON, indent=4, ensure_ascii=False))
 
     if VERBOSE: logger.info("Workspace %s was successfully decomposed", args.workspace)
 

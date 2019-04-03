@@ -16,7 +16,7 @@ limitations under the License.
 import os, json, sys, argparse, requests, zipfile, base64
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from cfgCommons import Cfg
-from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath, getRequiredParameter
+from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath, openFile, getRequiredParameter
 import urllib3
 import logging
 
@@ -62,7 +62,7 @@ def main(args):
     parser.add_argument('--cloudfunctions_package', required=False, help="cloud functions package name")
     parser.add_argument('--cloudfunctions_url', required=False, help="url of cloud functions API")
 
-    for runtime in interpretedRuntimes.values() + compiledRuntimes.values():
+    for runtime in list(interpretedRuntimes.values()) + list(compiledRuntimes.values()):
         parser.add_argument('--cloudfunctions_' + runtime + '_version', required=False,
             help="cloud functions " + runtime + " version")
 
@@ -78,7 +78,7 @@ def main(args):
     functionDir = getRequiredParameter(config, 'common_functions')
 
     runtimeVersions = {}
-    for ext, runtime in interpretedRuntimes.items() + compiledRuntimes.items():
+    for ext, runtime in list(interpretedRuntimes.items()) + list(compiledRuntimes.items()):
         runtimeVersions[runtime] = runtime + ':' + getattr(config, 'cloudfunctions_' + runtime + '_version', 'default')
 
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -95,8 +95,8 @@ def main(args):
     else:
         logger.info('Cloud functions package successfully uploaded')
 
-    filesAtPath = getFilesAtPath(functionDir, ['*' + ext for ext in (interpretedRuntimes.keys() + \
-                                                                     compiledRuntimes.keys() + \
+    filesAtPath = getFilesAtPath(functionDir, ['*' + ext for ext in (list(interpretedRuntimes) +
+                                                                     list(compiledRuntimes) +
                                                                      compressedFiles)])
 
     for functionFilePath in filesAtPath:
@@ -126,9 +126,9 @@ def main(args):
         functionUrl = namespaceUrl + '/' + namespace + '/actions/' + package + '/' + funcName + '?overwrite=true'
 
         if binary:
-            content = base64.b64encode(open(os.path.join(functionDir, functionFilePath), 'rb').read())
+            content = base64.b64encode(open(functionFilePath, 'rb').read()).decode('utf-8')
         else:
-            content = open(os.path.join(functionDir, functionFilePath), 'r').read()
+            content = open(functionFilePath, 'r').read()
         payload = {'exec': {'kind': runtimeVersions[runtime], 'binary': binary, 'code': content}}
 
         response = requests.put(functionUrl, auth=(username,password), headers={'Content-Type': 'application/json'},

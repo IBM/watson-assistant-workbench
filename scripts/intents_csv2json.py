@@ -15,7 +15,7 @@ limitations under the License.
 from __future__ import print_function
 
 import json, sys, argparse, os, glob, codecs, re
-from wawCommons import setLoggerConfig, getScriptLogger,  getFilesAtPath, toIntentName
+from wawCommons import setLoggerConfig, getScriptLogger,  getFilesAtPath, toIntentName, openFile
 from cfgCommons import Cfg
 import logging
 
@@ -75,7 +75,7 @@ def main(argv):
     parser.add_argument('-gi', '--common_generated_intents', help='directory with generated intent csv files to be processed (all of them will be included in output json)', action='append')
     parser.add_argument('-od', '--common_outputs_directory', required=False, help='directory where the otputs will be stored (outputs is default)')
     parser.add_argument('-oi', '--common_outputs_intents', help='file with output json with all the intents')
-    parser.add_argument('-ni', '--common_intents_nameCheck', action='append', nargs=2, help="regex and replacement for intent name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
+    parser.add_argument('-ni', '--common_intents_nameCheck', action='append', nargs=2, help="regex and replacement for intent name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(argv)
@@ -100,7 +100,7 @@ def main(argv):
     filesAtPath = getFilesAtPath(pathList)
     for intentFileName in sorted(filesAtPath):
         intentName = toIntentName(NAME_POLICY, args.common_intents_nameCheck, os.path.splitext(os.path.basename(intentFileName))[0])
-        with codecs.open(intentFileName, 'r', encoding='utf8') as intentFile:
+        with openFile(intentFileName, 'r', encoding='utf8') as intentFile:
             intent = {}
             intent['intent'] = intentName
             examples = []
@@ -109,7 +109,7 @@ def main(argv):
                 line = line.split('#')[0]
                 line = line.rstrip().lower()
                 #non-ascii characters fix
-                line = line.encode('utf-8')
+                #line = line.encode('utf-8')
                 if line:
                     example = processExample(line, intentName, examples)
                     #adding to the list
@@ -124,9 +124,9 @@ def main(argv):
             os.makedirs(getattr(config, 'common_outputs_directory'))
             logger.info('Created new output directory ' + getattr(config, 'common_outputs_directory'))
         with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_intents')), 'w', encoding='utf8') as outputFile:
-            outputFile.write(json.dumps(intents, indent=4, ensure_ascii=False, encoding='utf8'))
+            outputFile.write(json.dumps(intents, indent=4, ensure_ascii=False))
     else:
-        print(json.dumps(intents, indent=4, ensure_ascii=False, encoding='utf8'))
+        print(json.dumps(intents, indent=4, ensure_ascii=False))
 
     logger.info('FINISHING: ' + os.path.basename(__file__))
 

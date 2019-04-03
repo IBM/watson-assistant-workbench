@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import configparser, sys, os
-from wawCommons import setLoggerConfig, getScriptLogger
+from wawCommons import setLoggerConfig, getScriptLogger, openFile
 import logging
 
 logger = getScriptLogger(__file__)
@@ -49,7 +49,9 @@ class Cfg:
                 for common_configFilePath in args.common_configFilePaths: # go over all the config files and collect all parameters
                     logger.info("Processing config file:" + common_configFilePath)
                     configPart = configparser.ConfigParser()
-                    configPart.read(common_configFilePath)
+                    with openFile(common_configFilePath) as configFile:
+                        configPart.read_file(configFile) 
+                                            
                     # Collect all attributes from all sections
                     for section in configPart.sections():
                         options = configPart.options(section)
@@ -108,7 +110,7 @@ class Cfg:
             else:
                 outputConfig.set(section, option, getattr(self, optionUniqueName))
         try:
-            with open(configFileName, 'w') as configFile:
+            with openFile(configFileName,'w') as configFile:
                 outputConfig.write(configFile)
         except IOError:
             logger.error('Cannot save config file %s', configFileName)

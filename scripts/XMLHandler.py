@@ -60,13 +60,13 @@ class XMLHandler(object):
         if prettyPrint:
             return XML.tostring(xmlDocument, pretty_print=prettyPrint, encoding='unicode')
         else:
-            return XML.tostring(xmlDocument, method='c14n').decode('utf-8')
+            return XML.tostring(xmlDocument, method='c14n', encoding='unicode')
 
     def _createOutputElement(self, channels, buttons, foldables):
         """ Converts output channels into XML structure. """
         outputXml = XML.Element('output')
         if channels:
-            for channelName, channelValues in channels.iteritems():
+            for channelName, channelValues in channels.items():
                 if channelName == '1':
                     textValuesXml = XML.Element('textValues')
                     for item in channelValues:
@@ -101,7 +101,7 @@ class XMLHandler(object):
             genericXml.append(self._createXmlElement('title', "Fast selection buttons"))
 
             buttonIndex = 0
-            for buttonLabel, buttonValue in buttons.iteritems():
+            for buttonLabel, buttonValue in buttons.items():
                 if buttonIndex < MAX_OPTIONS :
                     optionsXml = XML.Element('options')
                     optionsXml.append(self._createXmlElement('label', buttonLabel))
@@ -114,7 +114,7 @@ class XMLHandler(object):
             '''
 
             buttonIndex = 0
-            for buttonLabel, buttonValue in buttons.iteritems():
+            for buttonLabel, buttonValue in buttons.items():
                 if buttonIndex < MAX_OPTIONS :
                     # sanity check, string length 64 is the limit of WA
                     if len(buttonLabel) >64 :
@@ -138,7 +138,7 @@ class XMLHandler(object):
         if foldables:
             #Example: {"output": {"text": "this is regular text", "more": [{"title": "this is title", "body": "this is body"}]}}
             foldableIndex = 0
-            for foldableTitle, foldableBody in foldables.iteritems():
+            for foldableTitle, foldableBody in foldables.items():
                 if foldableIndex < MAX_OPTIONS :
                     xmlFoldable = XML.Element('more', structure = 'listItem')
                     xmlTitle = XML.Element('title')
@@ -155,7 +155,7 @@ class XMLHandler(object):
 
     def _createContextElement(self, variables):
         contextXml = XML.Element('context')
-        for name, value in variables.iteritems():
+        for name, value in variables.items():
             contextXml.append(self._createXmlElement(name, value))
         return contextXml
 

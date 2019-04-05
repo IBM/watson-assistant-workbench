@@ -161,7 +161,7 @@ class BaseTestCaseCapture(object):
                 pytest.fail(traceback.format_exc())
 
         if exceptionType:
-            assert exceptionType == type(exception)
+            assert exceptionType == type(exception), "Exception: " + str(exception)
         else:
             assert exception == None
 

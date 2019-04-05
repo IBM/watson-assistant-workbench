@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, pytest, json
+import os, json, pytest
 
 import functions_test
 from ...test_utils import BaseTestCaseCapture
@@ -80,6 +80,12 @@ class TestMain(BaseTestCaseCapture):
                 self.t_exitCodeAndLogMessage(
                     1, # exit code
                     'WARNING  \'' + missingTestArg[2:] + '\' parameter not defined', # warning message substring
+                    [providedTestArgs] # params (*args, **kwargs)
+                )
+            elif missingTestArg in ['--cloudfunctions_username', '--cloudfunctions_password']:
+                self.t_exitCodeAndLogMessage(
+                    1, # exit code
+                    'CRITICAL part of parameters combination is set, but some params are missing', # critical message substring
                     [providedTestArgs] # params (*args, **kwargs)
                 )
             else:
@@ -279,10 +285,16 @@ class TestMain(BaseTestCaseCapture):
             [testArgs] # params (*args, **kwargs)
         )
 
-    def test_testMulti(self):
+    @pytest.mark.parametrize('useApikey', [True, False])
+    def test_testMulti(self, useApikey):
         ''' Tests if there are multi tests in input file '''
         outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testMultiJsonPath))[0] + '.out.json'))
         testArgs = [self.testMultiJsonPath, outputFilePath] + self.functionsTestArgs
+
+        if useApikey:
+            testArgs = testArgs[:len(testArgs)-4] # remove password, username and their values
+            testArgs.extend(['--cloudfunctions_apikey', self.cloudFunctionsUsername + ':' + self.cloudFunctionsPassword])
+
         self.t_noException([testArgs])
         with open(outputFilePath, 'r') as outputFile:
             outputJson = json.load(outputFile)

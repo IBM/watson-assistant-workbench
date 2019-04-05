@@ -848,11 +848,6 @@ def main(argv):
     parser.add_argument('-sc', '--common_scope', required=False, help='scope of dialog, e.g. type-local')
     parser.add_argument('-of', '--common_outputs_directory', required=False, help='directory where the otputs will be stored (outputs is default)')
     parser.add_argument('-od', '--common_outputs_dialogs', required=False, help='name of generated file (dialogs.xml is the default)')
-    #CF parameters are specific to Cloud Functions Credentials placement from config file and will be replaced in the future by a separate script
-    parser.add_argument('-cfn','--cloudfunctions_namespace', required=False, help='cloud functions namespace')
-    parser.add_argument('-cfu','--cloudfunctions_username', required=False, help='cloud functions username')
-    parser.add_argument('-cfp','--cloudfunctions_password', required=False, help='cloud functions password')
-    parser.add_argument('-cfa','--cloudfunctions_package', required=False, help='cloud functions package')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(argv)
 
@@ -869,9 +864,6 @@ def main(argv):
     XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
     XSI = "{%s}" % XSI_NAMESPACE
     NSMAP = {"xsi" : XSI_NAMESPACE}
-
-    if hasattr(config, 'cloudfunctions_namespace') and hasattr(config, 'cloudfunctions_package'):
-        setattr(config, 'cloudfunctions_path_to_actions', '/' + '/'.join([getattr(config, 'cloudfunctions_namespace').strip("/"), getattr(config, 'cloudfunctions_package').strip("/")]).strip("/") + '/')
 
     # load dialogue from XML
     if hasattr(config, 'common_dialog_main'):

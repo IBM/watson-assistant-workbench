@@ -16,7 +16,7 @@ limitations under the License.
 import os, json, sys, argparse, requests, zipfile, base64
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from cfgCommons import Cfg
-from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath, openFile, getRequiredParameter
+from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath, openFile, getRequiredParameter, getOptionalParameter, getParametersCombination, convertApikeyToUsernameAndPassword
 import urllib3
 import logging
 
@@ -57,6 +57,7 @@ def main(args):
     parser.add_argument('-c', '--common_configFilePaths', help="configuaration file", action='append')
     parser.add_argument('--common_functions', required=False, help="directory where the cloud functions are located")
     parser.add_argument('--cloudfunctions_namespace', required=False, help="cloud functions namespace")
+    parser.add_argument('--cloudfunctions_apikey', required=False, help="cloud functions apikey")
     parser.add_argument('--cloudfunctions_username', required=False, help="cloud functions user name")
     parser.add_argument('--cloudfunctions_password', required=False, help="cloud functions password")
     parser.add_argument('--cloudfunctions_package', required=False, help="cloud functions package name")
@@ -71,11 +72,16 @@ def main(args):
     VERBOSE = parsedArgs.verbose
 
     namespace = getRequiredParameter(config, 'cloudfunctions_namespace')
-    username = getRequiredParameter(config, 'cloudfunctions_username')
-    password = getRequiredParameter(config, 'cloudfunctions_password')
+    auth = getParametersCombination(config, 'cloudfunctions_apikey', ['cloudfunctions_password', 'cloudfunctions_username'])
     package = getRequiredParameter(config, 'cloudfunctions_package')
     namespaceUrl = getRequiredParameter(config, 'cloudfunctions_url')
     functionDir = getRequiredParameter(config, 'common_functions')
+
+    if 'cloudfunctions_apikey' in auth:
+        username, password = convertApikeyToUsernameAndPassword(auth['cloudfunctions_apikey'])
+    else:
+        username = auth['cloudfunctions_username']
+        password = auth['cloudfunctions_password']
 
     runtimeVersions = {}
     for ext, runtime in list(interpretedRuntimes.items()) + list(compiledRuntimes.items()):

@@ -340,10 +340,103 @@ def getRequiredParameter(config, parameterName):
         logger.error("required '%s' parameter not defined", parameterName)
         exit(1)
 
+def getParametersCombination(config, *args):
+    """
+    Obtains list of arguments where each argument represents one combination of parameters
+    that should be retrived from configuration file. Only one combination of arguments could
+    be set in configuration file (between parameters in combination there is logical AND,
+    between combinations there is XOR - only one can be set). 
+
+    Parameters
+    ----------
+    config : Cfg
+        Configuration to be used for searching of parameters
+    args : (string | list)*
+        Each argument could be parameter name or list of parameters names
+
+    Returns
+    -------
+    dict
+        Parameters combination with values
+    """
+    parametersCombinationMap = {}
+
+    if not config:
+        logger.critical("config is null")
+        exit(1)
+
+    if len(args) == 0:
+        logger.critical("no parameters combination provided to be retrieved")
+        exit(1)
+
+    for arg in args:
+        if isinstance(arg, str):
+            if getattr(config, arg, None):
+                if parametersCombinationMap:
+                    logger.critical("only one combination of parameters can be set, " +
+                        "combination already set: '%s', " + 
+                        "another argument set: '%s'", str(list(parametersCombinationMap)), arg)
+                    exit(1)
+                parametersCombinationMap[arg] = getattr(config, arg)
+        elif isinstance(arg, list):
+            parametersCombinationMapCurrent = {}
+            parametersCombinationMissing = []
+            for parameterName in arg:
+                if getattr(config, parameterName, None):
+                    if parametersCombinationMap:
+                        logger.critical("only one combination of parameters can be set, " +
+                            "combination already set: '%s', " + 
+                            "another argument set: '%s'", str(list(parametersCombinationMap)), parameterName)
+                        exit(1)
+                    parametersCombinationMapCurrent[parameterName] = getattr(config, parameterName)
+                else:
+                    parametersCombinationMissing.append(parameterName)
+            if parametersCombinationMapCurrent:
+                if len(parametersCombinationMapCurrent) != len(arg):
+                    logger.critical("part of parameters combination is set, but some params are missing, " +
+                        "combination: '%s', " + 
+                        "missing parameters: '%s'", str(arg), str(parametersCombinationMissing))
+                    exit(1)
+                parametersCombinationMap = parametersCombinationMapCurrent
+        else:
+            logger.critical("arguments could be only parameter names or array of parameters names, arg type '%s'", str(type(arg).__name__))
+            exit(1)
+
+    if not parametersCombinationMap:
+        logger.critical("no parameters combination is set in configuration, " + 
+            "you have to provide exactly one of those combinations of parameters:'")
+        for index, arg in enumerate(args):
+            logger.critical("Combination %d: \'%s\'", index, str(arg))
+        exit(1)
+    
+    return parametersCombinationMap
+
 def setLoggerConfig():
     fileConfig(os.path.split(os.path.abspath(__file__))[0]+'/logging_config.ini')
 
 def getScriptLogger(script):
     return logging.getLogger("common."+os.path.splitext(os.path.basename(script))[0])
+
+def convertApikeyToUsernameAndPassword(apikey):
+    """
+    Obtains 'apikey' string that is in format \'username:password\' and returns
+    tuple (username, password). 
+
+    Parameters
+    ----------
+    apikey : string
+        Apikey in format \'username:password\'
+
+    Returns
+    -------
+    tuple : (username, password)
+        Username and password parsed from 'apikey'
+    """
+    if isinstance(apikey, str):
+        apikeySplit = apikey.split(':')
+        if len(apikeySplit) == 2:
+            return (apikeySplit[0], apikeySplit[1])
+    logger.critical('Apikey has invalid format (valid format is string: \'username:password\')')
+    sys.exit(1)
 
 logger = getScriptLogger(__file__)

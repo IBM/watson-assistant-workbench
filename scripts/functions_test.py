@@ -14,7 +14,7 @@ limitations under the License.
 '''
 
 import json, sys, os, argparse, requests, configparser
-from wawCommons import setLoggerConfig, getScriptLogger, getRequiredParameter, getOptionalParameter
+from wawCommons import setLoggerConfig, getScriptLogger, getRequiredParameter, getOptionalParameter, getParametersCombination, convertApikeyToUsernameAndPassword
 from cfgCommons import Cfg
 import logging
 from deepdiff import DeepDiff
@@ -69,6 +69,7 @@ def main(argv):
     parser.add_argument('--cloudfunctions_namespace', required=False, help='cloud functions namespace')
     parser.add_argument('--cloudfunctions_package', required=False, help='cloud functions package name')
     parser.add_argument('--cloudfunctions_function', required=False, help='cloud functions specific function to be tested')
+    parser.add_argument('--cloudfunctions_apikey', required=False, help="cloud functions apikey")
     parser.add_argument('--cloudfunctions_username', required=False, help='cloud functions user name')
     parser.add_argument('--cloudfunctions_password', required=False, help='cloud functions password')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
@@ -80,10 +81,15 @@ def main(argv):
 
     url = getRequiredParameter(config, 'cloudfunctions_url')
     namespace = getRequiredParameter(config, 'cloudfunctions_namespace')
-    username = getRequiredParameter(config, 'cloudfunctions_username')
-    password = getRequiredParameter(config, 'cloudfunctions_password')
+    auth = getParametersCombination(config, 'cloudfunctions_apikey', ['cloudfunctions_password', 'cloudfunctions_username'])
     package = getOptionalParameter(config, 'cloudfunctions_package')
     function = getOptionalParameter(config, 'cloudfunctions_function')
+
+    if 'cloudfunctions_apikey' in auth:
+        username, password = convertApikeyToUsernameAndPassword(auth['cloudfunctions_apikey'])
+    else:
+        username = auth['cloudfunctions_username']
+        password = auth['cloudfunctions_password']
 
     try:
         inputFile = open(args.inputFileName, 'r')

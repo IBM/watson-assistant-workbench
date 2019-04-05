@@ -319,7 +319,7 @@ def errorsInResponse(responseJson):
         if 'errors' in responseJson:
             for errorJson in responseJson['errors']:
                 logger.error('\t path: \'%s\' - %s', errorJson['path'], errorJson['message'])
-#        if VERBOSE: logger.error("WORKSPACE: %s", json.dumps(workspace, indent=4))
+#       logger.verbose("WORKSPACE: %s", json.dumps(workspace, indent=4))
         return True
     else:
         return False
@@ -411,9 +411,21 @@ def getParametersCombination(config, *args):
     
     return parametersCombinationMap
 
-def setLoggerConfig():
-    fileConfig(os.path.split(os.path.abspath(__file__))[0]+'/logging_config.ini')
+def verbose(self, message, *args, **kws):
+    if (logging.Logger.isVerbose):
+        self._log(logging.INFO, message, args, **kws)
 
+def setLoggerConfig(level=None, isVerbose=False):
+    fileConfig(os.path.split(os.path.abspath(__file__))[0]+'/logging_config.ini')
+    l = logging.getLogger()
+    logging.Logger.isVerbose = isVerbose
+    logging.Logger.verbose = verbose
+    if level:
+        levelName = logging.getLevelName(level)
+        l.setLevel(levelName)
+        for h in l.handlers:
+            h.setLevel(levelName)
+    
 def getScriptLogger(script):
     return logging.getLogger("common."+os.path.splitext(os.path.basename(script))[0])
 

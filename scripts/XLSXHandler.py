@@ -54,7 +54,6 @@ class XLSXHandler(object):
         self._blocks = []                 # internal representation of XLS, list of blocks, (block are the lines separated by empty line)
         self._dialogData = DialogData(config)   # internal representation of the workspace
         self._config= config              # we need config to get NAME_POLICY, verbosity,..
-        self._VERBOSE = hasattr(config, 'common_verbose')
         self._NAME_POLICY = 'soft'        # TBD: enable to set the NamePolicy from config file
 
     def getBlocks(self):

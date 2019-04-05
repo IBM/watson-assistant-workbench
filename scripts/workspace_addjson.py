@@ -58,7 +58,7 @@ def includeJson(nodeJSON, keyJSON, keySearch, includeJSON):
         for subKeyJSON in nodeJSON[keyJSON]:
             includeJson(nodeJSON[keyJSON], subKeyJSON, keySearch, includeJSON)
 
-def main(args):
+def main(argv):
     logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='This script takes a workspace JSON as one parameter and another JSON (i.e., piece of context data structure) and put the second one into desired place in the first one. This happens inplace.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # arguments
@@ -69,10 +69,14 @@ def main(args):
     parser.add_argument('-t','--includejsondata_targetkey', required=False, help='the key, where you want to add your JSON, i.e., "data_structure" : null; where you want to replace null, you would put "data_strucute" as this parameter')
     # optional arguments
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     #init the parameters
-    args = parser.parse_args(args)
+    args = parser.parse_args(argv)
+    
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
+
     config = Cfg(args)
-    VERBOSE = hasattr(config, 'common_verbose')
 
     # get required parameters
     # workspace
@@ -107,5 +111,4 @@ def main(args):
     logger.info('FINISHING: ' + os.path.basename(__file__))
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])

@@ -44,7 +44,6 @@ def tagEntities(line, entities):
     return line
 
 if __name__ == '__main__':
-    setLoggerConfig()
     parser = argparse.ArgumentParser(description='Converts intents files to one file in NLU tsv format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('intentsDir', help='directory with intents files - all of them will be included in output file')
@@ -58,9 +57,11 @@ if __name__ == '__main__':
     parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true', default="")
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(sys.argv[1:])
+    
+    setLoggerConfig(args.log, args.verbose)
 
-    VERBOSE = args.verbose
     NAME_POLICY = 'soft' if args.soft else 'hard'
     PREFIX = toIntentName(NAME_POLICY, args.common_intents_nameCheck, args.prefix)
 
@@ -82,13 +83,13 @@ if __name__ == '__main__':
                         line = tagEntities(line, entities)
                     if line:
                         outputFile.write("1\t" + intentName + "\t" + line)
-    if VERBOSE: logger.info("Intents file '%s' was successfully created", args.output)
+    logger.verbose("Intents file '%s' was successfully created", args.output)
 
     if args.list:
         with openFile(args.list, 'w') as intentsListFile:
             for intentName in intentNames:
                 intentsListFile.write(intentName + "\n")
-    if VERBOSE: logger.info("Intents list '%s' was successfully created", args.list)
+    logger.verbose("Intents list '%s' was successfully created", args.list)
 
     if args.map:
         domIntMap = {}
@@ -103,4 +104,4 @@ if __name__ == '__main__':
         with openFile(args.map, 'w') as intentsMapFile:
             for domainPart in domIntMap.keys():
                 intentsMapFile.write(domainPart + domIntMap[domainPart] + "\n")
-        if VERBOSE: logger.info("Domain-intent map '%s' was successfully created", args.output)
+        logger.verbose("Domain-intent map '%s' was successfully created", args.output)

@@ -33,11 +33,13 @@ def main(argv):
     # optional arguments
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
 
-    config = Cfg(args)
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.common_verbose)
 
-    VERBOSE = args.common_verbose
+    config = Cfg(args)
 
     workspacesUrl = getRequiredParameter(config, 'conversation_url')
     version = getRequiredParameter(config, 'conversation_version')
@@ -49,13 +51,13 @@ def main(argv):
     checkWorkspaceTime = 0
     requestUrl = workspacesUrl + '/' + workspaceId + '?version=' + version
     while True:
-        if VERBOSE: logger.info("requestUrl: %s", requestUrl)
+        logger.verbose("requestUrl: %s", requestUrl)
         response = requests.get(requestUrl, auth=(username, password))
         if response.status_code == 200:
             responseJson = response.json()
             if errorsInResponse(responseJson):
                 sys.exit(1)
-            if VERBOSE: logger.info("response: %s", responseJson)
+            logger.verbose("response: %s", responseJson)
             status = responseJson['status']
             logger.info('WCS WORKSPACE STATUS: %s', status)
             if status == 'Available':
@@ -90,7 +92,7 @@ def main(argv):
                             if receivedOutputJson and 'context' in receivedOutputJson and receivedOutputJson['context']:
                                 inputJson['context'] = receivedOutputJson['context'] # use context from last dialog turn
                         dialogId = loadedJson['dialog_id']
-                        if VERBOSE: logger.info("url: %s", url)
+                        logger.verbose("url: %s", url)
                         response = requests.post(url, auth=(username, password), headers={'Content-Type': 'application/json'}, data=json.dumps(inputJson, indent=4, ensure_ascii=False).encode('utf8'))
                         if response.status_code == 200:
                             receivedOutputJson = response.json()
@@ -115,6 +117,5 @@ def main(argv):
     logger.info('FINISHING: '+ os.path.basename(__file__))
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])
 

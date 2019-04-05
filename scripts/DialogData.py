@@ -46,7 +46,6 @@ class DialogData(object):
         self._domains = {}   # key: domain name, value: list of all associated nodes with the given domain
 
         self._config = config           # we need config to get NAME_POLICY, verbosity,..
-        self._VERBOSE = hasattr(config, 'common_verbose')
         self._NAME_POLICY = 'soft'      # TBD: enable to set the NamePolicy from config file
 
     #  LABEL

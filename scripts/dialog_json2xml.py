@@ -62,7 +62,7 @@ def expandNode(dialogNodesJSON, upperNodeXML, nodeJSON):
 def convertNode(nodeJSON):
     nodeXML = LET.Element('node')
     nodeXML.attrib['name'] = nodeJSON['dialog_node']
-    if VERBOSE: logger.debug("node '%s'", nodeXML.attrib['name'])
+    logger.verbose("node '%s'", nodeXML.attrib['name'])
 
     #title
     if 'title' in nodeJSON:
@@ -140,7 +140,7 @@ def convertNode(nodeJSON):
                                 if not 'structure' in genericItemXML.find('values').attrib: # structure is not specified yet
                                     # values has to be of type array
                                     genericItemXML.find('values').attrib['structure'] = 'listItem'
-                                    if VERBOSE: logger.debug("setting 'listitem' attribute to 'values' tag")
+                                    logger.verbose("setting 'listitem' attribute to 'values' tag")
 
     #goto
     if 'next_step' in nodeJSON:
@@ -250,79 +250,79 @@ def convertAll(upperNodeXML, nodeJSON, keyJSON, nameXML = None):
         nameXML = keyJSON
     else:
         structure = "listItem"
-        if VERBOSE: logger.debug("structure 'listItem'")
-    if VERBOSE: logger.debug("name '%s'", nameXML)
+        logger.verbose("structure 'listItem'")
+    logger.verbose("name '%s'", nameXML)
 
     # None
     if nodeJSON[keyJSON] is None:
-        if VERBOSE: logger.debug("node is None")
+        logger.verbose("node is None")
         nodeXML = LET.Element(str(nameXML))
         upperNodeXML.append(nodeXML)
         if structure is not None and nameXML != "action" and nameXML != "actions":
             nodeXML.attrib['structure'] = "listItem"
-            if VERBOSE: logger.debug("adding structure 'listItem' to node")
+            logger.verbose("adding structure 'listItem' to node")
         nodeXML.attrib[XSI+'nil'] = "true"
     # list
     elif isinstance(nodeJSON[keyJSON], list):
-        if VERBOSE: logger.debug("node is list")
+        logger.verbose("node is list")
         if len(nodeJSON[keyJSON]) == 0:
             nodeXML = LET.Element(str(nameXML))
             upperNodeXML.append(nodeXML)
             nodeXML.attrib['structure'] = "emptyList"
-            if VERBOSE: logger.debug("node is 'emptyList'")
-            if VERBOSE: logger.debug("node '%s' is 'emptyList'", nodeXML.tag)
+            logger.verbose("node is 'emptyList'")
+            logger.verbose("node '%s' is 'emptyList'", nodeXML.tag)
 
         else:
             if upperNodeXML.tag != "output" and upperNodeXML.tag != "context" and upperNodeXML.tag != "node":
                 pass
 #                upperNodeXML.attrib['structure'] = "listItem"
-#                if VERBOSE: logger.debug("setting listItem")
+#                logger.verbose("setting listItem")
             for i in range(len(nodeJSON[keyJSON])):
                 listItemJSON = nodeJSON[keyJSON][i]
                 convertAll(upperNodeXML, nodeJSON[keyJSON], i, keyJSON)
     # dict
     elif isinstance(nodeJSON[keyJSON], dict):
-        if VERBOSE: logger.debug("node is dict")
+        logger.verbose("node is dict")
         if not nodeJSON[keyJSON]: #empty dict
             nodeXML = LET.Element(str(nameXML))
             upperNodeXML.append(nodeXML)
             nodeXML.attrib['structure'] = "emptyDict"
-            if VERBOSE: logger.debug("node '%s' is 'emptyDict'", nodeXML.tag)
+            logger.verbose("node '%s' is 'emptyDict'", nodeXML.tag)
         else:
             nodeXML = LET.Element(str(nameXML))
             upperNodeXML.append(nodeXML)
             if structure is not None and nameXML != "action" and nameXML != "actions":
                 nodeXML.attrib['structure'] = "listItem"
-                if VERBOSE: logger.debug("add structure 'listItem' for '%s'", nameXML)
+                logger.verbose("add structure 'listItem' for '%s'", nameXML)
             for subKeyJSON in nodeJSON[keyJSON]:
                 convertAll(nodeXML, nodeJSON[keyJSON], subKeyJSON)
     # string
     elif isinstance(nodeJSON[keyJSON], basestring):
-        if VERBOSE: logger.debug("node is string")
+        logger.verbose("node is string")
         nodeXML = LET.Element(str(nameXML))
         upperNodeXML.append(nodeXML)
         if structure is not None and nameXML != "action" and nameXML != "actions":
             nodeXML.attrib['structure'] = "listItem"
-            if VERBOSE: logger.debug("add structure 'listItem' for '%s'", nameXML)
+            logger.verbose("add structure 'listItem' for '%s'", nameXML)
         nodeXML.text = nodeJSON[keyJSON]
     # bool
     elif isinstance(nodeJSON[keyJSON], bool):
-        if VERBOSE: logger.debug("node is boolean")
+        logger.verbose("node is boolean")
         nodeXML = LET.Element(str(nameXML))
         upperNodeXML.append(nodeXML)
         if structure is not None and nameXML != "action" and nameXML != "actions":
             nodeXML.attrib['structure'] = "listItem"
-            if VERBOSE: logger.debug("add structure 'listItem' for '%s'", nameXML)
+            logger.verbose("add structure 'listItem' for '%s'", nameXML)
         nodeXML.text = str(nodeJSON[keyJSON])
         nodeXML.attrib['type'] = "boolean"
     # int, long, float, complex
     elif isNumber(nodeJSON[keyJSON]):
-        if VERBOSE: logger.debug("node is number")
+        logger.verbose("node is number")
         nodeXML = LET.Element(str(nameXML))
         upperNodeXML.append(nodeXML)
         if structure is not None and nameXML != "action" and nameXML != "actions":
             nodeXML.attrib['structure'] = "listItem"
-            if VERBOSE: logger.debug("add structure 'listItem' for '%s'", nameXML)
+            logger.verbose("add structure 'listItem' for '%s'", nameXML)
         nodeXML.text = str(nodeJSON[keyJSON])
         nodeXML.attrib['type'] = "number"
     else:
@@ -358,11 +358,13 @@ def main(argv):
     # optional arguments
     parser.add_argument('-d', '--dialogDir', required=False, help='directory with dialog files. If not specified, output is printed to standard output')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
+    
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
-    global VERBOSE
     global STDOUT
-    VERBOSE = args.verbose
     STDOUT = not args.dialogDir
 
     # XML namespaces
@@ -390,5 +392,4 @@ def main(argv):
         print(LET.tostring(dialogsXML, pretty_print=True, encoding='unicode'))
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])

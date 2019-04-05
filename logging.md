@@ -83,15 +83,16 @@ If the script is the first one to get called (it's not used as a module), you al
 
 ```python
 if __name__ == '__main__':
-    setLoggerConfig()
+    setLoggerConfig(level, verbose)
 ```
 
-This loads the `logging_config.ini` file and sets the loggers.
+This loads the `logging_config.ini` file and sets the loggers. The `level` and `verbose` arguments are optional. If `level` is specified, it sets the root logger and all its handlers to this log level. if `verbose` is set to true, the logger prints additional INFO messages
 
 Now you can log a message with desired log level:
 ```
 logger.debug('This is a debug message.')
 logger.info('This is an informational message.')
+logger.verbose('Some additional info.')
 logger.warning('This is a warning.')
 logger.error('This is an errror message.')
 logger.critical('Something really bad happened.')

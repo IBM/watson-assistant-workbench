@@ -136,10 +136,11 @@ def main(argv):
     parser.add_argument('receivedFileName', help='file with received JSONs')
     # optional arguments
     parser.add_argument('-o','--output', required=False, help='name of generated xml file', default='test.junit.xml')
-    parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
 
-    VERBOSE = args.verbose
+    if __name__ == '__main__':
+        setLoggerConfig(args.log)
 
     testName = re.sub(r"\.[^\.]*$", "", os.path.basename(args.expectedFileName))
 
@@ -281,5 +282,4 @@ def main(argv):
         outputFile.write(LET.tostring(outputXml, pretty_print=True, encoding='unicode'))
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])

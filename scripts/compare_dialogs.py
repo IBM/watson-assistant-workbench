@@ -33,9 +33,11 @@ def main(argv):
     parser.add_argument('outputDialogFileName', help='file with output dialog JSON run through WAW scripts')
     # optional arguments
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
 
-    VERBOSE = args.verbose
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
     inputpath = args.inputDialogFileName
     outputpath = args.outputDialogFileName
@@ -55,8 +57,7 @@ def main(argv):
         dialogOutputUnsorted = json.load(g)
 
     result = DeepDiff(dialogInputUnsorted, dialogOutputUnsorted, ignore_order=True).json
-    if VERBOSE:
-        logger.info("result: %s", json.dumps(result, indent=4))
+    logger.debug("result: %s", json.dumps(result, indent=4))
 
     if result == '{}':
         logger.info("Dialog JSONs are same.")
@@ -66,6 +67,5 @@ def main(argv):
         exit(1)
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])
 

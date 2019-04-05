@@ -49,7 +49,7 @@ zipContent = {
 #    'index.php': 'php'
 }
 
-def main(args):
+def main(argv):
     logger.info('STARTING: '+ os.path.basename(__file__))
     parser = argparse.ArgumentParser(description="Deploys the cloud functions",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -62,14 +62,18 @@ def main(args):
     parser.add_argument('--cloudfunctions_password', required=False, help="cloud functions password")
     parser.add_argument('--cloudfunctions_package', required=False, help="cloud functions package name")
     parser.add_argument('--cloudfunctions_url', required=False, help="url of cloud functions API")
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
 
     for runtime in list(interpretedRuntimes.values()) + list(compiledRuntimes.values()):
         parser.add_argument('--cloudfunctions_' + runtime + '_version', required=False,
             help="cloud functions " + runtime + " version")
 
-    parsedArgs = parser.parse_args(args)
-    config = Cfg(parsedArgs)
-    VERBOSE = parsedArgs.verbose
+    args = parser.parse_args(argv)
+
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
+        
+    config = Cfg(args)
 
     namespace = getRequiredParameter(config, 'cloudfunctions_namespace')
     auth = getParametersCombination(config, 'cloudfunctions_apikey', ['cloudfunctions_password', 'cloudfunctions_username'])
@@ -95,8 +99,7 @@ def main(args):
     if 'error' in responseJson:
         logger.error('Cannot create cloud functions package')
         logger.error(responseJson['error'])
-        if VERBOSE:
-            logger.info("%s", responseJson)
+        logger.verbose("%s", responseJson)
         sys.exit(1)
     else:
         logger.info('Cloud functions package successfully uploaded')
@@ -143,8 +146,7 @@ def main(args):
         if 'error' in responseJson:
             logger.error('Cannot create cloud function')
             logger.error(responseJson['error'])
-            if VERBOSE:
-                logger.info("%s", responseJson)
+            logger.verbose("%s", responseJson)
             sys.exit(1)
         else:
             logger.info('Cloud functions %s successfully uploaded.', functionFilePath)
@@ -160,5 +162,4 @@ def _getZipPackageType(zipFilePath):
     return None
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])

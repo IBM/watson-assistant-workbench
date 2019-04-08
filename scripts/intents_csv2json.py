@@ -76,12 +76,12 @@ def main(argv):
     parser.add_argument('-oi', '--common_outputs_intents', help='file with output json with all the intents')
     parser.add_argument('-ni', '--common_intents_nameCheck', action='append', nargs=2, help="regex and replacement for intent name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
-    parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
 
     if __name__ == '__main__':
-        setLoggerConfig(args.log, args.common_verbose)
+        setLoggerConfig(args.log, args.verbose)
         
     config = Cfg(args)
 

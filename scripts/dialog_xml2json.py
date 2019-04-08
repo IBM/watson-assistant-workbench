@@ -841,13 +841,13 @@ def main(argv):
     parser.add_argument('-sc', '--common_scope', required=False, help='scope of dialog, e.g. type-local')
     parser.add_argument('-of', '--common_outputs_directory', required=False, help='directory where the otputs will be stored (outputs is default)')
     parser.add_argument('-od', '--common_outputs_dialogs', required=False, help='name of generated file (dialogs.xml is the default)')
-    parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
     global config
 
     if __name__ == '__main__':
-        setLoggerConfig(args.log, args.common_verbose)
+        setLoggerConfig(args.log, args.verbose)
 
     config = Cfg(args)
 

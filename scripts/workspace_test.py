@@ -32,12 +32,12 @@ def main(argv):
     parser.add_argument('outputFileName', help='file where to store received data from conversation service. (One response at each line.)')
     # optional arguments
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
-    parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
 
     if __name__ == '__main__':
-        setLoggerConfig(args.log, args.common_verbose)
+        setLoggerConfig(args.log, args.verbose)
 
     config = Cfg(args)
 

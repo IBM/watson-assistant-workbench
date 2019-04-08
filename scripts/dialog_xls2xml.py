@@ -77,18 +77,18 @@ def main(argv):
     parser.add_argument('-ge', '--common_generated_entities', nargs='?', help='directory for generated entities')
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
-    parser.add_argument('-v', '--common_verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
     
     if __name__ == '__main__':
-        setLoggerConfig(args.log, args.common_verbose)
+        setLoggerConfig(args.log, args.verbose)
 
     config = Cfg(args)
 
     logger.info('STARTING: ' + os.path.basename(__file__))
 
-    if hasattr(config, 'common_verbose') and getattr(config, 'common_verbose'):
+    if hasattr(config, 'verbose') and getattr(config, 'verbose'):
         name_policy = 'soft_verbose'
     if not hasattr(config, 'common_xls'):
         logger.error('xls is not defined')

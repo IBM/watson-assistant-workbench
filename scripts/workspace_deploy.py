@@ -44,12 +44,12 @@ def main(argv):
     parser.add_argument('-cid','--conversation_workspace_id', required=False, help='workspace_id of the application. If a workspace id is provided, previous workspace content is overwritten, otherwise a new workspace is created ')
     parser.add_argument('-wn','--conversation_workspace_name', required=False, help='name of the workspace')
     parser.add_argument('-wnu','--conversation_workspace_name_unique', required=False, help='true if the workspace name should be unique across apecified assistant')
-    parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
     
     if __name__ == '__main__':
-        setLoggerConfig(args.log, args.common_verbose)
+        setLoggerConfig(args.log, args.verbose)
 
     config = Cfg(args)
     logger.info('STARTING: ' + os.path.basename(__file__))

@@ -15,48 +15,10 @@ limitations under the License.
 
 import json, sys, os, os.path, argparse, codecs
 from cfgCommons import Cfg
-from wawCommons import setLoggerConfig, getScriptLogger,  getRequiredParameter
+from wawCommons import setLoggerConfig, getScriptLogger, getRequiredParameter, replaceValue
 import logging
 
-
 logger = getScriptLogger(__file__)
-
-
-try:
-    basestring            # Python 2
-except NameError:
-    basestring = (str, )  # Python 3
-
-nothingFound = True
-
-    # function to find a desired key in complex json and add other part of json
-def includeJson(nodeJSON, keyJSON, keySearch, includeJSON):
-    global nothingFound
-    logger.info(keyJSON)
-    # check if inputs are ok
-    if nodeJSON is None or keyJSON is None:
-        return
-    # at first call keyJSON does not exist
-    if isinstance(nodeJSON, dict) and keyJSON not in nodeJSON:
-        return
-    # at first call keyJSON is not dict or key is not valid
-    if isinstance(nodeJSON, list) and (not isinstance(keyJSON, int) or keyJSON not in range(len(nodeJSON))):
-        return
-    # set the includeJSON to the key
-    if keyJSON == keySearch:
-        nodeJSON[keyJSON] = includeJSON
-        nothingFound = False
-    # None
-    if nodeJSON[keyJSON] is None:
-        pass
-    # list
-    elif isinstance(nodeJSON[keyJSON], list):
-        for i in range(len(nodeJSON[keyJSON])):
-            includeJson(nodeJSON[keyJSON], i, keySearch, includeJSON)
-    # dict
-    elif isinstance(nodeJSON[keyJSON], dict):
-        for subKeyJSON in nodeJSON[keyJSON]:
-            includeJson(nodeJSON[keyJSON], subKeyJSON, keySearch, includeJSON)
 
 def main(args):
     logger.info('STARTING: ' + os.path.basename(__file__))
@@ -93,13 +55,17 @@ def main(args):
     targetKey = getRequiredParameter(config, 'includejsondata_targetkey')
 
     # find the target key and add the json
-    includeJson(workspaceInput, "dialog_nodes", targetKey, jsonInclude)
+    replacedValuesNumber = 0
+    if 'dialog_nodes' in workspaceInput:
+        workspaceInput['dialog_nodes'], replacedValuesNumber = replaceValue(workspaceInput['dialog_nodes'], targetKey, jsonInclude)
+    else:
+        logger.warning('Workspace does not contain \'dialog_nodes\'')
 
     # writing the file
     with codecs.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_workspace')), 'w', encoding='utf8')  as outfile:
         json.dump(workspaceInput, outfile, indent=4)
 
-    if nothingFound is True:
+    if replacedValuesNumber == 0:
         logger.warning('Target key not found.')
     else:
         logger.info('Writing workspaces with added JSON successfull.')

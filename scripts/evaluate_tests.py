@@ -137,6 +137,7 @@ def main(argv):
     # optional arguments
     parser.add_argument('-o','--output', required=False, help='name of generated xml file', default='test.junit.xml')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('-e','--exception_if_fail', required=False, help='script throws exception if any test fails', action='store_true')
     args = parser.parse_args(argv)
 
     VERBOSE = args.verbose
@@ -279,6 +280,10 @@ def main(argv):
 
     with openFile(args.output, "w") as outputFile:
         outputFile.write(LET.tostring(outputXml, pretty_print=True, encoding='unicode'))
+
+    #as last step of our script, we raise an exception in case user required such behavior and any test failure was detected
+    if args.exception_if_fail and nDialogsFailed:
+        raise NameError('FailedTestDetected')
 
 if __name__ == '__main__':
     setLoggerConfig()

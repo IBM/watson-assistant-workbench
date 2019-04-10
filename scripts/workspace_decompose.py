@@ -30,9 +30,11 @@ def main(argv):
     parser.add_argument('-d','--dialog', required=False, help='file with dialog in .json format (not extracted if not specified)')
     parser.add_argument('-c','--counterexamples', required=False, help='file with counterexamples in .json format (not extracted if not specified)')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
 
-    VERBOSE = args.verbose
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
     workspace_file=json.loads(openFile(args.workspace).read())
 
@@ -60,9 +62,8 @@ def main(argv):
             counterexamplesJSON.append(counterexampleIntentJSON)
             counterexamplesFile.write(json.dumps(counterexamplesJSON, indent=4, ensure_ascii=False))
 
-    if VERBOSE: logger.info("Workspace %s was successfully decomposed", args.workspace)
+    logger.verbose("Workspace %s was successfully decomposed", args.workspace)
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])
 

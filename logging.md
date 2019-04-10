@@ -14,7 +14,9 @@ Default logging level can be seen in the following table. The numeric value corr
 | NOTSET   | 0     |
 
 ## Logger configuration
-A basic configuration can be seen in [`logging_config.ini`](/scripts/logging_config.ini) file.
+In WAW scripts, the log level option and verbosity flag can be set as CLI arguments. For example, when calling a WAW script, you can use `--log=ERROR` to show only ERROR and CRITICAL messages. You can also add a `-v` or `--verbose` for additional INFO messages.
+
+Most logger options can be set in a config file. A basic configuration can be seen in [`logging_config.ini`](/scripts/logging_config.ini) file.
 
 An important thing to note here is that there is a _root_ logger, which listens to ALL messages regardles of what the calling script is, but also a _common_ logger, which is needed to be able to set up different loggers for concrete scripts in an unified way. Its sole purpose is to connect all the loggers under one parent logger and then upon getting the logger check, whether or not there is a logger called `common.[script name]`. If there is no such logger, only the _root_ logger is used. This is not possible to do with the _root_ logger only.
 
@@ -83,15 +85,16 @@ If the script is the first one to get called (it's not used as a module), you al
 
 ```python
 if __name__ == '__main__':
-    setLoggerConfig()
+    setLoggerConfig(level, verbose)
 ```
 
-This loads the `logging_config.ini` file and sets the loggers.
+This loads the `logging_config.ini` file and sets the loggers. The `level` and `verbose` arguments are optional. If `level` is specified, it sets the root logger and all its handlers to this log level. If `verbose` is set to true, the logger prints additional INFO messages. In WAW scripts, both `level` and `verbose` options are set as CLI arguments. If `level` is specified as an argument, the settings from the `logging_config.ini` are overriden. There is no option of setting these values in the WAW config files.
 
 Now you can log a message with desired log level:
 ```
 logger.debug('This is a debug message.')
 logger.info('This is an informational message.')
+logger.verbose('Some additional info.')
 logger.warning('This is a warning.')
 logger.error('This is an errror message.')
 logger.critical('Something really bad happened.')

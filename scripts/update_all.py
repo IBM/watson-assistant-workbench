@@ -26,10 +26,7 @@ import workspace_compose, workspace_addjson, workspace_deploy
 
 logger = getScriptLogger(__file__)
 
-if __name__ == '__main__':
-    setLoggerConfig()
-    logger.info('STARTING: ' + os.path.basename(__file__))
-    logger.info('Using WAW directory: ' + os.path.dirname(__file__))
+def main(argv):
     scriptsPath=os.path.dirname(__file__)
     defaultParamList=['shared.cfg', 'private.cfg']
 
@@ -37,8 +34,15 @@ if __name__ == '__main__':
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c', '--config', help='configuaration file', action='append')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
-    VERBOSE = args.verbose
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
+    args = parser.parse_args(argv)
+
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
+
+    logger.info('STARTING: ' + os.path.basename(__file__))
+    logger.info('Using WAW directory: ' + os.path.dirname(__file__))
+    logger.verbose('THIS IS VERBOSE')
 
     #Assemble command line parameters out of parameters or defaults
     paramsAll = []
@@ -59,39 +63,40 @@ if __name__ == '__main__':
     if len(paramsAll) == 0:
         logger.error('Please provide at least one configuration file.')
         exit(1)
-    if VERBOSE:
-        paramsAll += ['-v']
 
 
     #Execute all steps
-    if VERBOSE:logger.info('python clean_generated.py '+' '.join(paramsAll))
+    logger.verbose('python clean_generated.py '+' '.join(paramsAll))
     clean_generated.main(paramsAll)
 
-    if VERBOSE:logger.info('python dialog_xls2xml.py '+' '.join(paramsAll))
+    logger.verbose('python dialog_xls2xml.py '+' '.join(paramsAll))
     dialog_xls2xml.main(paramsAll)
 
-    if VERBOSE:logger.info('python dialog_xml2json.py '+' '.join(paramsAll))
+    logger.verbose('python dialog_xml2json.py '+' '.join(paramsAll))
     dialog_xml2json.main(paramsAll)
 
-    if VERBOSE:logger.info('python entities_csv2json.py '+' '.join(paramsAll))
+    logger.verbose('python entities_csv2json.py '+' '.join(paramsAll))
     entities_csv2json.main(paramsAll)
 
-    if VERBOSE:logger.info('python intents_csv2json.py '+' '.join(paramsAll))
+    logger.verbose('python intents_csv2json.py '+' '.join(paramsAll))
     intents_csv2json.main(paramsAll)
 
-    if VERBOSE:logger.info('python clean_generated.py '+' '.join(paramsAll))
+    logger.verbose('python clean_generated.py '+' '.join(paramsAll))
     dialog_xml2json.main(paramsAll)
 
-    if VERBOSE:logger.info('python workspace_compose.py '+' '.join(paramsAll))
+    logger.verbose('python workspace_compose.py '+' '.join(paramsAll))
     workspace_compose.main(paramsAll)
 
-    if VERBOSE:logger.info('python workspace_addjson.py '+' '.join(paramsAll))
+    logger.verbose('python workspace_addjson.py '+' '.join(paramsAll))
     workspace_addjson.main(paramsAll)
 
-    if VERBOSE:logger.info('python workspace_deploy.py '+' '.join(paramsAll))
+    logger.verbose('python workspace_deploy.py '+' '.join(paramsAll))
     workspace_deploy.main(paramsAll)
 
-    if VERBOSE:logger.info('python functions_deploy.py '+' '.join(paramsAll))
+    logger.verbose('python functions_deploy.py '+' '.join(paramsAll))
     functions_deploy.main(paramsAll)
 
     logger.info('FINISHING: ' + os.path.basename(__file__))
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

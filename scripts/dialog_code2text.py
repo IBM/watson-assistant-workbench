@@ -21,8 +21,7 @@ import logging
 
 logger = getScriptLogger(__file__)
 
-if __name__ == '__main__':
-    setLoggerConfig()
+def main(argv):
     parser = argparse.ArgumentParser(description='Replaces codes in text tags with sentences specified in the resource file.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('dialog', help='dialog nodes in xml format.')
@@ -33,9 +32,12 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--inplace', required=False, help='replace input dialog by output.', action='store_true')
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
+    args = parser.parse_args(argv)
 
-    VERBOSE = args.verbose
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
+
     NAME_POLICY = 'soft' if args.soft else 'hard'
 
     # load dialog from XML
@@ -53,7 +55,7 @@ if __name__ == '__main__':
     # REPLACE ALL CODES WITH TEXTS
     for tagToReplace in tagsToReplace:
         if tagToReplace.text is None: continue
-        if VERBOSE: logger.info("%s: code '%s'", tagToReplace.tag, tagToReplace.text)
+        logger.verbose("%s: code '%s'", tagToReplace.tag, tagToReplace.text)
         textParts = tagToReplace.text.split()
         for textPart in textParts:
             if not textPart.startswith('%%'): continue # it is not a code
@@ -65,7 +67,7 @@ if __name__ == '__main__':
                 # replace code (introduced with double %% and followed by white character or by the end) with its translation
                 newText = re.sub(r"%%"+code+"(?=\s|$)", translations[code], tagToReplace.text)
                 tagToReplace.text = newText
-        if VERBOSE: logger.info("-> translated as %s", tagToReplace.text)
+        logger.verbose("-> translated as %s", tagToReplace.text)
 
     # OUTPUT NEW DIALOG
     if args.output is not None:
@@ -77,4 +79,7 @@ if __name__ == '__main__':
     else:
         sys.stdout.write(LET.tostring(dialogXML, pretty_print=True, encoding='utf8'))
 
-    if VERBOSE: logger.info('Codes were successfully replaced with texts.')
+    logger.verbose('Codes were successfully replaced with texts.')
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

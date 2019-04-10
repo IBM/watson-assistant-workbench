@@ -28,9 +28,12 @@ def main(argv):
     parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
 
-    VERBOSE = args.verbose
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
+
     NAME_POLICY = 'soft' if args.soft else 'hard'
 
     with openFile(args.entities, 'r') as entitiesFile:
@@ -77,9 +80,8 @@ def main(argv):
         for systemEntity in systemEntities:
             systemEntitiesFile.write(systemEntity + "\n")
 
-    if VERBOSE: logger.info("Entities from file '%s' were successfully extracted\n", args.entities)
+    logger.verbose("Entities from file '%s' were successfully extracted\n", args.entities)
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])
 

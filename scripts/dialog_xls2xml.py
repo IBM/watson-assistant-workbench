@@ -69,7 +69,6 @@ def saveDialogDataToFileSystem(dialogData, handler, config):
                     entityFile.write(entityList + '\n')
 
 def main(argv):
-    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Creates dialog nodes with answers to intents .', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # optional arguments
     parser.add_argument('-x', '--common_xls', required=False, help='file with MSExcel formated dialog', action='append')
@@ -78,29 +77,35 @@ def main(argv):
     parser.add_argument('-ge', '--common_generated_entities', nargs='?', help='directory for generated entities')
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
-    parser.add_argument('-v', '--common_verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
-    config = Cfg(args)
-    VERBOSE = hasattr(config, 'common_verbose')
+    
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
-    if hasattr(config, 'common_verbose') and getattr(config, 'common_verbose'):
+    config = Cfg(args)
+
+    logger.info('STARTING: ' + os.path.basename(__file__))
+
+    if hasattr(config, 'verbose') and getattr(config, 'verbose'):
         name_policy = 'soft_verbose'
     if not hasattr(config, 'common_xls'):
         logger.error('xls is not defined')
         exit(1)
     if not hasattr(config, 'common_generated_dialogs'):
-        if VERBOSE: logger.info('generated_dialogs parameter is not defined')
+        logger.verbose('generated_dialogs parameter is not defined')
     if not hasattr(config, 'common_generated_intents'):
-        if VERBOSE: logger.info('generated_intents parameter is not defined')
+        logger.verbose('generated_intents parameter is not defined')
     if not hasattr(config, 'common_generated_entities'):
-        if VERBOSE: logger.info('generated_entities parameter is not defined')
+        logger.verbose('generated_entities parameter is not defined')
 
     xlsxHandler = XLSXHandler(config)
     allDataBlocks = {}  # map of datablocks, key: Excel sheet name, value: list of all block in the sheet
 
     logger.info(getattr(config, 'common_xls'))
     for fileOrFolder in getattr(config, 'common_xls'):
-        if VERBOSE: logger.info('Searching in path: %s', fileOrFolder)
+        logger.verbose('Searching in path: %s', fileOrFolder)
         if os.path.isdir(fileOrFolder):
             xlsDirList = os.listdir(fileOrFolder)
             for xlsFile in xlsDirList:
@@ -121,5 +126,4 @@ def main(argv):
     logger.info('FINISHING: ' + os.path.basename(__file__))
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])

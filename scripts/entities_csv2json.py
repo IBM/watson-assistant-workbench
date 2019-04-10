@@ -23,7 +23,6 @@ import logging
 logger = getScriptLogger(__file__)
 
 def main(argv):
-    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Conversion entity csv files to .json.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration fil, the optional name of file where configuration is stored.')
@@ -32,13 +31,19 @@ def main(argv):
     parser.add_argument('-od', '--common_outputs_directory', required=False, help='directory where the otputs will be stored (outputs is default)')
     parser.add_argument('-oe', '--common_outputs_entities', help='file with output json with all the entities')
     parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\\L' for lowercase")
-    parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('-s', '--common_soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
+
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
+
     config = Cfg(args)
-    VERBOSE = hasattr(config, 'common_verbose')
+
     NAME_POLICY = 'soft' if args.common_soft else 'hard'
 
+    logger.info('STARTING: ' + os.path.basename(__file__))
     if not hasattr(config, 'common_entities'):
         logger.info('entities parameter is not defined.')
         exit(1)
@@ -121,14 +126,13 @@ def main(argv):
             logger.info('Created new output directory ' + getattr(config, 'common_outputs_entities'))
         with io.open(os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')), mode='w', encoding='utf-8') as outputFile:
             outputFile.write(json.dumps(entitiesJSON, indent=4, ensure_ascii=False))
-        if VERBOSE: logger.info("Entities json '%s' was successfully created", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')))
+        logger.verbose("Entities json '%s' was successfully created", os.path.join(getattr(config, 'common_outputs_directory'), getattr(config, 'common_outputs_entities')))
     else:
         print(json.dumps(entitiesJSON, indent=4, ensure_ascii=False).encode('utf8'))
-        if VERBOSE: logger.info("Entities json was successfully created %s", os.path.basename(__file__))
+        logger.verbose("Entities json was successfully created %s", os.path.basename(__file__))
 
     logger.info('FINISHING: ' + os.path.basename(__file__))
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])
 

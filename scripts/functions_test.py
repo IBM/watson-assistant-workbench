@@ -63,7 +63,6 @@ def main(argv):
         }
     ]
     '''
-    logger.info('STARTING: '+ os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Tests all tests specified in given file against Cloud Functions and save test outputs to output file', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('inputFileName', help='File with json array containing tests.')
@@ -77,13 +76,17 @@ def main(argv):
     parser.add_argument('--cloudfunctions_apikey', required=False, help="cloud functions apikey")
     parser.add_argument('--cloudfunctions_username', required=False, help='cloud functions user name')
     parser.add_argument('--cloudfunctions_password', required=False, help='cloud functions password')
+    parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     parser.add_argument('--replace', required=False, help='string values to be replaced in input and expected output json (format \'valueToBeReplaced1:replacement1,valueToBeReplaced2:replacement2\')')
-    parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
     args = parser.parse_args(argv)
+
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
     config = Cfg(args)
 
-    VERBOSE = args.common_verbose
+    logger.info('STARTING: '+ os.path.basename(__file__))
 
     url = getRequiredParameter(config, 'cloudfunctions_url')
     namespace = getRequiredParameter(config, 'cloudfunctions_namespace')
@@ -255,6 +258,5 @@ def main(argv):
     logger.info('FINISHING: '+ os.path.basename(__file__))
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])
 

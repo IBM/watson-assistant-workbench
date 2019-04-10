@@ -21,8 +21,7 @@ import logging
 
 logger = getScriptLogger(__file__)
 
-if __name__ == '__main__':
-    setLoggerConfig()
+def main(argv):
     parser = argparse.ArgumentParser(description='Replaces sentences in text tags with codes and creates resource file with translations from codes to sentences.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('dialog', help='dialog nodes in xml format.')
@@ -36,9 +35,12 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--inplace', required=False, help='replace input dialog by output.', action='store_true')
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
+    args = parser.parse_args(argv)
+    
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
-    VERBOSE = args.verbose
     NAME_POLICY = 'soft' if args.soft else 'hard'
     PREFIX = toCode(NAME_POLICY, args.prefix)
 
@@ -63,7 +65,7 @@ if __name__ == '__main__':
     # REPLACE ALL TEXTS WITH CODES
     for tagToReplace in tagsToReplace:
         text = tagToReplace.text
-        if VERBOSE: logger.info("%s: %s", tagToReplace.tag, tagToReplace.text)
+        logger.verbose("%s: %s", tagToReplace.tag, tagToReplace.text)
         # if this tag text is not in translations dictionary (it has not a code),
         # create new code for it and add it to dictionary
         if not text in translations.values():
@@ -72,7 +74,7 @@ if __name__ == '__main__':
         # replace tag text by its code
         code = translations.keys()[translations.values().index(text)] # returns key (code) for this value (text)
         tagToReplace.text = '%%' + code
-        if VERBOSE: logger.info("-> encoded as %s", code)
+        logger.verbose("-> encoded as %s", code)
 
     # OUTPUT NEW DIALOG
     if args.output is not None:
@@ -95,4 +97,7 @@ if __name__ == '__main__':
     with openFile(args.resource, 'w') as resourceFile:
         resourceFile.write(json.dumps(translations, indent=4, ensure_ascii=False))
 
-    if VERBOSE: logger.info('Texts were successfully replaced with codes.')
+    logger.verbose('Texts were successfully replaced with codes.')
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

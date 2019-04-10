@@ -154,10 +154,10 @@ def replace_config_variables (importTree):
          repl.getparent().remove(repl)
 
 def validate(xml):
-    global schema, VERBOSE
+    global schema
     try:
         schema.assertValid(xml)
-        if VERBOSE: logger.info("XML is valid")
+        logger.verbose("XML is valid")
     except LET.XMLSchemaError:
         logger.error("Invalid XML %s!")
 
@@ -173,7 +173,7 @@ def importText(importTree, config):
     imports = importTree.xpath('//importText')
     for imp in imports:
         filename = imp.text.split('/')
-        if VERBOSE: logger.info('Importing %s', os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*filename))
+        logger.verbose('Importing %s', os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*filename))
         fp = io.open(os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*filename) ,'r', encoding='utf-8')
         importTxt = fp.read()
         fp.close()
@@ -181,7 +181,7 @@ def importText(importTree, config):
         imp.getparent().remove(imp)
 
 def importNodes(root, config):
-    global rootGlobal, VERBOSE, names
+    global rootGlobal, names
     # IMPORT AND APPEND NODES
     defaultNode = None
     if len(root) > 0 and (root[len(root)-1].find('condition') is None or (root[len(root)-1].find('condition') is not None and root[len(root)-1].find('condition').text == 'anything_else')):
@@ -189,7 +189,7 @@ def importNodes(root, config):
         defaultNode = root[len(root)-1]
 
     for node in root.findall('import'):
-        if VERBOSE: logger.info('Importing %s', os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),node.text))
+        logger.verbose('Importing %s', os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),node.text))
         importPath = node.text.split('/')
         importTree = LET.parse(os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*importPath))
         importText(importTree, config)
@@ -325,11 +325,11 @@ def isFalse(autogenerate, attributeName):
             return False
 
 def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parentBackSettings, parentRepeatSettings, parentGenericSettings):
-    global parent_map, VERBOSE
+    global parent_map
     # GENERATE NAMES
     for node in root.findall('node'):
         generateNodeName(node, '')
-        if VERBOSE: logger.error('Found node: %s in: %s', node.find('name').text, parent.find('name').text if parent is not None else 'root')
+        logger.verbose('Found node: %s in: %s', node.find('name').text, parent.find('name').text if parent is not None else 'root')
 
     # READ NODES PROPERTIES
     abortSettings = None
@@ -340,19 +340,19 @@ def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parent
 
     for autogenerate in root.findall('autogenerate'):
         if autogenerate.get('type') == 'abort':
-            if VERBOSE: logger.error('Abort settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
+            logger.verbose('Abort settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
             abortSettings = autogenerate
         if autogenerate.get('type') == 'again':
-            if VERBOSE: logger.error('Again settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
+            logger.verbose('Again settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
             againSettings = autogenerate
         if autogenerate.get('type') == 'back':
-            if VERBOSE: logger.error('Back settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
+            logger.verbose('Back settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
             backSettings = autogenerate
         if autogenerate.get('type') == 'repeat':
-            if VERBOSE: logger.error('Repeat settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
+            logger.verbose('Repeat settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
             repeatSettings = autogenerate
         if autogenerate.get('type') == 'generic':
-            if VERBOSE: logger.error('Generic settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
+            logger.verbose('Generic settings found in parent: %s', parent.find('name').text if parent is not None else 'root')
             genericSettings = autogenerate
 
     abortSettings = mergeSettings(abortSettings, parentAbortSettings)
@@ -420,10 +420,10 @@ def generateNodes(root, parent, parentAbortSettings, parentAgainSettings, parent
 
 def mergeSettings(childSettings, parentSettings):
     if childSettings is None:
-        if VERBOSE: logger.error('Returning parent settings')
+        logger.verbose('Returning parent settings')
         return parentSettings
     if parentSettings is None:
-        if VERBOSE: logger.error('Returning child settings')
+        logger.verbose('Returning child settings')
         return childSettings
     # for all child elements
     for element in parentSettings:
@@ -433,15 +433,14 @@ def mergeSettings(childSettings, parentSettings):
     for attributeName in parentSettings.attrib:
         if childSettings.get(attributeName) is None:
             childSettings.set(attributeName, parentSettings.get(attributeName))
-    if VERBOSE: logger.error('Returning merged settings')
+    logger.verbose('Returning merged settings')
     return childSettings
 
 def generateAbortNode(root, parent, settings):
-    global VERBOSE
     # node
     abortNode = LET.Element('node')
     generateNodeName(abortNode, 'ABORT_')
-    if VERBOSE: logger.error('Generate abort node for parent: %s named: %s', parent.find('name').text if parent is not None else 'root', abortNode.find('name').text)
+    logger.verbose('Generate abort node for parent: %s named: %s', parent.find('name').text if parent is not None else 'root', abortNode.find('name').text)
     # condition
     abortNodeCondition = LET.Element('condition')
     abortNodeCondition.text = DEFAULT_CONDITION_ABORT + (' and intent.confidence >' + settings.get('confidence') if 'confidence' in settings.attrib else '')
@@ -460,11 +459,10 @@ def generateAbortNode(root, parent, settings):
     return abortNode
 
 def generateAgainNode(root, parent, settings):
-    global VERBOSE
     # node
     againNode = LET.Element('node')
     generateNodeName(againNode ,'AGAIN_')
-    if VERBOSE: logger.error('Generate again node for parent: %s named: %s', parent.find('name').text if parent is not None else 'root', againNode.find('name').text)
+    logger.verbose('Generate again node for parent: %s named: %s', parent.find('name').text if parent is not None else 'root', againNode.find('name').text)
     # condition
     againNodeCondition = LET.Element('condition')
     againNodeCondition.text = DEFAULT_CONDITION_AGAIN + (' and intent.confidence >' + settings.get('confidence') if 'confidence' in settings.attrib else '')
@@ -482,11 +480,10 @@ def generateAgainNode(root, parent, settings):
     return againNode
 
 def generateBackNode(root, parent, settings):
-    global VERBOSE
     # node
     backNode = LET.Element('node')
     generateNodeName(backNode, 'BACK_')
-    if VERBOSE: logger.error('Generate back node for parent: %s named: %s', parent.find('name').text if parent is not None else 'root', backNode.find('name').text)
+    logger.verbose('Generate back node for parent: %s named: %s', parent.find('name').text if parent is not None else 'root', backNode.find('name').text)
     # condition
     backNodeCondition = LET.Element('condition')
     backNodeCondition.text = DEFAULT_CONDITION_BACK + (' and intent.confidence >' + settings.get('confidence') if 'confidence' in settings.attrib else '')
@@ -513,9 +510,8 @@ def generateBackNode(root, parent, settings):
     return backNode
 
 def generateRepeatNodes(root, parent, settings):
-    global VERBOSE
     if parent is None: return
-    if VERBOSE: logger.error('Generate repeat nodes for parent: %s START', parent.find('name').text if parent is not None else 'root')
+    logger.verbose('Generate repeat nodes for parent: %s START', parent.find('name').text if parent is not None else 'root')
     # ADD VARIABLE 'attempts_*' TO PARENT'S CONTEXT AND SET IT TO ZERO (FOR SURE)
     repeatVarName = 'attempts_' + parent.find('name').text.replace('-', '') # remove hyphens (they cause problems in mathematical expressions where they act as minus signs)
     # context
@@ -535,28 +531,27 @@ def generateRepeatNodes(root, parent, settings):
     repeatNodeGoto.append(repeatNodeGotoTarget)
     # max attempts
     maxAttempts = int(settings.find('attempts').text) if settings is not None and settings.find('attempts') is not None else DEFAULT_REPEAT_ATTEMPTS
-    if VERBOSE: logger.error('maxAttempts: %s', maxAttempts)
+    logger.verbose('maxAttempts: %s', maxAttempts)
     # output sentences
     outputs = settings.find('outputs').findall('output') if settings.find('outputs') is not None and len(settings.find('outputs').findall('output')) > 0 else DEFAULT_REPEAT_MESS_TEMPLATES['default']
-    if VERBOSE: logger.error('nOutputs: %s', len(outputs))
+    logger.verbose('nOutputs: %s', len(outputs))
     # LAST NODE (RETURNING TO THE MAIN MENU)
     generateRepeatNode(parent, root, outputs[-1], maxAttempts-1, repeatVarName, 0, settings.find('goto'))
-    if VERBOSE: logger.error('LAST NODE')
+    logger.verbose('LAST NODE')
     # MIDDLE NODE
     for i in range(min(maxAttempts-1, len(outputs)-1) -1, 0, -1):
         generateRepeatNode(parent, root, outputs[i], i, repeatVarName, '<?$' + repeatVarName +' + 1?>', repeatNodeGoto)
-        if VERBOSE: logger.error('MIDDLE NODE number: %d', i)
+        logger.verbose('MIDDLE NODE number: %d', i)
     # FIRST (DEFAULT) NODE
     generateRepeatNode(parent, root, outputs[0], 0, repeatVarName, '<? $' + repeatVarName + ' == null ? 0 : $' + repeatVarName + ' + 1 ?>', repeatNodeGoto)
-    if VERBOSE: logger.error('FIRST NODE')
-    if VERBOSE: logger.error('Generate repeat nodes for parent: %s ', parent.find('name').text if parent is not None else 'root')
+    logger.verbose('FIRST NODE')
+    logger.verbose('Generate repeat nodes for parent: %s ', parent.find('name').text if parent is not None else 'root')
 
 def generateRepeatNode(parent, root, output, attempts, varName, varValue, goto):
-    global VERBOSE
     # node
     repeatNode = LET.Element('node')
     generateNodeName(repeatNode, 'REPEAT_')
-    if VERBOSE: logger.error('Generate repeat node for parent: %s named: %s START', parent.find('name').text if parent is not None else 'root', repeatNode.find('name').text)
+    logger.verbose('Generate repeat node for parent: %s named: %s START', parent.find('name').text if parent is not None else 'root', repeatNode.find('name').text)
     # condition
     repeatNodeCondition = LET.Element('condition')
     repeatNodeCondition.text = ('$' + varName + ' == null or ' if attempts == 0 else '') + '$' + varName + ' >= ' + str(attempts)
@@ -575,7 +570,7 @@ def generateRepeatNode(parent, root, output, attempts, varName, varValue, goto):
     if goto is not None:
         repeatNode.append(copy.deepcopy(goto))
     root.append(repeatNode)
-    if VERBOSE: logger.error('Generate repeat node for parent: %s named: %s END', parent.find('name').text if parent is not None else 'root', repeatNode.find('name').text)
+    logger.verbose('Generate repeat node for parent: %s named: %s END', parent.find('name').text if parent is not None else 'root', repeatNode.find('name').text)
 
 def printNodes(root, parent, dialogJSON):
     """Converts parsed XML to JSON structure
@@ -585,7 +580,7 @@ def printNodes(root, parent, dialogJSON):
         parent (_Element): initially None, then parent
         dialogJSON (string): generated JSON
     """
-    global firstNode, VERBOSE
+    global firstNode
     # PROCESS SIBLINGS
     previousSibling = None
     for nodeXML in root: # for each node in nodes
@@ -598,9 +593,8 @@ def printNodes(root, parent, dialogJSON):
             validateNodeName(nodeXML)
         nodeJSON = {'dialog_node':nodeXML.find('name').text}
         dialogJSON.append(nodeJSON)
-        if VERBOSE:
-            logger.debug("===============================")
-            logger.debug("name %s", nodeXML.find('name').text)
+        logger.verbose("===============================")
+        logger.verbose("name %s", nodeXML.find('name').text)
 
         children = []
 
@@ -751,13 +745,13 @@ def convertAll(upperNodeJson, nodeXml):
         nodeXml (Element): Parsed XML representation to be translated
     """
     key = nodeXml.tag #key is index/selector to upperNodeJson, it is either name (e.g. generic)
-    if VERBOSE: logger.debug("tag '%s'", nodeXml.tag)
+    logger.verbose("tag '%s'", nodeXml.tag)
     if type(upperNodeJson) is list:  # or an index of the last element of the array
         key = len(upperNodeJson) - 1
-    if VERBOSE: logger.debug("key '%s'", str(key))
+    logger.verbose("key '%s'", str(key))
     if nodeXml.get(XSI+'nil') is not None:
         if nodeXml.get(XSI+'nil') in ["True", "true"]:
-            if VERBOSE: logger.debug("Tag is None")
+            logger.verbose("Tag is None")
             upperNodeJson[key] = None
             return
         elif nodeXml.text in ["False", "false"]:
@@ -766,15 +760,15 @@ def convertAll(upperNodeJson, nodeXml):
             logger.error("Unable to parse boolean " + nodeXml.get(XSI+'nil'))
 
     if not list(nodeXml): # it has no children (subtags) - it is a terminal
-        if VERBOSE: logger.debug("Tag is terminal")
-        if VERBOSE: logger.debug(" structure '%s'", str(nodeXml.get('structure')))
+        logger.verbose("Tag is terminal")
+        logger.verbose(" structure '%s'", str(nodeXml.get('structure')))
         if nodeXml.get('structure') is not None:
             if nodeXml.get('structure') == 'emptyList':
-#                if VERBOSE: logger.debug("Tag is emptyList")
+#                logger.verbose("Tag is emptyList")
                 upperNodeJson[key] = []
                 return
             elif nodeXml.get('structure') == 'emptyDict':
-#                if VERBOSE: logger.debug("Tag is emptyDict")
+#                logger.verbose("Tag is emptyDict")
                 upperNodeJson[key] = {}
                 return
 #            elif nodeXml.get('structure') == 'listItem' and nodeXml.text:
@@ -786,7 +780,7 @@ def convertAll(upperNodeJson, nodeXml):
 #            upperNodeJson[key] = None
 # text cannot be none, just empty
         if nodeXml.text:  # if a single element with text - terminal (string, number or none)
-            if VERBOSE: logger.debug("Tag has text")
+            logger.verbose("Tag has text")
             if nodeXml.get('type') is not None and nodeXml.get('type') == 'number':
                 try:
                     upperNodeJson[key] = int(nodeXml.text)
@@ -804,13 +798,13 @@ def convertAll(upperNodeJson, nodeXml):
                     upperNodeJson[key] = nodeXml.text
                     logger.error("Unable to parse boolean " + nodeXml.text)
             else:
-                if VERBOSE: logger.debug("of type text")
+                logger.verbose("of type text")
                 upperNodeJson[key] = unescape(nodeXml.text.strip())
-                if VERBOSE: logger.debug("adding '%s' to [%s]", unescape(nodeXml.text.strip()), str(key))
+                logger.verbose("adding '%s' to [%s]", unescape(nodeXml.text.strip()), str(key))
         else:
             upperNodeJson[key] = '' # empty string
     else: # it has subtags
-        if VERBOSE: logger.debug("Tag has subtags")
+        logger.verbose("Tag has subtags")
         #if there is an array of subelements within elemnt - separate elements of each tag value to a separate nodeNameMap field
         upperNodeJson[key] = {}
 
@@ -828,18 +822,17 @@ def convertAll(upperNodeJson, nodeXml):
             #if len(nodeNameMap[name]) == 1 and nodeNameMap[name][0].get('structure') != 'listItem' and name!='values':
             if len(nodeNameMap[name]) == 1 and nodeNameMap[name][0].get('structure') != 'listItem' :
                 convertAll(upperNodeJson[key], nodeNameMap[name][0])
-                if VERBOSE: logger.debug("Subtag is tag")
+                logger.verbose("Subtag is tag")
             else:
                 upperNodeJson[key][name] = []
-                if VERBOSE: logger.debug("Subtag is list")
+                logger.verbose("Subtag is list")
                 for element in nodeNameMap[name]:
-                    if VERBOSE: logger.debug("adding [%s][%s] element '%s'", str(key), name, str(element))
+                    logger.verbose("adding [%s][%s] element '%s'", str(key), name, str(element))
                     upperNodeJson[key][name].append(None)  # just to get index
                     convertAll(upperNodeJson[key][name], element)
 
 
 def main(argv):
-    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Converts dialog nodes from .xml format to Bluemix conversation service workspace .json format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-dm','--common_dialog_main', required=False, help='main dialog file with dialogue nodes in xml format')
     parser.add_argument('-c','--common_configFilePaths', help='configuaration file', action='append')
@@ -848,14 +841,17 @@ def main(argv):
     parser.add_argument('-sc', '--common_scope', required=False, help='scope of dialog, e.g. type-local')
     parser.add_argument('-of', '--common_outputs_directory', required=False, help='directory where the otputs will be stored (outputs is default)')
     parser.add_argument('-od', '--common_outputs_dialogs', required=False, help='name of generated file (dialogs.xml is the default)')
-    parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
-
     global config
+
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
+
     config = Cfg(args)
 
-    global VERBOSE
-    VERBOSE = hasattr(config, 'common_verbose')
+    logger.info('STARTING: ' + os.path.basename(__file__))
 
     # XML namespaces
     global XSI_NAMESPACE
@@ -928,6 +924,5 @@ def main(argv):
     logger.info('FINISHING: ' + os.path.basename(__file__))
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])
 

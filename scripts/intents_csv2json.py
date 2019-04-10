@@ -67,7 +67,6 @@ def processExample(line, intentName, examples):
     return example
 
 def main(argv):
-    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description='Converts intent csv files to .json format of Watson Conversation Service', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
@@ -77,12 +76,17 @@ def main(argv):
     parser.add_argument('-oi', '--common_outputs_intents', help='file with output json with all the intents')
     parser.add_argument('-ni', '--common_intents_nameCheck', action='append', nargs=2, help="regex and replacement for intent name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
-    parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
+
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
+        
     config = Cfg(args)
 
-    VERBOSE = hasattr(config, 'common_verbose')
     NAME_POLICY = 'soft' if args.soft else 'hard'
+    logger.info('STARTING: ' + os.path.basename(__file__))
 
     if not hasattr(config, 'common_intents'):
         logger.info('intents parameter is not defined.')
@@ -131,5 +135,4 @@ def main(argv):
     logger.info('FINISHING: ' + os.path.basename(__file__))
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])

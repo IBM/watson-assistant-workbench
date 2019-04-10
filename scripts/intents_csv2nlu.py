@@ -20,12 +20,12 @@ import logging
 
 logger = getScriptLogger(__file__)
 
-def getEntities(entityDir, NAME_POLICY):
+def getEntities(entityDir, entitiesNameCheck, NAME_POLICY):
     """Retrieves entity value to entity name mapping from the directory with entity lists"""
     entities = {}
     for entityFileName in os.listdir(entityDir):
-        entityName = toEntityName(NAME_POLICY, args.common_entities_nameCheck, os.path.splitext(entityFileName)[0])
-        with openFile(os.path.join(args.entityDir, entityFileName), "r") as entityFile:
+        entityName = toEntityName(NAME_POLICY, entitiesNameCheck, os.path.splitext(entityFileName)[0])
+        with openFile(os.path.join(entityDir, entityFileName), "r") as entityFile:
             for line in entityFile.readlines():
                 # remove comments
                 line = line.split('#')[0]
@@ -43,8 +43,7 @@ def tagEntities(line, entities):
             line = re.sub(word, "<" + entities[word.lower()] + ">" + word + "</" + entities[word.lower()] + ">", line, re.UNICODE)
     return line
 
-if __name__ == '__main__':
-    setLoggerConfig()
+def main(argv):
     parser = argparse.ArgumentParser(description='Converts intents files to one file in NLU tsv format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('intentsDir', help='directory with intents files - all of them will be included in output file')
@@ -58,14 +57,17 @@ if __name__ == '__main__':
     parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true', default="")
-    args = parser.parse_args(sys.argv[1:])
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
+    args = parser.parse_args(argv)
 
-    VERBOSE = args.verbose
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
+
     NAME_POLICY = 'soft' if args.soft else 'hard'
     PREFIX = toIntentName(NAME_POLICY, args.common_intents_nameCheck, args.prefix)
 
     if args.entityDir:
-        entities = getEntities(args.entityDir, NAME_POLICY)
+        entities = getEntities(args.entityDir, args.common_entities_nameCheck, NAME_POLICY)
 
     with openFile(args.output, 'w') as outputFile:
         # process intents
@@ -82,13 +84,13 @@ if __name__ == '__main__':
                         line = tagEntities(line, entities)
                     if line:
                         outputFile.write("1\t" + intentName + "\t" + line)
-    if VERBOSE: logger.info("Intents file '%s' was successfully created", args.output)
+    logger.verbose("Intents file '%s' was successfully created", args.output)
 
     if args.list:
         with openFile(args.list, 'w') as intentsListFile:
             for intentName in intentNames:
                 intentsListFile.write(intentName + "\n")
-    if VERBOSE: logger.info("Intents list '%s' was successfully created", args.list)
+    logger.verbose("Intents list '%s' was successfully created", args.list)
 
     if args.map:
         domIntMap = {}
@@ -103,4 +105,7 @@ if __name__ == '__main__':
         with openFile(args.map, 'w') as intentsMapFile:
             for domainPart in domIntMap.keys():
                 intentsMapFile.write(domainPart + domIntMap[domainPart] + "\n")
-        if VERBOSE: logger.info("Domain-intent map '%s' was successfully created", args.output)
+        logger.verbose("Domain-intent map '%s' was successfully created", args.output)
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

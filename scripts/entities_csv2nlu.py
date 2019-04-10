@@ -21,8 +21,7 @@ import logging
 
 logger = getScriptLogger(__file__)
 
-if __name__ == '__main__':
-    setLoggerConfig()
+def main(argv):
     parser = argparse.ArgumentParser(description='convert NLU tsv files into domain-entity and intent-entity mappings.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('entitiesDir', help='directory with entities files - all of them will be included in output list if specified')
@@ -35,9 +34,12 @@ if __name__ == '__main__':
     parser.add_argument('-ne', '--common_entities_nameCheck', action='append', nargs=2, help="regex and replacement for entity name check, e.g. '-' '_' for to replace hyphens for underscores or '$special' '\L' for lowercase")
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
-    args = parser.parse_args(sys.argv[1:])
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
+    args = parser.parse_args(argv)
+    
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
-    VERBOSE = args.verbose
     NAME_POLICY = 'soft' if args.soft else 'hard'
 
     domEntMap = defaultdict(dict)
@@ -64,7 +66,7 @@ if __name__ == '__main__':
                 for entity in sorted(domEntMap[domain].keys()):
                     entities += entity + ";"
                 domEntFile.write(domain + ";" + entities + "\n")
-        if VERBOSE: logger.info("Domain-entity map '%s' was successfully created", args.domEnt)
+        logger.debug("Domain-entity map '%s' was successfully created", args.domEnt)
 
     if args.domEnt:
         with openFile(args.intEnt, 'w') as intEntFile:
@@ -73,7 +75,7 @@ if __name__ == '__main__':
                 for entity in sorted(intEntMap[intent].keys()):
                     entities += entity + ";"
                 intEntFile.write(intent + ";" + entities + "\n")
-        if VERBOSE: logger.info("Intent-entity map '%s' was successfully created", args.domEnt)
+        logger.debug("Intent-entity map '%s' was successfully created", args.domEnt)
 
     if args.list:
         with openFile(args.list, 'w') as listFile:
@@ -85,4 +87,7 @@ if __name__ == '__main__':
                     entityNames.append(entityName)
             for entityName in entityNames:
                 listFile.write(entityName + ";\n")
-        if VERBOSE: logger.info("Entities list '%s' was successfully created", args.list)
+        logger.debug("Entities list '%s' was successfully created", args.list)
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

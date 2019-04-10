@@ -28,7 +28,6 @@ except NameError:
     unicode = str  # Python 3
 
 def main(argv):
-    logger.info('STARTING: ' + os.path.basename(__file__))
     parser = argparse.ArgumentParser(description="Deploys a workspace in json format\
      to the Watson Conversation Service. If there is no 'conversation_workspace_id' provided\
      and the 'conversation_workspace_name_unique' is set to 'true', it uploads\
@@ -45,10 +44,15 @@ def main(argv):
     parser.add_argument('-cid','--conversation_workspace_id', required=False, help='workspace_id of the application. If a workspace id is provided, previous workspace content is overwritten, otherwise a new workspace is created ')
     parser.add_argument('-wn','--conversation_workspace_name', required=False, help='name of the workspace')
     parser.add_argument('-wnu','--conversation_workspace_name_unique', required=False, help='true if the workspace name should be unique across apecified assistant')
-    parser.add_argument('-v','--common_verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
+    parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
+    
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
+
     config = Cfg(args)
-    VERBOSE = hasattr(config, 'common_verbose')
+    logger.info('STARTING: ' + os.path.basename(__file__))
 
     # workspace info
     try:
@@ -85,7 +89,7 @@ def main(argv):
     response = requests.post(requestUrl, auth=(username, password), headers={'Content-Type': 'application/json'}, data=json.dumps(workspace, indent=4))
     responseJson = response.json()
 
-    if VERBOSE: logger.info("response: %s", responseJson)
+    logger.verbose("response: %s", responseJson)
     if not errorsInResponse(responseJson):
         logger.info('Workspace successfully uploaded.')
     else:
@@ -138,5 +142,4 @@ def main(argv):
     logger.info('FINISHING: '+ os.path.basename(__file__))
 
 if __name__ == '__main__':
-    setLoggerConfig()
     main(sys.argv[1:])

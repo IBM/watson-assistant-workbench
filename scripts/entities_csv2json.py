@@ -40,7 +40,7 @@ def main(argv):
         setLoggerConfig(args.log, args.verbose)
 
     config = Cfg(args)
-        
+
     NAME_POLICY = 'soft' if args.common_soft else 'hard'
 
     logger.info('STARTING: ' + os.path.basename(__file__))

@@ -411,14 +411,15 @@ def getParametersCombination(config, *args):
     
     return parametersCombinationMap
 
-def verbose(self, message, *args, **kws):
-    if (logging.Logger.isVerbose):
-        self._log(logging.INFO, message, args, **kws)
-
 def setLoggerConfig(level=None, isVerbose=False):
     fileConfig(os.path.split(os.path.abspath(__file__))[0]+'/logging_config.ini')
     l = logging.getLogger()
     logging.Logger.isVerbose = isVerbose
+
+    def verbose(self, message, *args, **kws):
+        if (logging.Logger.isVerbose):
+            self.info(message, *args, **kws)
+
     logging.Logger.verbose = verbose
     if level:
         levelName = logging.getLevelName(level)

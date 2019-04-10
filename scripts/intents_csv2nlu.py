@@ -43,7 +43,7 @@ def tagEntities(line, entities):
             line = re.sub(word, "<" + entities[word.lower()] + ">" + word + "</" + entities[word.lower()] + ">", line, re.UNICODE)
     return line
 
-if __name__ == '__main__':
+def main(argv):
     parser = argparse.ArgumentParser(description='Converts intents files to one file in NLU tsv format', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('intentsDir', help='directory with intents files - all of them will be included in output file')
@@ -58,9 +58,10 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true', default="")
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
-    args = parser.parse_args(sys.argv[1:])
-    
-    setLoggerConfig(args.log, args.verbose)
+    args = parser.parse_args(argv)
+
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
     NAME_POLICY = 'soft' if args.soft else 'hard'
     PREFIX = toIntentName(NAME_POLICY, args.common_intents_nameCheck, args.prefix)
@@ -105,3 +106,6 @@ if __name__ == '__main__':
             for domainPart in domIntMap.keys():
                 intentsMapFile.write(domainPart + domIntMap[domainPart] + "\n")
         logger.verbose("Domain-intent map '%s' was successfully created", args.output)
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

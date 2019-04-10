@@ -21,7 +21,7 @@ import logging
 
 logger = getScriptLogger(__file__)
 
-if __name__ == '__main__':
+def main(argv):
     parser = argparse.ArgumentParser(description='Replaces codes in text tags with sentences specified in the resource file.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('dialog', help='dialog nodes in xml format.')
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
 
     if __name__ == '__main__':
         setLoggerConfig(args.log, args.verbose)
@@ -80,3 +80,6 @@ if __name__ == '__main__':
         sys.stdout.write(LET.tostring(dialogXML, pretty_print=True, encoding='utf8'))
 
     logger.verbose('Codes were successfully replaced with texts.')
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

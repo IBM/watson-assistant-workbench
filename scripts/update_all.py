@@ -26,7 +26,7 @@ import workspace_compose, workspace_addjson, workspace_deploy
 
 logger = getScriptLogger(__file__)
 
-if __name__ == '__main__':
+def main(argv):
     scriptsPath=os.path.dirname(__file__)
     defaultParamList=['shared.cfg', 'private.cfg']
 
@@ -35,8 +35,10 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--config', help='configuaration file', action='append')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
-    args = parser.parse_args(sys.argv[1:])
-    setLoggerConfig(args.log, args.verbose)
+    args = parser.parse_args(argv)
+
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
     logger.info('STARTING: ' + os.path.basename(__file__))
     logger.info('Using WAW directory: ' + os.path.dirname(__file__))
@@ -95,3 +97,6 @@ if __name__ == '__main__':
     functions_deploy.main(paramsAll)
 
     logger.info('FINISHING: ' + os.path.basename(__file__))
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

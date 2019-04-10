@@ -21,7 +21,7 @@ import logging
 
 logger = getScriptLogger(__file__)
 
-if __name__ == '__main__':
+def main(argv):
     parser = argparse.ArgumentParser(description='Replaces sentences in text tags with codes and creates resource file with translations from codes to sentences.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('dialog', help='dialog nodes in xml format.')
@@ -36,9 +36,10 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(argv)
     
-    setLoggerConfig(args.log, args.verbose)
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
     NAME_POLICY = 'soft' if args.soft else 'hard'
     PREFIX = toCode(NAME_POLICY, args.prefix)
@@ -97,3 +98,6 @@ if __name__ == '__main__':
         resourceFile.write(json.dumps(translations, indent=4, ensure_ascii=False))
 
     logger.verbose('Texts were successfully replaced with codes.')
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

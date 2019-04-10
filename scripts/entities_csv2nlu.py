@@ -21,7 +21,7 @@ import logging
 
 logger = getScriptLogger(__file__)
 
-if __name__ == '__main__':
+def main(argv):
     parser = argparse.ArgumentParser(description='convert NLU tsv files into domain-entity and intent-entity mappings.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('entitiesDir', help='directory with entities files - all of them will be included in output list if specified')
@@ -35,8 +35,10 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--soft', required=False, help='soft name policy - change intents and entities names without error.', action='store_true', default="")
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
-    args = parser.parse_args(sys.argv[1:])
-    setLoggerConfig(args.log, args.verbose)
+    args = parser.parse_args(argv)
+    
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
     NAME_POLICY = 'soft' if args.soft else 'hard'
 
@@ -86,3 +88,6 @@ if __name__ == '__main__':
             for entityName in entityNames:
                 listFile.write(entityName + ";\n")
         logger.debug("Entities list '%s' was successfully created", args.list)
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

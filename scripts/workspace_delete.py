@@ -20,15 +20,17 @@ import logging
 
 logger = getScriptLogger(__file__)
 
-if __name__ == '__main__':
+def main(argv):
     parser = argparse.ArgumentParser(description='Deletes Bluemix conversation service workspace and deletes workspace id from config file.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # positional arguments
     parser.add_argument('config', help='file containing section \'[conversation]\' with workspaces url=\'<url>\', conversation version=\'<version>\', username=\'<username>\', password=\'<password>\' and workspace_id=\'<workspace_id>\' ')
     # optional arguments
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
-    args = parser.parse_args(sys.argv[1:])
-    setLoggerConfig(args.log, args.verbose)
+    args = parser.parse_args(argv)
+
+    if __name__ == '__main__':
+        setLoggerConfig(args.log, args.verbose)
 
     # load config file
     conversationSection = 'conversation'
@@ -68,3 +70,6 @@ if __name__ == '__main__':
     config.remove_option(conversationSection, 'workspace_id')
     with openFile(args.config, 'wb') as configFile:
         config.write(configFile)
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

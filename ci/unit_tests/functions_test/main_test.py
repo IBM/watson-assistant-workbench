@@ -28,6 +28,8 @@ class TestMain(BaseTestCaseCapture):
     emptyDictJsonPath = os.path.abspath(os.path.join(dataBasePath, 'empty_dict.json'))
     testSingleInvalidJsonPath = os.path.abspath(os.path.join(dataBasePath, 'test_single_invalid.json'))
     testSingleAllInFileJsonPath = os.path.abspath(os.path.join(dataBasePath, 'test_single_all_in_file.json'))
+    testSingleAllInFileReplaceJsonPath = os.path.abspath(os.path.join(dataBasePath, 'test_single_all_in_file_replace.json'))
+    testSingleAllInFileReplacePackageJsonPath = os.path.abspath(os.path.join(dataBasePath, 'test_single_all_in_file_replace_package.json'))
     testSingleAllInFileFailedJsonPath = os.path.abspath(os.path.join(dataBasePath, 'test_single_all_in_file_failed.json'))
     testSinglePayloadsOutJsonPath = os.path.abspath(os.path.join(dataBasePath, 'test_single_payloads_out.json'))
     testSinglePayloadsOutNoJsonInputJsonPath = os.path.abspath(os.path.join(dataBasePath, 'test_single_payloads_out_no_json_input.json'))
@@ -94,6 +96,16 @@ class TestMain(BaseTestCaseCapture):
                     'ERROR    required \'' + missingTestArg[2:] + '\' parameter not defined', # error message substring
                     [providedTestArgs] # params (*args, **kwargs)
                 )
+
+    def test_args_invalidReplaceFormat(self):
+        ''' Tests if treplace format is invalid '''
+        testArgs = [self.testSingleAllInFileJsonPath, self.outputCommonPath] + self.functionsTestArgs
+        for invalidReplaceFormat in ['xxx', 'xxx:', ':xxx', 'xxx:yyy:zzz', 'xxx:yyy,', ',xxx:yyy', 'xxx:yyy,ccc']:
+            self.t_exitCodeAndLogMessage(
+                1, # exit code
+                'CRITICAL Invalid format of \'replace\' parameter', # critical message substring
+                [testArgs +  ['--replace', invalidReplaceFormat]] # params (*args, **kwargs)
+            )
 
     def test_nonExistentFileInput(self):
         ''' Tests if the input file does not exist '''
@@ -176,6 +188,50 @@ class TestMain(BaseTestCaseCapture):
                     }, 
                     "outputExpected": {
                         "message": "test message"
+                    }, 
+                    "result": 0
+                }
+            ]
+
+    def test_testSingleAllInFileReplace(self):
+        ''' Tests if the single test where input and expected output is specified in file (all other params are given from command line), using replace functionality (using --replace_)'''
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSingleAllInFileReplaceJsonPath, outputFilePath] + self.functionsTestArgs + ['--replace', 'OUTPUT_EXPECTED_MESSAGE:test message']
+        self.t_noException([testArgs])
+        with open(outputFilePath, 'r') as outputFile:
+            outputJson = json.load(outputFile)
+            assert outputJson == [
+                {
+                    "input": {
+                        "message": "test message"
+                    }, 
+                    "outputReturned": {
+                        "message": "test message"
+                    }, 
+                    "outputExpected": {
+                        "message": "::OUTPUT_EXPECTED_MESSAGE"
+                    }, 
+                    "result": 0
+                }
+            ]
+
+    def test_testSingleAllInFileReplacePackage(self):
+        ''' Tests if the single test where input and expected output is specified in file (all other params are given from command line), using replace functionality (using standard config parameter)'''
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSingleAllInFileReplacePackageJsonPath, outputFilePath] + self.functionsTestArgs
+        self.t_noException([testArgs])
+        with open(outputFilePath, 'r') as outputFile:
+            outputJson = json.load(outputFile)
+            assert outputJson == [
+                {
+                    "input": {
+                        "message": "utils"
+                    }, 
+                    "outputReturned": {
+                        "message": "utils"
+                    }, 
+                    "outputExpected": {
+                        "message": "::cloudfunctions_package"
                     }, 
                     "result": 0
                 }

@@ -20,12 +20,12 @@ import logging
 
 logger = getScriptLogger(__file__)
 
-def getEntities(entityDir, NAME_POLICY):
+def getEntities(entityDir, entitiesNameCheck, NAME_POLICY):
     """Retrieves entity value to entity name mapping from the directory with entity lists"""
     entities = {}
     for entityFileName in os.listdir(entityDir):
-        entityName = toEntityName(NAME_POLICY, args.common_entities_nameCheck, os.path.splitext(entityFileName)[0])
-        with openFile(os.path.join(args.entityDir, entityFileName), "r") as entityFile:
+        entityName = toEntityName(NAME_POLICY, entitiesNameCheck, os.path.splitext(entityFileName)[0])
+        with openFile(os.path.join(entityDir, entityFileName), "r") as entityFile:
             for line in entityFile.readlines():
                 # remove comments
                 line = line.split('#')[0]
@@ -67,7 +67,7 @@ def main(argv):
     PREFIX = toIntentName(NAME_POLICY, args.common_intents_nameCheck, args.prefix)
 
     if args.entityDir:
-        entities = getEntities(args.entityDir, NAME_POLICY)
+        entities = getEntities(args.entityDir, args.common_entities_nameCheck, NAME_POLICY)
 
     with openFile(args.output, 'w') as outputFile:
         # process intents

@@ -26,6 +26,7 @@ import intents_csv2json
 import intents_json2csv
 import workspace_compose
 import workspace_decompose
+import workspace_delete
 import workspace_deploy
 import workspace_test
 from ..test_utils import BaseTestCaseCapture
@@ -39,12 +40,12 @@ class TestGenerateAndTestWorkspace(BaseTestCaseCapture):
         ''' Setup any state specific to the execution of the given class (which usually contains tests). '''
         BaseTestCaseCapture.createFolder(TestGenerateAndTestWorkspace.testOutputPath)
 
-    @pytest.mark.parametrize('envVarNameUsername, envVarNamePassword, envVarNameWorkspaceId', [('WA_USERNAME', 'WA_PASSWORD', 'WA_WORKSPACE_ID_TEST')])
-    def test_basic(self, envVarNameUsername, envVarNamePassword, envVarNameWorkspaceId):
-        ''' Tests whole WAW pipeline. Test expects that envVarNameUsername, envVarNamePassword and envVarNameWorkspaceId are set in environment variables. '''
+    @pytest.mark.parametrize('envVarNameUsername, envVarNamePassword', [('WA_USERNAME', 'WA_PASSWORD')])
+    def test_basic(self, envVarNameUsername, envVarNamePassword):
+        ''' Tests whole WAW pipeline. Test expects that envVarNameUsername and envVarNamePassword are set in environment variables. '''
 
         # check environment variables
-        BaseTestCaseCapture.checkEnvironmentVariables([envVarNameUsername, envVarNamePassword, envVarNameWorkspaceId])
+        BaseTestCaseCapture.checkEnvironmentVariables([envVarNameUsername, envVarNamePassword])
 
         # define and create all filenames, paths and folders
         jsonDialogFilename = 'dialog.json'
@@ -128,17 +129,15 @@ class TestGenerateAndTestWorkspace(BaseTestCaseCapture):
         self.t_fun_noException(intents_json2csv.main, [[jsonDecomposedIntentsPath, intentsDecomposedFolderPath, '-v']])
 
         # deploy test workspace
-        self.t_fun_noException(workspace_deploy.main, [['-of', self.testOutputPath, '-ow', jsonWorkspaceFilename, '-c', configTestPath, '-cn', os.environ[envVarNameUsername], '-cp', os.environ[envVarNamePassword], '-cid', os.environ[envVarNameWorkspaceId], '-v']])
+        self.t_fun_noException(workspace_deploy.main, [['-of', self.testOutputPath, '-ow', jsonWorkspaceFilename, '-c', configTestPath, '-cn', os.environ[envVarNameUsername], '-cp', os.environ[envVarNamePassword], '-oc', configTmpPath, '-v']])
 
         # test against test workspace
-        with open(configTestPath, 'r') as configTest, open(configTmpPath, 'w') as configTmp:
-            configTmp.write(configTest.read())
-            configTmp.write('username = ' + os.environ[envVarNameUsername] + '\n')
-            configTmp.write('password = ' + os.environ[envVarNamePassword] + '\n')
-            configTmp.write('workspace_id = ' + os.environ[envVarNameWorkspaceId] + '\n')
         self.t_fun_noException(workspace_test.main, [[testDummyRefPath, testDummyHypPath, '-c', configTmpPath, '-v']])
 #        self.t_fun_noException(workspace_test.main, [[testMoreOutputsRefPath, testMoreOutputsHypPath, '-c', configTmpPath, '-v']])
 #        self.t_fun_noException(workspace_test.main, [[testNillRefPath, testNillHypPath, '-c', configTmpPath, '-v']])
+
+        # delete test workspace
+        self.t_fun_noException(workspace_delete.main, [['-c', configTmpPath]])
 
         # evaluate tests
         self.t_fun_noException(evaluate_tests.main, [[testDummyRefPath, testDummyHypPath, '-o', testDummyJUnitPath, '-v']])

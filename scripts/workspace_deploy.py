@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import os, json, sys, argparse, requests, configparser
-from wawCommons import setLoggerConfig, getScriptLogger,  getWorkspaceId, errorsInResponse, getOptionalParameter, getRequiredParameter, openFile
+from wawCommons import setLoggerConfig, getScriptLogger, filterWorkspaces, getWorkspaces, errorsInResponse, getOptionalParameter, getRequiredParameter, openFile
 from cfgCommons import Cfg
 import datetime
 import logging
@@ -37,7 +37,7 @@ def main(argv):
     parser.add_argument('-ow', '--common_outputs_workspace', required=False, help='name of the json file with workspace')
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-oc', '--common_output_config', help='output configuration file')
-    parser.add_argument('-cu','--conversation-url', required=False, help='url of the conversation service API')
+    parser.add_argument('-cu','--conversation_url', required=False, help='url of the conversation service API')
     parser.add_argument('-cv','--conversation_version', required=False, help='version of the conversation service API')
     parser.add_argument('-cn','--conversation_username', required=False, help='username of the conversation service instance')
     parser.add_argument('-cp','--conversation_password', required=False, help='password of the conversation service instance')
@@ -47,7 +47,7 @@ def main(argv):
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     args = parser.parse_args(argv)
-    
+
     if __name__ == '__main__':
         setLoggerConfig(args.log, args.verbose)
 
@@ -77,10 +77,16 @@ def main(argv):
     # version (required)
     version = getRequiredParameter(config, 'conversation_version')
     # workspace id
-    workspaceId = getWorkspaceId(config, workspacesUrl, version, username, password)
-    if workspaceId:
+    workspaces = filterWorkspaces(config, getWorkspaces(workspacesUrl, version, username, password))
+    if len(workspaces) > 1:
+        # if there is more than one workspace with the same name -> error
+        logger.error('There are more than one workspace with this name, do not know which one to update.')
+        exit(1)
+    elif len(workspaces) == 1:
+        workspaceId = workspaces[0]['workspace_id']
         logger.info("Updating existing workspace.")
     else:
+        workspaceId = ""
         logger.info("Creating new workspace.")
 
     requestUrl = workspacesUrl + '/' + workspaceId + '?version=' + version

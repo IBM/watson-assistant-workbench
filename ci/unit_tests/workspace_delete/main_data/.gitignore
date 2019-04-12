@@ -1,0 +1,3 @@
+# remove this when config files will be created in outputs directory
+*.cfg
+

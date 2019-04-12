@@ -45,13 +45,13 @@ class Cfg:
                            'generated_entities', 'generated_dialog']
 
         if args.common_configFilePaths:
-            try:
-                for common_configFilePath in args.common_configFilePaths: # go over all the config files and collect all parameters
+            for common_configFilePath in args.common_configFilePaths: # go over all the config files and collect all parameters
+                try:
                     logger.info("Processing config file:" + common_configFilePath)
                     configPart = configparser.ConfigParser()
                     with openFile(common_configFilePath) as configFile:
-                        configPart.read_file(configFile) 
-                                            
+                        configPart.read_file(configFile)
+
                     # Collect all attributes from all sections
                     for section in configPart.sections():
                         options = configPart.options(section)
@@ -74,19 +74,20 @@ class Cfg:
                                     setattr(self, optionUniqueName, newValue)
                             else:
                                 setattr(self, optionUniqueName, newValue)
-            except IOError:
-                logger.error('Cannot load config file %s', args.configFileName)
-                sys.exit(1)
+                except IOError:
+                    logger.error('Cannot load config file %s', common_configFilePath)
+                    sys.exit(1)
 
         # Set command line parameters
         # command line parameters are having precedence, therefore they are set the last
         for arg in vars(args):
             if hasattr(args, arg) and getattr(args, arg): # attribute is present and not empty
                 if hasattr(self, arg):
-                    logger.warning("Overwriting config file parameter '%s' with value '%s' from comman line argumets.", arg, getattr(args, arg))
+                    logger.warning("Overwriting config file parameter '%s' with value '%s' from command line argumets.", arg, getattr(args, arg))
                 setattr(self, arg, getattr(args, arg))
-        if hasattr(self, 'common_output_config'):
-            self.saveConfiguration(getattr(self, 'common_output_config'))
+# we do not want to save configuration automatically - do the following inside the script instead
+#        if hasattr(self, 'common_output_config'):
+#            self.saveConfiguration(getattr(self, 'common_output_config'))
 
     def saveConfiguration(self, configFileName):
         outputConfig = configparser.ConfigParser()

@@ -254,63 +254,74 @@ def absoluteFilePaths(directory, patterns=['*']):
                 yield os.path.abspath(os.path.join(dirpath, f))
 
 def _fileMatchesPatterns(filename, patterns):
-    """Helper function which checks if file matches one the patterns."""
+    """Helper function which checks if file matches one of the patterns."""
     for pattern in patterns:
         if fnmatch.fnmatchcase(filename, pattern):
             return True
     return False
 
-def getWorkspaceId(config, workspacesUrl, version, username, password):
+def getWorkspaces(workspacesUrl, version, username, password):
+    """
+    Returns a list of all workspaces that match given criteria.
+    """
 
-    workspaceId = getOptionalParameter(config, 'conversation_workspace_id')
+    # get all workspaces
+    requestUrl = workspacesUrl + '?version=' + version
+    logger.info("request url: %s", requestUrl)
+    response = requests.get(requestUrl, auth=(username, password))
+    responseJson = response.json()
+    logger.debug("response: %s", responseJson)
+    if not errorsInResponse(responseJson):
+        logger.info('Workspaces successfully retrieved.')
+    else:
+        logger.error('Cannot retrieve workspaces.')
+        sys.exit(1)
 
-    if not workspaceId:
-        workspaceId = ""
+    if 'workspaces' in responseJson:
+        return responseJson['workspaces']
+    else:
+        logger.error('No workspaces key in the response')
+        sys.exit(1)
 
-        # workspace name is considered as unique
-        workspaceNameUnique = getOptionalParameter(config, 'conversation_workspace_name_unique')
-        if workspaceNameUnique in ["true", "True"]:
-            logger.info('conversation_workspace_name set to unique')
+def filterWorkspaces(config, workspaces):
 
-            workspaceName = getOptionalParameter(config, 'conversation_workspace_name')
-            if workspaceName:
-                # get all workspaces with this name
-                requestUrl = workspacesUrl + '?version=' + version
-                logger.info("request url: %s", requestUrl)
-                response = requests.get(workspacesUrl + '?version=' + version, auth=(username, password))
-                responseJson = response.json()
-                logger.info("response: %s", responseJson)
-                if not errorsInResponse(responseJson):
-                    logger.info('Workspaces successfully retrieved.')
-                else:
-                    logger.error('Cannot retrieve workspaces.')
-                    sys.exit(1)
+    matchingWorkspaces = []
 
-                sameNameWorkspace = None
-                for workspace in responseJson['workspaces']:
-                    logger.info("workspace name: " + workspace['name'])
-                    if workspace['name'] == workspaceName:
-                        if sameNameWorkspace is None:
-                            sameNameWorkspace = workspace
-                        else:
-                            # if there is more than one workspace with the same name -> error
-                            logger.error('There are more than one workspace with this name, do not know which one to update.')
-                            exit(1)
-                if sameNameWorkspace is None:
-                    # workspace with the same name not found
-                    logger.warning('There is no workspace with this name.')
-                else:
-                    # just one workspace with this name -> get its id
-                    workspaceId = sameNameWorkspace['workspace_id']
+    matchByName = getOptionalParameter(config, 'conversation_workspace_match_by_name')
+    # workspace is matched by name (or pattern if defined)
+    if matchByName in ["true", "True"]:
+        logger.info("workspace is matched by 'conversation_workspace_name' (or by 'conversation_workspace_name_pattern' if defined)")
+        workspaceNamePattern = getOptionalParameter(config, 'conversation_workspace_name_pattern')
+        if workspaceNamePattern is None:
+            workspaceNamePattern = getOptionalParameter(config, 'conversation_workspace_name')
+        if workspaceNamePattern:
+            pattern = re.compile(workspaceNamePattern)
 
-            else: # workspace name unique and not defined or empty
-                logger.error("'conversation_workspace_name' set to unique but not defined.")
-                exit(1)
+            for workspace in workspaces:
+                logger.debug("workspace name: " + workspace['name'])
+                if pattern.match(workspace['name']):
+                    matchingWorkspaces.append(workspace)
+                    logger.info("workspace name match: " + workspace['name'])
 
-        else: # workspace name not unique
-            logger.info("Workspace name doesn't have to be unique")
+        else: # workspace match by name and name nor pattenot defined or empty
+            logger.error("'conversation_workspace_match_by_name' set to true but neither 'conversation_workspace_name' nor 'conversation_workspace_name_pattern' is defined.")
+            exit(1)
 
-    return workspaceId
+    else: # workspace matched by id (default option)
+        logger.info("workspace is matched by 'conversation_workspace_id'")
+        workspaceId = getOptionalParameter(config, 'conversation_workspace_id')
+        if workspaceId:
+
+            for workspace in workspaces:
+                logger.debug("workspace name: " + workspace['name'])
+                if workspaceId == workspace['workspace_id']:
+                    matchingWorkspaces.append(workspace)
+                    logger.info("workspace name match: " + workspace['name'])
+
+        else: # returns empty list
+            logger.warning("workspace is matched by 'conversation_workspace_id' but no id specified")
+
+    return matchingWorkspaces
 
 def errorsInResponse(responseJson):
     # check errors
@@ -345,7 +356,7 @@ def getParametersCombination(config, *args):
     Obtains list of arguments where each argument represents one combination of parameters
     that should be retrived from configuration file. Only one combination of arguments could
     be set in configuration file (between parameters in combination there is logical AND,
-    between combinations there is XOR - only one can be set). 
+    between combinations there is XOR - only one can be set).
 
     Parameters
     ----------
@@ -374,7 +385,7 @@ def getParametersCombination(config, *args):
             if getattr(config, arg, None):
                 if parametersCombinationMap:
                     logger.critical("only one combination of parameters can be set, " +
-                        "combination already set: '%s', " + 
+                        "combination already set: '%s', " +
                         "another argument set: '%s'", str(sorted(list(parametersCombinationMap))), arg)
                     exit(1)
                 parametersCombinationMap[arg] = getattr(config, arg)
@@ -385,7 +396,7 @@ def getParametersCombination(config, *args):
                 if getattr(config, parameterName, None):
                     if parametersCombinationMap:
                         logger.critical("only one combination of parameters can be set, " +
-                            "combination already set: '%s', " + 
+                            "combination already set: '%s', " +
                             "another argument set: '%s'", str(sorted(list(parametersCombinationMap))), parameterName)
                         exit(1)
                     parametersCombinationMapCurrent[parameterName] = getattr(config, parameterName)
@@ -394,7 +405,7 @@ def getParametersCombination(config, *args):
             if parametersCombinationMapCurrent:
                 if len(parametersCombinationMapCurrent) != len(arg):
                     logger.critical("part of parameters combination is set, but some params are missing, " +
-                        "combination: '%s', " + 
+                        "combination: '%s', " +
                         "missing parameters: '%s'", str(arg), str(parametersCombinationMissing))
                     exit(1)
                 parametersCombinationMap = parametersCombinationMapCurrent
@@ -403,12 +414,12 @@ def getParametersCombination(config, *args):
             exit(1)
 
     if not parametersCombinationMap:
-        logger.critical("no parameters combination is set in configuration, " + 
+        logger.critical("no parameters combination is set in configuration, " +
             "you have to provide exactly one of those combinations of parameters:'")
         for index, arg in enumerate(args):
             logger.critical("Combination %d: \'%s\'", index, str(arg))
         exit(1)
-    
+
     return parametersCombinationMap
 
 def setLoggerConfig(level=None, isVerbose=False):
@@ -426,14 +437,14 @@ def setLoggerConfig(level=None, isVerbose=False):
         l.setLevel(levelName)
         for h in l.handlers:
             h.setLevel(levelName)
-    
+
 def getScriptLogger(script):
     return logging.getLogger("common."+os.path.splitext(os.path.basename(script))[0])
 
 def convertApikeyToUsernameAndPassword(apikey):
     """
     Obtains 'apikey' string that is in format \'username:password\' and returns
-    tuple (username, password). 
+    tuple (username, password).
 
     Parameters
     ----------

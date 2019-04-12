@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 import json, sys, os, time, argparse, requests, configparser
-from wawCommons import setLoggerConfig, getScriptLogger, getWorkspaceId, getRequiredParameter, errorsInResponse, openFile
+from wawCommons import setLoggerConfig, getScriptLogger, filterWorkspaces, getWorkspaces, getRequiredParameter, errorsInResponse, openFile
 from cfgCommons import Cfg
 import logging
 
@@ -45,7 +45,16 @@ def main(argv):
     version = getRequiredParameter(config, 'conversation_version')
     username = getRequiredParameter(config, 'conversation_username')
     password = getRequiredParameter(config, 'conversation_password')
-    workspaceId = getWorkspaceId(config, workspacesUrl, version, username, password)
+    workspaces = filterWorkspaces(config, getWorkspaces(workspacesUrl, version, username, password))
+    if len(workspaces) > 1:
+        # if there is more than one workspace with the same name -> error
+        logger.error('There are more than one workspace with this name, do not know which one to test.')
+        exit(1)
+    elif len(workspaces) == 1:
+        workspaceId = workspaces[0]['workspace_id']
+    else:
+        logger.error('There is no workspace with this name, cannot test it.')
+        exit(1)
 
     # wait until workspace is done with training
     checkWorkspaceTime = 0
@@ -118,4 +127,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-

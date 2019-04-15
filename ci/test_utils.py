@@ -166,7 +166,7 @@ class BaseTestCaseCapture(object):
             assert exception == None
 
         if exceptionValue:
-            assert exceptionValue == str(exception)
+            assert exceptionValue in str(exception)
         else:
             assert exception == None
 
@@ -180,7 +180,7 @@ class BaseTestCaseCapture(object):
             elif messageType == BaseTestCaseCapture.MessageType.LOG:
                 assert message in self.logs.text
             else:
-                pytest.fail('Uknown MessageType: ' + messageType)
+                pytest.fail('Unknown MessageType: ' + messageType)
 
     def callfunc(self, args=[], kwargs={}):
         ''' (Need to be overidden) Function to be called and tested '''

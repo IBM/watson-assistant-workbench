@@ -326,7 +326,7 @@ def filterWorkspaces(config, workspaces):
 def errorsInResponse(responseJson):
     # check errors
     if 'error' in responseJson:
-        logger.error('%s (code %s)', responseJson['error'], responseJson['code'])
+        logger.error('Error in response: %s (WA code %s)', responseJson['error'], responseJson['code'])
         if 'errors' in responseJson:
             for errorJson in responseJson['errors']:
                 logger.error('\t path: \'%s\' - %s', errorJson['path'], errorJson['message'])

@@ -295,7 +295,7 @@
 <xs:complexType name="actionSchema">
     <xs:all>
         <xs:element name="name" type="actionNameSchema" minOccurs="1" maxOccurs="1"/>
-        <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="type" type="actionTypeSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="parameters" type="parametersSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="result_variable" type="resultVariableSchema" minOccurs="1" maxOccurs="1"/>
         <xs:element name="credentials" type="credentialsSchema" minOccurs="0" maxOccurs="1"/>
@@ -310,6 +310,15 @@
     </xs:all>
     <xs:attribute name="scope" type="xs:string"/>
 </xs:complexType>
+
+<xs:simpleType name="actionTypeSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="client"/>
+        <xs:enumeration value="server"/>
+        <xs:enumeration value="cloud_function"/>
+        <xs:enumeration value="web_action"/>
+    </xs:restriction>
+</xs:simpleType>
 
 <xs:complexType name="parametersSchema">
     <xs:sequence minOccurs="1" maxOccurs="1">

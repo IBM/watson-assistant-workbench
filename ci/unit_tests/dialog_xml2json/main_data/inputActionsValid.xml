@@ -1,0 +1,37 @@
+<nodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <node name="node_2_1536340525666" title="ArTJtnbzEPMNHKT3Mn2W">
+    <type>standard</type>
+    <condition>#ISUCMBZKHR</condition>
+    <output>
+      <textValues>
+        <values structure="listItem">pecewrivoh</values>
+        <selection_policy>sequential</selection_policy>
+      </textValues>
+    </output>
+    <metadata structure="emptyDict"/>
+    <actions>
+      <action>
+        <name>793d74aac848ecdc8159</name>
+        <type>cloud_function</type>
+        <parameters>
+          <arg1>val1</arg1>
+          <arg2>val2</arg2>
+        </parameters>
+        <result_variable>resVar</result_variable>
+        <credentials>creds</credentials>
+      </action>
+      <action>
+        <name>89c37e7a3bb755472962</name>
+        <type>cloud_function</type>
+        <parameters>
+          <arg1>10</arg1>
+        </parameters>
+        <result_variable>resVar</result_variable>
+      </action>
+      <action>
+        <name>98c70d77cf0a97fd9f74</name>
+        <result_variable>resVar</result_variable>
+      </action>
+    </actions>
+  </node>
+</nodes>

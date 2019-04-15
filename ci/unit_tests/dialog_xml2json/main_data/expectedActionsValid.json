@@ -1,0 +1,41 @@
+[
+    {
+        "dialog_node": "node_2_1536340525666",
+        "title": "ArTJtnbzEPMNHKT3Mn2W",
+        "type": "standard",
+        "conditions": "#ISUCMBZKHR",
+        "output": {
+            "text": {
+                "values": [
+                    "pecewrivoh"
+                ],
+                "selection_policy": "sequential"
+            }
+        },
+        "metadata": {},
+        "actions": [
+            {
+                "name": "793d74aac848ecdc8159",
+                "type": "cloud_function",
+                "parameters": {
+                    "arg1": "val1",
+                    "arg2": "val2"
+                },
+                "result_variable": "resVar",
+                "credentials": "creds"
+            },
+            {
+                "name": "89c37e7a3bb755472962",
+                "type": "cloud_function",
+                "parameters": {
+                    "arg1": "10"
+                },
+                "result_variable": "resVar"
+            },
+            {
+                "name": "98c70d77cf0a97fd9f74",
+                "result_variable": "resVar"
+            }
+        ]
+    }
+]

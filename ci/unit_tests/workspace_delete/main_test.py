@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, pytest, requests, argparse
+import os, pytest, requests, argparse, uuid
 
 import workspace_delete, workspace_deploy
 from cfgCommons import Cfg
@@ -99,7 +99,7 @@ class TestMain(BaseTestCaseCapture):
         deleteParams = list(self.deleteParamsBase)
         deleteParams.extend(['-c', createOutputConfigPath,
                              '--common_output_config', deleteOutputConfigPath])
-        self.t_noException([deleteParams])
+        self.t_noExceptionAndLogMessage("One workspace has been successfully deleted",[deleteParams])
 
         # parse output config of deploy script (contains workspace id to delete)
         parser = argparse.ArgumentParser()
@@ -150,7 +150,7 @@ class TestMain(BaseTestCaseCapture):
         deleteParams = list(self.deleteParamsBase)
         deleteParams.extend(['--conversation_workspace_name', workspaceName,
                              '--conversation_workspace_match_by_name', 'true'])
-        self.t_noException([deleteParams])
+        self.t_noExceptionAndLogMessage("2 workspaces have been successfully deleted",[deleteParams])
 
         workspaces = getWorkspaces(self.workspacesUrl, self.version, self.username, self.password)
 
@@ -190,7 +190,7 @@ class TestMain(BaseTestCaseCapture):
         deleteParams = list(self.deleteParamsBase)
         deleteParams.extend(['--conversation_workspace_match_by_name', 'true',
                              '--conversation_workspace_name_pattern', 'regexp_*'])
-        self.t_noException([deleteParams])
+        self.t_noExceptionAndLogMessage("2 workspaces have been successfully deleted",[deleteParams])
 
         workspaces = getWorkspaces(self.workspacesUrl, self.version, self.username, self.password)
 
@@ -230,12 +230,54 @@ class TestMain(BaseTestCaseCapture):
         deleteParams = list(self.deleteParamsBase)
         deleteParams.extend(['--conversation_workspace_match_by_name', 'true',
                              '--conversation_workspace_name_pattern', '.*'])
-        self.t_noException([deleteParams])
+        self.t_noExceptionAndLogMessage("3 workspaces have been successfully deleted",[deleteParams])
 
         workspaces = getWorkspaces(self.workspacesUrl, self.version, self.username, self.password)
 
         # there should be no workspace left
         assert len(workspaces) == 0
+
+    @pytest.mark.parametrize('envVarNameUsername, envVarNamePassword', [('WA_USERNAME', 'WA_PASSWORD')])
+    def test_deleteByNameNoneMatching(self, envVarNameUsername, envVarNamePassword):
+        """Tests if no workspace matches name."""
+
+        # non matching workspace
+        workspaceName = "My skill"
+        deployParams = list(self.deployParamsBase)
+        deployParams.extend(['--conversation_workspace_name', workspaceName])
+        workspace_deploy.main(deployParams)
+
+        # try to delete non-matching workspace
+        deleteParams = list(self.deleteParamsBase)
+        deleteParams.extend(['--conversation_workspace_match_by_name', 'true',
+                             '--conversation_workspace_name_pattern', 'workspace'])
+        self.t_noExceptionAndLogMessage("No workspace has been deleted",[deleteParams])
+
+        workspaces = getWorkspaces(self.workspacesUrl, self.version, self.username, self.password)
+
+        # there should be still one workspace left
+        assert len(workspaces) == 1
+
+    @pytest.mark.parametrize('envVarNameUsername, envVarNamePassword', [('WA_USERNAME', 'WA_PASSWORD')])
+    def test_deleteFromEmpty(self, envVarNameUsername, envVarNamePassword):
+        """Tests if it wont fail when no workspace is present."""
+
+        # try to delete all workspaces
+        deleteParams = list(self.deleteParamsBase)
+        deleteParams.extend(['--conversation_workspace_match_by_name', 'true',
+                             '--conversation_workspace_name_pattern', 'workspace'])
+        self.t_noExceptionAndLogMessage("No workspace has been deleted",[deleteParams])
+
+    def test_wrongCredentials(self):
+        """Tests if script errors while deleting with wrong credentials."""
+
+        # Wrong params for delete
+        wrongParamsDelete = ['--conversation_username', str(uuid.uuid4()),
+                                '--conversation_password', str(uuid.uuid4()),
+                                '--conversation_url', self.workspacesUrl,
+                                '--conversation_version', self.version,
+                                '-v']
+        self.t_exitCodeAndLogMessage(1, "Failed to retrieve workspaces to delete.", [wrongParamsDelete])
 
     def test_args_basic(self):
         ''' Tests some basic sets of args '''

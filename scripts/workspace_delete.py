@@ -48,8 +48,13 @@ def main(argv):
     workspacesUrl = getRequiredParameter(config, 'conversation_url')
     username = getRequiredParameter(config, 'conversation_username')
     password = getRequiredParameter(config, 'conversation_password')
-    workspaces = filterWorkspaces(config, getWorkspaces(workspacesUrl, version, username, password))
+    try:
+        workspaces = filterWorkspaces(config, getWorkspaces(workspacesUrl, version, username, password))
+    except SystemExit as e:
+        logger.error("Failed to retrieve workspaces to delete.")
+        sys.exit(1)
 
+    nWorkspacesDeleted = 0
     for workspace in workspaces:
         # delete workspace
         requestUrl = workspacesUrl + '/' + workspace['workspace_id'] + '?version=' + version
@@ -59,6 +64,7 @@ def main(argv):
         errorsInResponse(responseJson)
 
         if response.status_code == 200:
+            nWorkspacesDeleted += 1
             logger.info("Workspace '%s' was successfully deleted", workspace['name'])
             # delete workspaceId from config file
             if hasattr(config, 'conversation_workspace_id'):
@@ -70,12 +76,17 @@ def main(argv):
             logger.error("Error while deleting workspace  '%s', status code '%s'", workspace['name'], response.status_code)
             sys.exit(1)
 
-    logger.info("All workspaces were successfully deleted")
+    if not nWorkspacesDeleted:
+        logger.info("No workspace has been deleted")
+    elif nWorkspacesDeleted == 1:
+        logger.info("One workspace has been successfully deleted")
+    else:
+        logger.info(f"{nWorkspacesDeleted} workspaces have been successfully deleted")
 
     outputConfigFile = getOptionalParameter(config, 'common_output_config')
     if outputConfigFile:
         config.saveConfiguration(outputConfigFile)
-        logger.info("Configuration saved to %s", outputConfigFile)
+        logger.info("Configuration was saved to %s", outputConfigFile)
 
 if __name__ == '__main__':
     main(sys.argv[1:])

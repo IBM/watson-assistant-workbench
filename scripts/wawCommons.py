@@ -305,7 +305,7 @@ def filterWorkspaces(config, workspaces):
 
         else: # workspace match by name and name nor pattenot defined or empty
             logger.error("'conversation_workspace_match_by_name' set to true but neither 'conversation_workspace_name' nor 'conversation_workspace_name_pattern' is defined.")
-            exit(1)
+            sys.exit(1)
 
     else: # workspace matched by id (default option)
         logger.info("workspace is matched by 'conversation_workspace_id'")

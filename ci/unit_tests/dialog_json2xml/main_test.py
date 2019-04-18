@@ -18,6 +18,8 @@ import os, json
 import dialog_json2xml
 from ...test_utils import BaseTestCaseCapture
 
+from lxml import etree
+
 class TestMain(BaseTestCaseCapture):
 
     dataBasePath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'main_data')
@@ -44,13 +46,13 @@ class TestMain(BaseTestCaseCapture):
 
         self.t_noException([[inputJsonPath, '-d', outputXmlDirPath]])
 
-        expectedXml = ""
-        outputXml = ""
-
         with open(expectedXmlPath, 'r') as expectedXmlFile:
-            expectedXml = expectedXmlFile.read()
+            expectedXml = etree.XML(expectedXmlFile.read(), etree.XMLParser(remove_blank_text=True))
+            for parent in expectedXml.xpath('//*[./*]'): # Search for parent elements
+                parent[:] = sorted(parent, key=lambda x: x.tag)
         with open(outputXmlPath, 'r') as outputXmlFile:
-            outputXml = outputXmlFile.read()
+            outputXml = etree.XML(outputXmlFile.read(), etree.XMLParser(remove_blank_text=True))
+            for parent in outputXml.xpath('//*[./*]'): # Search for parent elements
+                parent[:] = sorted(parent, key=lambda x: x.tag)
 
-        assert expectedXml == outputXml
-
+        assert etree.tostring(expectedXml) == etree.tostring(outputXml)

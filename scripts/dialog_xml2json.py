@@ -16,7 +16,7 @@ import json,sys,argparse,os,re,csv,io,copy
 import lxml.etree as LET
 from xml.sax.saxutils import unescape
 from cfgCommons import Cfg
-from wawCommons import setLoggerConfig, getScriptLogger, openFile
+from wawCommons import setLoggerConfig, getScriptLogger, openFile, getOptionalParameter
 import time
 import datetime
 import io
@@ -869,19 +869,18 @@ def main(argv):
         dialogTree = LET.parse(sys.stdin)
 
     # load schema
-    schemaDirname, this_filename = os.path.split(os.path.abspath(__file__))
-    if not hasattr(config, 'common_schema') or getattr(config, 'common_schema') is None:
-        setattr(config, 'common_schema', schemaDirname+'/../data_spec/dialog_schema.xml')
-        logger.warning('Schema not found, using default path /../data_spec/dialog_schema.xml;')
-    schemaFile = os.path.join(schemaDirname, getattr(config, 'common_schema'))
-    if not os.path.exists(schemaFile):
-        logger.error('Schema file %s not found.', schemaFile)
-        exit(1)
-    #TODO might need UTF-8
-    schemaTree = LET.parse(schemaFile)
-    global schema
-    schema = LET.XMLSchema(schemaTree)
-    validate(dialogTree)
+    schemaParam = getOptionalParameter(config, 'common_schema')
+    if schemaParam:
+        schemaDirname, this_filename = os.path.split(os.path.abspath(__file__))
+        schemaFile = os.path.join(schemaDirname, schemaParam)
+        if not os.path.exists(schemaFile):
+            logger.error('Schema file %s not found.', schemaFile)
+            exit(1)
+        #TODO might need UTF-8
+        schemaTree = LET.parse(schemaFile)
+        global schema
+        schema = LET.XMLSchema(schemaTree)
+        validate(dialogTree)
 
     # process dialog tree
     root = dialogTree.getroot()

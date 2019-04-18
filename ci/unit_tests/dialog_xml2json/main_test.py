@@ -49,10 +49,5 @@ class TestMain(BaseTestCaseCapture):
         expectedJson = ""
         outputJson = ""
 
-        with open(expectedJsonPath, 'r') as expectedJsonFile:
-            expectedJson = expectedJsonFile.read()
-        with open(outputJsonPath, 'r') as outputJsonFile:
-            outputJson = outputJsonFile.read()
-
-        assert expectedJson == outputJson
-
+        with open(expectedJsonPath, 'r') as expectedJsonFile, open(outputJsonPath, 'r') as outputJsonFile:
+            assert json.load(expectedJsonFile) == json.load(outputJsonFile)

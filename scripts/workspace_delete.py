@@ -81,7 +81,7 @@ def main(argv):
     elif nWorkspacesDeleted == 1:
         logger.info("One workspace has been successfully deleted")
     else:
-        logger.info(f"{nWorkspacesDeleted} workspaces have been successfully deleted")
+        logger.info(str(nWorkspacesDeleted) + " workspaces have been successfully deleted")
 
     outputConfigFile = getOptionalParameter(config, 'common_output_config')
     if outputConfigFile:

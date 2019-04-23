@@ -20,7 +20,7 @@ Currently supported conversation version is 2017-02-03 except:
 - Missing "slot_in_focus" property.
 - Slots are not supported in json to xml conversion scripts.
 
-Scripts use python 2.7, used modules are listed in the [requirements.txt](/requirements.txt) file. To satisfy all requirements run
+Scripts use python 3.5, used modules are listed in the [requirements.txt](/requirements.txt) file. To satisfy all requirements run
 ```
 pip install -r requirements.txt
 ```

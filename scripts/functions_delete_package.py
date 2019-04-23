@@ -48,15 +48,15 @@ def main(argv):
         code = response.status_code
         if code != requests.codes.ok:
             if code == 401:
-                logger.error(f"Authorization error. Check your credentials. (Error code {code})")
+                logger.error("Authorization error. Check your credentials. (Error code " + str(code) + ")")
             elif code == 403:
-                logger.error(f"Access is forbidden. Check your credentials and permissions. (Error code {code})")
+                logger.error("Access is forbidden. Check your credentials and permissions. (Error code " + str(code) + ")")
             elif code == 404:
-                logger.error(f"The resource could not be found. Check your cloudfunctions url and namespace. (Error code {code})")
+                logger.error("The resource could not be found. Check your cloudfunctions url and namespace. (Error code " + str(code) + ")")
             elif code >= 500:
-                logger.error(f"Internal server error. (Error code {code})")
+                logger.error("Internal server error. (Error code " + str(code) + ")")
             else:
-                logger.error(f"Unexpected error code: {code}")
+                logger.error("Unexpected error code: " + str(code) + ")")
 
             errorsInResponse(response.json())
             return False
@@ -84,13 +84,13 @@ def main(argv):
         username = auth['cloudfunctions_username']
         password = auth['cloudfunctions_password']
 
-    logger.info(f"Will delete cloud functions in package '{package}'.")
+    logger.info("Will delete cloud functions in package '" + package + "'.")
 
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-    packageUrl = f"{namespaceUrl}/{namespace}/packages/{package}"
+    packageUrl = namespaceUrl + '/' + namespace + '/packages/' + package
     response = requests.get(packageUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
     if not handleResponse(response):
-        logger.critical(f"Unable to get information about package '{package}'.")
+        logger.critical("Unable to get information about package '" + package + "'.")
         sys.exit(1)
 
     actions = response.json()['actions']
@@ -99,18 +99,18 @@ def main(argv):
 
     for action in actions:
         name = action['name']
-        actionUrl = f"{namespaceUrl}/{namespace}/actions/{package}/{name}"
-        logger.verbose(f"Deleting action '{name}' at {actionUrl}")
+        actionUrl = namespaceUrl + '/' + namespace + '/actions/' + package + '/' + name
+        logger.verbose("Deleting action '" + name + "' at " + actionUrl)
         response = requests.delete(actionUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
         if not handleResponse(response):
-            logger.critical(f"Unable to delete action '{name}' at {actionUrl}")
+            logger.critical("Unable to delete action " + name + "' at " + actionUrl)
             sys.exit(1)
         logger.verbose("Action deleted.")
 
-    logger.verbose(f"Deleting package '{package}' at {packageUrl}")
+    logger.verbose("Deleting package '" + package + "' at " + packageUrl)
     response = requests.delete(packageUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
     if not handleResponse(response):
-        logger.critical(f"Unable to delete package '{package}' at {packageUrl}")
+        logger.critical("Unable to delete package '" + package + "' at " + packageUrl)
         sys.exit(1)
     logger.verbose("Package deleted.")
     logger.info("Cloud functions in package successfully deleted.")

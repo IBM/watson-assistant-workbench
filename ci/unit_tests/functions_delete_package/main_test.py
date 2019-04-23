@@ -31,12 +31,12 @@ class TestMain(BaseTestCaseCapture):
                                                        'CLOUD_FUNCTIONS_NAMESPACE'])
         cls.username = os.environ['CLOUD_FUNCTIONS_USERNAME']
         cls.password = os.environ['CLOUD_FUNCTIONS_PASSWORD']
-        cls.apikey = f"{cls.username}:{cls.password}"
+        cls.apikey = cls.username + ':' + cls.password
         cls.cloudFunctionsUrl = os.environ.get('CLOUD_FUNCTIONS_URL',
                                                'https://us-south.functions.cloud.ibm.com/api/v1/namespaces')
         cls.namespace = os.environ['CLOUD_FUNCTIONS_NAMESPACE']
         cls.urlNamespace = quote(cls.namespace)
-        cls.actionsUrl = f"{cls.cloudFunctionsUrl}/{cls.urlNamespace}/actions/"
+        cls.actionsUrl = cls.cloudFunctionsUrl + '/' + cls.urlNamespace + '/actions/'
 
     def callfunc(self, *args, **kwargs):
         functions_delete_package.main(*args, **kwargs)
@@ -57,14 +57,14 @@ class TestMain(BaseTestCaseCapture):
 
     def _getResponseFromPackage(self):
         """Get the package with the name of self.package"""
-        packageUrl = f"{self.cloudFunctionsUrl}/{self.urlNamespace}/packages/{self.package}"
+        packageUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/packages/' + self.package
         return requests.get(packageUrl, auth=(self.username, self.password), headers={'Content-Type': 'application/json'})
 
     def _checkPackageExists(self):
         """Check if the package was correctly created"""
         response = self._getResponseFromPackage()
         if response.status_code != 200:
-            pytest.fail(f"The package does not exist!")
+            pytest.fail("The package does not exist!")
 
     def _checkPackageDeleted(self):
         """Check if the package was correctly deleted"""
@@ -133,11 +133,11 @@ class TestMain(BaseTestCaseCapture):
         functions_deploy.main(params)
         self._checkPackageExists()
 
-        sequenceUrl = f"{self.actionsUrl}{self.package}/testSequence"
+        sequenceUrl = self.actionsUrl + self.package + '/testSequence'
         functionsDir = os.path.join(self.dataBasePath, 'example_functions')
         functionFileNames = [os.path.basename(os.path.join(functionsDir, f)) for f in os.listdir(functionsDir)]
         # Use fully qualified names!
-        functionNames = [f"/{self.namespace}/{self.package}/{os.path.splitext(fileName)[0]}" for fileName in functionFileNames]
+        functionNames = [self.namespace + '/' + self.package +'/' + os.path.splitext(fileName)[0] for fileName in functionFileNames]
 
         payload = {'exec': {'kind': 'sequence', 'binary': False, 'components': functionNames}}
         # Connect the functions into a sequence
@@ -191,7 +191,7 @@ class TestMain(BaseTestCaseCapture):
         randomUsername = str(uuid.uuid4())
         randomPassword = str(uuid.uuid4())
         if useApikey:
-            paramsDelete.extend(['--cloudfunctions_apikey', f"{randomUsername}:{randomPassword}"])
+            paramsDelete.extend(['--cloudfunctions_apikey', randomUsername + ':' + randomPassword])
         else:
             paramsDelete.extend(['--cloudfunctions_username', randomUsername, '--cloudfunctions_password', randomPassword])
 

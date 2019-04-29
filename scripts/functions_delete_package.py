@@ -18,6 +18,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from cfgCommons import Cfg
 from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath, openFile, getRequiredParameter, getOptionalParameter, getParametersCombination, convertApikeyToUsernameAndPassword, errorsInResponse
 import urllib3
+from urllib.parse import quote
 import logging
 
 
@@ -56,7 +57,7 @@ def main(argv):
             elif code >= 500:
                 logger.error("Internal server error. (Error code " + str(code) + ")")
             else:
-                logger.error("Unexpected error code: " + str(code) + ")")
+                logger.error("Unexpected error code: " + str(code))
 
             errorsInResponse(response.json())
             return False
@@ -73,9 +74,10 @@ def main(argv):
     logger.info('STARTING: '+ os.path.basename(__file__))
 
     namespace = getRequiredParameter(config, 'cloudfunctions_namespace')
+    urlNamespace = quote(namespace)
     auth = getParametersCombination(config, 'cloudfunctions_apikey', ['cloudfunctions_password', 'cloudfunctions_username'])
     package = getRequiredParameter(config, 'cloudfunctions_package')
-    namespaceUrl = getRequiredParameter(config, 'cloudfunctions_url')
+    cloudfunctionsUrl = getRequiredParameter(config, 'cloudfunctions_url')
     functionDir = getRequiredParameter(config, 'common_functions')
 
     if 'cloudfunctions_apikey' in auth:
@@ -87,7 +89,7 @@ def main(argv):
     logger.info("Will delete cloud functions in package '" + package + "'.")
 
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-    packageUrl = namespaceUrl + '/' + namespace + '/packages/' + package
+    packageUrl = cloudfunctionsUrl + '/' + urlNamespace + '/packages/' + package
     response = requests.get(packageUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
     if not handleResponse(response):
         logger.critical("Unable to get information about package '" + package + "'.")
@@ -99,7 +101,7 @@ def main(argv):
 
     for action in actions:
         name = action['name']
-        actionUrl = namespaceUrl + '/' + namespace + '/actions/' + package + '/' + name
+        actionUrl = cloudfunctionsUrl + '/' + urlNamespace + '/actions/' + package + '/' + name
         logger.verbose("Deleting action '" + name + "' at " + actionUrl)
         response = requests.delete(actionUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
         if not handleResponse(response):

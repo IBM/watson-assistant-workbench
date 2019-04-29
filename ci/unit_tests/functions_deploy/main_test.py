@@ -16,6 +16,7 @@ limitations under the License.
 import json, os, pytest, requests, shutil, unittest, uuid, zipfile
 
 import functions_deploy
+import functions_delete_package
 from ...test_utils import BaseTestCaseCapture
 from urllib.parse import quote
 
@@ -63,26 +64,20 @@ class TestMain(BaseTestCaseCapture):
 
     def teardown_method(self):
         if self.packageCreated:
-            # get all functions in package and remove them
-            functionNames = self._getFunctionsInPackage(self.package)
-            for functionName in functionNames:
-                functionDelUrl =  self.actionsUrl + self.package + '/' + functionName
-
-                functionDelResp = requests.delete(functionDelUrl, auth=(self.username, self.password))
-                assert functionDelResp.status_code == 200
-
-            # remove cloud function package
-            packageDelUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/packages/' + self.package
-
-            packageDelResp = requests.delete(packageDelUrl, auth=(self.username, self.password))
-            assert packageDelResp.status_code == 200
+            # Delete the package
+            params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
+                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
+                '--cloudfunctions_url', self.cloudFunctionsUrl,
+                '--cloudfunctions_package', self.package,
+                '--cloudfunctions_apikey', self.apikey]
+            self.t_fun_noException(functions_delete_package.main, [params])
 
     @pytest.mark.parametrize('useApikey', [True, False])
     def test_functionsUploadFromDirectory(self, useApikey):
         """Tests if functions_deploy uploads all supported functions from given directory."""
 
         params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
-                  '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
+                  '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
                   '--cloudfunctions_url', self.cloudFunctionsUrl]
 
         if useApikey:
@@ -114,13 +109,12 @@ class TestMain(BaseTestCaseCapture):
             functionRespJson = functionResp.json()
             assert "Hello unit test!" in functionRespJson['greeting']
 
-
     def test_pythonVersionFunctions(self):
-        """Tests if it's possible to upload one fuction into two different version of runtime."""
+        """Tests if it's possible to upload one function into two different version of runtime."""
         for pythonVersion in [2, 3]:
             params = ['-c', os.path.join(self.dataBasePath, 'python' + str(pythonVersion) + 'Functions.cfg'),
                       '--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password,
-                      '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
+                      '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
                       '--cloudfunctions_url', self.cloudFunctionsUrl]
 
             self.t_noException([params])
@@ -149,7 +143,7 @@ class TestMain(BaseTestCaseCapture):
 
         #upload zip file
         params = ['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password,
-                  '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
+                  '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
                   '--cloudfunctions_url', self.cloudFunctionsUrl, '--common_functions', [dirForZip]]
 
         self.t_noException([params])
@@ -166,6 +160,68 @@ class TestMain(BaseTestCaseCapture):
         functionRespJson = functionResp.json()
         assert "String from helper function" == functionRespJson['test']
 
+    @pytest.mark.parametrize('useApikey', [True, False])
+    def test_functionsUploadSequence(self, useApikey):
+        """Tests if functions_deploy uploads sequences."""
+
+        params = ['-c', os.path.join(self.dataBasePath, 'exampleValidSequences.cfg'),
+                  '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
+                  '--cloudfunctions_url', self.cloudFunctionsUrl]
+
+        if useApikey:
+            params.extend(['--cloudfunctions_apikey', self.apikey])
+        else:
+            params.extend(['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password])
+
+        # upload functions
+        self.t_noException([params])
+        self.packageCreated = True
+
+        sequenceAnswers = {"a" : "123", "b" : "231", "c" : "312"}
+        # try to call particular sequences and test their output
+        for sequenceName in sequenceAnswers:
+            sequenceCallUrl = self.actionsUrl + self.package + '/' + sequenceName + '?blocking=true&result=true'
+
+            sequenceResp = requests.post(sequenceCallUrl, auth=(self.username, self.password),
+                                         headers={'Content-Type': 'application/json', 'accept': 'application/json'})
+
+            assert sequenceResp.status_code == 200
+            sequenceRespJson = sequenceResp.json()
+            shouldAnswer = sequenceAnswers[sequenceName]
+            assert shouldAnswer in sequenceRespJson["entries"]
+
+    @pytest.mark.parametrize('useApikey', [True, False])
+    def test_functionsMissingSequenceComponent(self, useApikey):
+        """Tests if functions_deploy fails when uploading a sequence with a nonexistent function."""
+
+        params = ['-c', os.path.join(self.dataBasePath, 'exampleNonexistentFunctionRef.cfg'),
+                  '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
+                  '--cloudfunctions_url', self.cloudFunctionsUrl]
+
+        if useApikey:
+            params.extend(['--cloudfunctions_apikey', self.apikey])
+        else:
+            params.extend(['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password])
+
+        # upload functions (will fail AFTER package creation)
+        self.packageCreated = True
+        self.t_exitCodeAndLogMessage(1, "Unexpected error code", [params])
+
+    @pytest.mark.parametrize('useApikey', [True, False])
+    def test_functionsMissingSequenceDefinition(self, useApikey):
+        """Tests if functions_deploy fails when uploading a sequence without a function list."""
+
+        params = ['-c', os.path.join(self.dataBasePath, 'exampleUndefinedSequence.cfg'),
+                  '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
+                  '--cloudfunctions_url', self.cloudFunctionsUrl]
+
+        if useApikey:
+            params.extend(['--cloudfunctions_apikey', self.apikey])
+        else:
+            params.extend(['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password])
+
+        # Fails before anything is uploaded
+        self.t_exitCodeAndLogMessage(1, "parameter not defined", [params])
 
     def test_badArgs(self):
         """Tests some basic common problems with args."""
@@ -176,7 +232,7 @@ class TestMain(BaseTestCaseCapture):
                             '--cloudfunctions_password', self.password,
                             '--cloudfunctions_apikey', self.password + ":" + self.username,
                             '--cloudfunctions_package', self.package,
-                            '--cloudfunctions_namespace', self.urlNamespace,
+                            '--cloudfunctions_namespace', self.namespace,
                             '--cloudfunctions_url', self.cloudFunctionsUrl,
                             '--common_functions', self.dataBasePath]
 

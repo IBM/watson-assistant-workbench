@@ -49,7 +49,7 @@ class TestMain(BaseTestCaseCapture):
         existsResponse = self._getResponseFromPackage()
         if existsResponse.status_code == 200:
             params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctionsEmpty.cfg'),
-                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
+                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
                 '--cloudfunctions_url', self.cloudFunctionsUrl,
                 '--cloudfunctions_package', self.package,
                 '--cloudfunctions_apikey', self.apikey]
@@ -79,7 +79,7 @@ class TestMain(BaseTestCaseCapture):
         """Tests if functions_delete_package deletes uploaded package that is empty."""
 
         params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctionsEmpty.cfg'),
-                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
+                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
                 '--cloudfunctions_url', self.cloudFunctionsUrl,
                 '--cloudfunctions_package', self.package]
 
@@ -101,7 +101,7 @@ class TestMain(BaseTestCaseCapture):
         """Tests if functions_delete_package deletes uploaded package that is not empty and doesn't have a sequence."""
 
         params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
-                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
+                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
                 '--cloudfunctions_url', self.cloudFunctionsUrl,
                 '--cloudfunctions_package', self.package]
 
@@ -123,7 +123,7 @@ class TestMain(BaseTestCaseCapture):
         """Tests if functions_delete_package deletes uploaded package that is not empty and has a sequence."""
 
         params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
-                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
+                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
                 '--cloudfunctions_url', self.cloudFunctionsUrl]
         if useApikey:
             params.extend(['--cloudfunctions_apikey', self.apikey])
@@ -159,7 +159,7 @@ class TestMain(BaseTestCaseCapture):
 
         randomName = str(uuid.uuid4())
         params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
-                '--cloudfunctions_package', randomName, '--cloudfunctions_namespace', self.urlNamespace,
+                '--cloudfunctions_package', randomName, '--cloudfunctions_namespace', self.namespace,
                 '--cloudfunctions_url', self.cloudFunctionsUrl]
 
         if useApikey:
@@ -176,7 +176,7 @@ class TestMain(BaseTestCaseCapture):
         """Tests if functions_delete_package errors while deleting with wrong credentials."""
 
         params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
-                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace,
+                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
                 '--cloudfunctions_url', self.cloudFunctionsUrl]
 
         # Correct params for deploy
@@ -209,7 +209,7 @@ class TestMain(BaseTestCaseCapture):
         """Tests if functions_delete_package errors while deleting with wrong cloud functions url."""
 
         params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
-                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.urlNamespace]
+                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace]
         if useApikey:
             params.extend(['--cloudfunctions_apikey', self.apikey])
         else:
@@ -245,10 +245,10 @@ class TestMain(BaseTestCaseCapture):
 
         # Correct params for deploy
         paramsDeploy = list(params)
-        paramsDeploy.extend(['--cloudfunctions_namespace', self.urlNamespace])
+        paramsDeploy.extend(['--cloudfunctions_namespace', self.namespace])
         # Wrong params for delete
         paramsDelete = list(params)
-        paramsDelete.extend(['--cloudfunctions_namespace', self.urlNamespace + self.cloudFunctionsUrl+str(uuid.uuid4())])
+        paramsDelete.extend(['--cloudfunctions_namespace', self.namespace + self.cloudFunctionsUrl+str(uuid.uuid4())])
 
         # Pass
         functions_deploy.main(paramsDeploy)

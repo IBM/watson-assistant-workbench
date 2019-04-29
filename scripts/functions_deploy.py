@@ -16,7 +16,8 @@ limitations under the License.
 import os, json, sys, argparse, requests, zipfile, base64
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from cfgCommons import Cfg
-from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath, openFile, getRequiredParameter, getOptionalParameter, getParametersCombination, convertApikeyToUsernameAndPassword
+from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath, openFile, getRequiredParameter, getOptionalParameter, getParametersCombination, convertApikeyToUsernameAndPassword, errorsInResponse
+from urllib.parse import quote
 import urllib3
 import logging
 
@@ -50,7 +51,15 @@ zipContent = {
 }
 
 def main(argv):
-    logger.info('STARTING: '+ os.path.basename(__file__))
+    # parse sequence names - because we need to get the name first and
+    # then create corresponding arguments for the main parser
+    sequenceSubparser = argparse.ArgumentParser()
+    sequenceSubparser.add_argument('--cloudfunctions_sequences', nargs='+')
+    argvWithoutHelp = list(argv)
+    if "--help" in argv: argvWithoutHelp.remove("--help")
+    if "-h" in argv: argvWithoutHelp.remove("-h")
+    sequenceNames = sequenceSubparser.parse_known_args(argvWithoutHelp)[0].cloudfunctions_sequences or []
+
     parser = argparse.ArgumentParser(description="Deploys the cloud functions",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v', '--verbose', required=False, help='verbosity', action='store_true')
@@ -63,23 +72,68 @@ def main(argv):
     parser.add_argument('--cloudfunctions_package', required=False, help="cloud functions package name")
     parser.add_argument('--cloudfunctions_url', required=False, help="url of cloud functions API")
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
+    parser.add_argument('--cloudfunctions_sequences', nargs='+', required=False, help="cloud functions sequence names")
 
     for runtime in list(interpretedRuntimes.values()) + list(compiledRuntimes.values()):
         parser.add_argument('--cloudfunctions_' + runtime + '_version', required=False,
             help="cloud functions " + runtime + " version")
 
+    # Add arguments for each sequence to be able to define the functions in the sequence
+    for sequenceName in sequenceNames:
+        try:
+            parser.add_argument("--cloudfunctions_sequence_" + sequenceName, required=True, help="functions in sequence '" + sequenceName + "'")
+        except argparse.ArgumentError as e:
+            if "conflicting option" in str(e):
+                # from None is needed in order to show only the custom exception and not the whole traceback
+                # (It would read as 'During handling of the above exception, another exception has occurred', but we DID handle it)
+                raise argparse.ArgumentError(None, "Duplicate sequence name: "+sequenceName) from None
+            else:
+                raise e
+
     args = parser.parse_args(argv)
 
     if __name__ == '__main__':
         setLoggerConfig(args.log, args.verbose)
-        
+
+    logger.info('STARTING: '+ os.path.basename(__file__))
+
+    def handleResponse(response):
+        """Get response code and show an error if it's not OK"""
+        code = response.status_code
+        if code != requests.codes.ok:
+            if code == 401:
+                logger.error("Authorization error. Check your credentials. (Error code " + str(code) + ")")
+            elif code == 403:
+                logger.error("Access is forbidden. Check your credentials and permissions. (Error code " + str(code) + ")")
+            elif code == 404:
+                logger.error("The resource could not be found. Check your cloudfunctions url and namespace. (Error code " + str(code) + ")")
+            elif code == 408:
+                logger.error("Request Timeout. (Error code " + str(code) + ")")
+            elif code >= 500:
+                logger.error("Internal server error. (Error code " + str(code) + ")")
+            else:
+                logger.error("Unexpected error code: " + str(code))
+
+            errorsInResponse(response.json())
+            return False
+        return True
+
     config = Cfg(args)
 
     namespace = getRequiredParameter(config, 'cloudfunctions_namespace')
+    urlNamespace = quote(namespace)
     auth = getParametersCombination(config, 'cloudfunctions_apikey', ['cloudfunctions_password', 'cloudfunctions_username'])
     package = getRequiredParameter(config, 'cloudfunctions_package')
-    namespaceUrl = getRequiredParameter(config, 'cloudfunctions_url')
+    cloudFunctionsUrl = getRequiredParameter(config, 'cloudfunctions_url')
     functionDir = getRequiredParameter(config, 'common_functions')
+    # If sequence names are already defined (from console), do nothing. Else look for them in the configuration.
+    if not sequenceNames:
+        sequenceNames = getOptionalParameter(config, 'cloudfunctions_sequences') or []
+    # SequenceNames has to be a list
+    if type(sequenceNames) is str:
+        sequenceNames = [sequenceNames]
+    # Create a dict of {<seqName>: [<functions 1>, <function2> ,...]}
+    sequences = {seqName: getRequiredParameter(config, "cloudfunctions_sequence_" + seqName) for seqName in sequenceNames}
 
     if 'cloudfunctions_apikey' in auth:
         username, password = convertApikeyToUsernameAndPassword(auth['cloudfunctions_apikey'])
@@ -92,14 +146,12 @@ def main(argv):
         runtimeVersions[runtime] = runtime + ':' + getattr(config, 'cloudfunctions_' + runtime + '_version', 'default')
 
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-    packageUrl = namespaceUrl + '/' + namespace + '/packages/' + package + '?overwrite=true'
+    packageUrl = cloudFunctionsUrl + '/' + urlNamespace + '/packages/' + package + '?overwrite=true'
+    logger.info("Will create cloudfunctions package %s.", package)
     response = requests.put(packageUrl, auth=(username, password), headers={'Content-Type': 'application/json'},
                             data='{}')
-    responseJson = response.json()
-    if 'error' in responseJson:
-        logger.error('Cannot create cloud functions package')
-        logger.error(responseJson['error'])
-        logger.verbose("%s", responseJson)
+    if not handleResponse(response):
+        logger.critical("Cannot create cloud functions package %s.", package)
         sys.exit(1)
     else:
         logger.info('Cloud functions package successfully uploaded')
@@ -107,6 +159,8 @@ def main(argv):
     filesAtPath = getFilesAtPath(functionDir, ['*' + ext for ext in (list(interpretedRuntimes) +
                                                                      list(compiledRuntimes) +
                                                                      compressedFiles)])
+
+    logger.info("Will deploy functions at paths %s.", functionDir)
 
     for functionFilePath in filesAtPath:
         fileName = os.path.basename(functionFilePath)
@@ -132,7 +186,7 @@ def main(argv):
                 logger.warning("Cannot determine function type of '%s'. Skipping!", functionFilePath)
                 continue
 
-        functionUrl = namespaceUrl + '/' + namespace + '/actions/' + package + '/' + funcName + '?overwrite=true'
+        functionUrl = cloudFunctionsUrl + '/' + urlNamespace + '/actions/' + package + '/' + funcName + '?overwrite=true'
 
         if binary:
             content = base64.b64encode(open(functionFilePath, 'rb').read()).decode('utf-8')
@@ -140,17 +194,34 @@ def main(argv):
             content = open(functionFilePath, 'r').read()
         payload = {'exec': {'kind': runtimeVersions[runtime], 'binary': binary, 'code': content}}
 
+        logger.verbose("Deploying function %s", funcName)
         response = requests.put(functionUrl, auth=(username,password), headers={'Content-Type': 'application/json'},
                                 data=json.dumps(payload), verify=False)
-        responseJson = response.json()
-        if 'error' in responseJson:
-            logger.error('Cannot create cloud function')
-            logger.error(responseJson['error'])
-            logger.verbose("%s", responseJson)
+        if not handleResponse(response):
+            logger.critical("Cannot deploy cloud function %s.", funcName)
             sys.exit(1)
         else:
-            logger.info('Cloud functions %s successfully uploaded.', functionFilePath)
+            logger.verbose('Cloud function %s successfully deployed.', funcName)
+    logger.info("Cloudfunctions successfully deployed.")
 
+    if sequences:
+        logger.info("Will deploy cloudfunction sequences.")
+
+    for seqName in sequences:
+        sequenceUrl = cloudFunctionsUrl + '/' + urlNamespace + '/actions/' + package + '/' + seqName + '?overwrite=true'
+        functionNames = sequences[seqName]
+        fullFunctionNames = [namespace + '/' + package +'/' + functionName for functionName in functionNames]
+        payload = {'exec': {'kind': 'sequence', 'binary': False, 'components': fullFunctionNames}}
+        logger.verbose("Deploying cloudfunctions sequence '%s': %s", seqName, functionNames)
+        response = requests.put(sequenceUrl, auth=(username, password), headers={'Content-Type': 'application/json'},
+                                    data=json.dumps(payload), verify=False)
+        if not handleResponse(response):
+            logger.critical("Cannot deploy cloudfunctions sequence %s", seqName)
+            sys.exit(1)
+        else:
+            logger.verbose("Sequence '%s' deployed.", seqName)
+    if sequences:
+        logger.info("Cloudfunction sequences successfully deployed.")
     logger.info('FINISHING: ' + os.path.basename(__file__))
 
 def _getZipPackageType(zipFilePath):

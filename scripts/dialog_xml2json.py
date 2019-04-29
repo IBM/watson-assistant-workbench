@@ -871,7 +871,7 @@ def main(argv):
     # load schema
     schemaParam = getOptionalParameter(config, 'common_schema')
     if schemaParam:
-        schemaDirname, this_filename = os.path.split(os.path.abspath(__file__))
+        schemaDirname = os.path.split(os.path.abspath(__file__))[0]
         schemaFile = os.path.join(schemaDirname, schemaParam)
         if not os.path.exists(schemaFile):
             logger.error('Schema file %s not found.', schemaFile)
@@ -924,4 +924,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-

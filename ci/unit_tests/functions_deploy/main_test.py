@@ -109,13 +109,19 @@ class TestMain(BaseTestCaseCapture):
             functionRespJson = functionResp.json()
             assert "Hello unit test!" in functionRespJson['greeting']
 
-    def test_pythonVersionFunctions(self):
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
+    @pytest.mark.parametrize('useApikey', [True, False])
+    def test_pythonVersionFunctions(self, useApikey):
         """Tests if it's possible to upload one function into two different version of runtime."""
         for pythonVersion in [2, 3]:
             params = ['-c', os.path.join(self.dataBasePath, 'python' + str(pythonVersion) + 'Functions.cfg'),
-                      '--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password,
                       '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
                       '--cloudfunctions_url', self.cloudFunctionsUrl]
+
+            if useApikey:
+                params.extend(['--cloudfunctions_apikey', self.apikey])
+            else:
+                params.extend(['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password])
 
             self.t_noException([params])
             self.packageCreated = True
@@ -130,8 +136,9 @@ class TestMain(BaseTestCaseCapture):
             functionRespJson = functionResp.json()
             assert pythonVersion == functionRespJson['majorVersion']
 
-
-    def test_functionsInZip(self):
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
+    @pytest.mark.parametrize('useApikey', [True, False])
+    def test_functionsInZip(self, useApikey):
         """Tests if functions_deploy can handle function in zip file."""
         # prepare zip file
         dirForZip = os.path.join(self.dataBasePath, "outputs", "pythonZip")
@@ -142,9 +149,13 @@ class TestMain(BaseTestCaseCapture):
                 functionsZip.write(os.path.join(self.dataBasePath, 'zip_functions', fileToZip), fileToZip)
 
         #upload zip file
-        params = ['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password,
-                  '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
+        params = ['--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
                   '--cloudfunctions_url', self.cloudFunctionsUrl, '--common_functions', [dirForZip]]
+
+        if useApikey:
+            params.extend(['--cloudfunctions_apikey', self.apikey])
+        else:
+            params.extend(['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password])
 
         self.t_noException([params])
         self.packageCreated = True
@@ -190,6 +201,7 @@ class TestMain(BaseTestCaseCapture):
             shouldAnswer = sequenceAnswers[sequenceName]
             assert shouldAnswer in sequenceRespJson["entries"]
 
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     @pytest.mark.parametrize('useApikey', [True, False])
     def test_functionsMissingSequenceComponent(self, useApikey):
         """Tests if functions_deploy fails when uploading a sequence with a nonexistent function."""

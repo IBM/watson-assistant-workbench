@@ -72,9 +72,8 @@ class TestMain(BaseTestCaseCapture):
         if response.status_code != 404:
             pytest.fail("The package is not deleted!")
 
-    # TODO: Enable apikey/username+password testing in Nightly builds
-    #@pytest.mark.parametrize('useApikey', [True, False])
-    @pytest.mark.parametrize('useApikey', [True])
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
+    @pytest.mark.parametrize('useApikey', [True, False])
     def test_deleteEmptyPackage(self, useApikey):
         """Tests if functions_delete_package deletes uploaded package that is empty."""
 
@@ -94,9 +93,8 @@ class TestMain(BaseTestCaseCapture):
         self.t_noException([params])
         self._checkPackageDeleted()
 
-    # TODO: Enable apikey/username+password testing in Nightly builds
-    #@pytest.mark.parametrize('useApikey', [True, False])
-    @pytest.mark.parametrize('useApikey', [True])
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
+    @pytest.mark.parametrize('useApikey', [True, False])
     def test_deleteNonEmptyPackageWithoutSequence(self, useApikey):
         """Tests if functions_delete_package deletes uploaded package that is not empty and doesn't have a sequence."""
 
@@ -116,9 +114,7 @@ class TestMain(BaseTestCaseCapture):
         self.t_noException([params])
         self._checkPackageDeleted()
 
-    # TODO: Enable apikey/username+password testing in Nightly builds
-    #@pytest.mark.parametrize('useApikey', [True, False])
-    @pytest.mark.parametrize('useApikey', [True])
+    @pytest.mark.parametrize('useApikey', [True, False])
     def test_deleteNonEmptyPackageWithSequence(self, useApikey):
         """Tests if functions_delete_package deletes uploaded package that is not empty and has a sequence."""
 
@@ -151,9 +147,8 @@ class TestMain(BaseTestCaseCapture):
         self.t_noException([params])
         self._checkPackageDeleted()
 
-    # TODO: Enable apikey/username+password testing in Nightly builds
-    #@pytest.mark.parametrize('useApikey', [True, False])
-    @pytest.mark.parametrize('useApikey', [True])
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
+    @pytest.mark.parametrize('useApikey', [True, False])
     def test_deleteNonexistentPackage(self, useApikey):
         """Tests if functions_delete_package errors while deleting nonexistent package."""
 
@@ -169,9 +164,8 @@ class TestMain(BaseTestCaseCapture):
         # Fail
         self.t_exitCodeAndLogMessage(1, "The resource could not be found. Check your cloudfunctions url and namespace.", [params])
 
-    # TODO: Enable apikey/username+password testing in Nightly builds
-    #@pytest.mark.parametrize('useApikey', [True, False])
-    @pytest.mark.parametrize('useApikey', [True])
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
+    @pytest.mark.parametrize('useApikey', [True, False])
     def test_wrongCredentials(self, useApikey):
         """Tests if functions_delete_package errors while deleting with wrong credentials."""
 
@@ -202,9 +196,8 @@ class TestMain(BaseTestCaseCapture):
         # Fail
         self.t_exitCodeAndLogMessage(1, "Authorization error. Check your credentials.", [paramsDelete])
 
-    # TODO: Enable apikey/username+password testing in Nightly builds
-    #@pytest.mark.parametrize('useApikey', [True, False])
-    @pytest.mark.parametrize('useApikey', [True])
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
+    @pytest.mark.parametrize('useApikey', [True, False])
     def test_wrongCloudfunctionsUrl(self, useApikey):
         """Tests if functions_delete_package errors while deleting with wrong cloud functions url."""
 
@@ -230,9 +223,8 @@ class TestMain(BaseTestCaseCapture):
         self.t_exitCodeAndLogMessage(1,
         "The resource could not be found. Check your cloudfunctions url and namespace.", [paramsDelete])
 
-    # TODO: Enable apikey/username+password testing in Nightly builds
-    #@pytest.mark.parametrize('useApikey', [True, False])
-    @pytest.mark.parametrize('useApikey', [True])
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
+    @pytest.mark.parametrize('useApikey', [True, False])
     def test_wrongNamespace(self, useApikey):
         """Tests if functions_delete_package errors while deleting with wrong namespace."""
 

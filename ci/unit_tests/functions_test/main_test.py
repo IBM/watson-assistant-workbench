@@ -151,7 +151,6 @@ class TestMain(BaseTestCaseCapture):
             [testArgs] # params (*args, **kwargs)
         )
 
-
     def test_testSingleAllInFileBadAuthentification(self):
         ''' Tests if bad authentification was provided '''
         testArgs = [self.testSingleAllInFileJsonPath, self.outputCommonPath] + self.functionsTestArgs
@@ -171,8 +170,10 @@ class TestMain(BaseTestCaseCapture):
             [testArgs] # params (*args, **kwargs)
         )
 
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     def test_testSingleAllInFile(self):
-        ''' Tests if the single test where input and expected output is specified in file (all other params are given from command line) '''
+        ''' Tests if the single test where input and expected output is specified
+         in file (all other params are given from command line) '''
         outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileJsonPath))[0] + '.out.json'))
         testArgs = [self.testSingleAllInFileJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noException([testArgs])
@@ -182,19 +183,22 @@ class TestMain(BaseTestCaseCapture):
                 {
                     "input": {
                         "message": "test message"
-                    }, 
+                    },
                     "outputReturned": {
                         "message": "test message"
-                    }, 
+                    },
                     "outputExpected": {
                         "message": "test message"
-                    }, 
+                    },
                     "result": 0
                 }
             ]
 
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     def test_testSingleAllInFileReplace(self):
-        ''' Tests if the single test where input and expected output is specified in file (all other params are given from command line), using replace functionality (using --replace_)'''
+        ''' Tests if the single test where input and expected output is specified
+         in file (all other params are given from command line), using replace
+         functionality (using --replace_)'''
         outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileJsonPath))[0] + '.out.json'))
         testArgs = [self.testSingleAllInFileReplaceJsonPath, outputFilePath] + self.functionsTestArgs + ['--replace', 'OUTPUT_EXPECTED_MESSAGE:test message']
         self.t_noException([testArgs])
@@ -204,19 +208,21 @@ class TestMain(BaseTestCaseCapture):
                 {
                     "input": {
                         "message": "test message"
-                    }, 
+                    },
                     "outputReturned": {
                         "message": "test message"
-                    }, 
+                    },
                     "outputExpected": {
                         "message": "::OUTPUT_EXPECTED_MESSAGE"
-                    }, 
+                    },
                     "result": 0
                 }
             ]
 
     def test_testSingleAllInFileReplacePackage(self):
-        ''' Tests if the single test where input and expected output is specified in file (all other params are given from command line), using replace functionality (using standard config parameter)'''
+        ''' Tests if the single test where input and expected output is specified
+         in file (all other params are given from command line), using replace
+         functionality (using standard config parameter)'''
         outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileJsonPath))[0] + '.out.json'))
         testArgs = [self.testSingleAllInFileReplacePackageJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noException([testArgs])
@@ -226,19 +232,20 @@ class TestMain(BaseTestCaseCapture):
                 {
                     "input": {
                         "message": "utils"
-                    }, 
+                    },
                     "outputReturned": {
                         "message": "utils"
-                    }, 
+                    },
                     "outputExpected": {
                         "message": "::cloudfunctions_package"
-                    }, 
+                    },
                     "result": 0
                 }
             ]
 
     def test_testSingleAllInFileFailed(self):
-        ''' Tests if the single test where input and expected output is specified in file (all other params are given from command line) and returned output differs '''
+        ''' Tests if the single test where input and expected output is specified
+         in file (all other params are given from command line) and returned output differs '''
         outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileFailedJsonPath))[0] + '.out.json'))
         testArgs = [self.testSingleAllInFileFailedJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noException([testArgs])
@@ -248,27 +255,29 @@ class TestMain(BaseTestCaseCapture):
                 {
                     "input": {
                         "message": "test message"
-                    }, 
+                    },
                     "outputReturned": {
                         "message": "test message"
-                    }, 
+                    },
                     "outputExpected": {
                         "message": "bad expected message"
-                    }, 
+                    },
                     "diff": {
                         "values_changed": {
                             "root['message']": {
-                                "new_value": "test message", 
+                                "new_value": "test message",
                                 "old_value": "bad expected message"
                             }
                         }
-                    }, 
+                    },
                     "result": 1
                 }
             ]
 
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     def test_testSinglePayloadsOut(self):
-        ''' Tests if the single test where input and expected output is specified in another file - by relative path to that file (all other params are given from command line) '''
+        ''' Tests if the single test where input and expected output is specified
+         in another file - by relative path to that file (all other params are given from command line) '''
         outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSinglePayloadsOutJsonPath))[0] + '.out.json'))
         testArgs = [self.testSinglePayloadsOutJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noException([testArgs])
@@ -276,17 +285,18 @@ class TestMain(BaseTestCaseCapture):
             outputJson = json.load(outputFile)
             assert outputJson == [
                 {
-                    "input": "@test_single_payload.json", 
+                    "input": "@test_single_payload.json",
                     "outputReturned": {
                         "message": "test message"
-                    }, 
-                    "outputExpected": "@test_single_payload.json", 
+                    },
+                    "outputExpected": "@test_single_payload.json",
                     "result": 0
                 }
             ]
 
     def test_testSinglePayloadsOutNonExistingInput(self):
-        ''' Tests if the single test where input and expected output is specified in another file - by relative path to that file but input path is wrong (all other params are given from command line) '''
+        ''' Tests if the single test where input and expected output is specified
+         in another file - by relative path to that file but input path is wrong (all other params are given from command line) '''
         testArgs = [self.testSinglePayloadsOutNonExistingInputJsonPath, self.outputCommonPath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
             'ERROR    Cannot open input payload from file: /some/random/path', # error message substring
@@ -294,7 +304,9 @@ class TestMain(BaseTestCaseCapture):
         )
 
     def test_testSinglePayloadsOutNoJsonInput(self):
-        ''' Tests if the single test where input and expected output is specified in another file - by relative path to that file but input is invalid json (all other params are given from command line) '''
+        ''' Tests if the single test where input and expected output is specified
+         in another file - by relative path to that file but input is invalid json
+         (all other params are given from command line) '''
         testArgs = [self.testSinglePayloadsOutNoJsonInputJsonPath, self.outputCommonPath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
             'ERROR    Cannot decode json from input payload from file', # error message substring
@@ -302,7 +314,9 @@ class TestMain(BaseTestCaseCapture):
         )
 
     def test_testSinglePayloadsOutNonExistingOutput(self):
-        ''' Tests if the single test where input and expected output is specified in another file - by relative path to that file but expected output path is wrong (all other params are given from command line) '''
+        ''' Tests if the single test where input and expected output is specified
+         in another file - by relative path to that file but expected output path
+         is wrong (all other params are given from command line) '''
         testArgs = [self.testSinglePayloadsOutNonExistingOutputJsonPath, self.outputCommonPath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
             'ERROR    Cannot open expected output payload from file: /some/random/path', # error message substring
@@ -310,7 +324,9 @@ class TestMain(BaseTestCaseCapture):
         )
 
     def test_testSinglePayloadsOutNoJsonOutput(self):
-        ''' Tests if the single test where input and expected output is specified in another file - by relative path to that file but expected output is invalid json (all other params are given from command line) '''
+        ''' Tests if the single test where input and expected output is specified
+         in another file - by relative path to that file but expected output
+         is invalid json (all other params are given from command line) '''
         testArgs = [self.testSinglePayloadsOutNoJsonOutputJsonPath, self.outputCommonPath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
             'ERROR    Cannot decode json from expected output payload from file', # error message substring
@@ -325,6 +341,7 @@ class TestMain(BaseTestCaseCapture):
             [testArgs] # params (*args, **kwargs)
         )
 
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     def test_testSingleAllInFileOverridePackage(self):
         ''' Tests if bad package was provided in test it self, the main reason is test that override works '''
         testArgs = [self.testSingleAllInFileOverridePackageJsonPath, self.outputCommonPath] + self.functionsTestArgs
@@ -333,6 +350,7 @@ class TestMain(BaseTestCaseCapture):
             [testArgs] # params (*args, **kwargs)
         )
 
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     def test_testSingleAllInFileOverrideFunction(self):
         ''' Tests if bad function was provided in test it self, the main reason is test that override works '''
         testArgs = [self.testSingleAllInFileOverrideFunctionJsonPath, self.outputCommonPath] + self.functionsTestArgs
@@ -341,6 +359,7 @@ class TestMain(BaseTestCaseCapture):
             [testArgs] # params (*args, **kwargs)
         )
 
+    @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     @pytest.mark.parametrize('useApikey', [True, False])
     def test_testMulti(self, useApikey):
         ''' Tests if there are multi tests in input file '''
@@ -356,24 +375,23 @@ class TestMain(BaseTestCaseCapture):
             outputJson = json.load(outputFile)
             assert outputJson == [
                 {
-                    "input": "@test_single_payload.json", 
+                    "input": "@test_single_payload.json",
                     "outputReturned": {
                         "message": "test message"
-                    }, 
-                    "outputExpected": "@test_single_payload.json", 
+                    },
+                    "outputExpected": "@test_single_payload.json",
                     "result": 0
-                }, 
+                },
                 {
                     "input": {
                         "message": "test message 2"
-                    }, 
+                    },
                     "outputReturned": {
                         "message": "test message 2"
-                    }, 
+                    },
                     "outputExpected": {
                         "message": "test message 2"
-                    }, 
+                    },
                     "result": 0
                 }
             ]
-

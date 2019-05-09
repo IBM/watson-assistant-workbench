@@ -1,6 +1,6 @@
 # watson-assistant-workbench
 WAW is a toolkit for maintaining Watson Assistant data in github repository.
-It aims at 
+It aims at
 - structured data-driven approach, with easy diffs visible in GitHub
 - easy collaboration among large teams
 - improved dialog tree representation resulting in greater readability and easier updates compared to the original WA JSON format
@@ -36,7 +36,17 @@ If you want to run unit tests locally, you first need to install development dep
 ```
 pip install -r requirements_dev.txt
 ```
-The unit and app tests can be started with this commands (from top directory of this repository)
+
+Then set following environment variables
+(i.e. run `export VARIABLE_NAME="VARIABLE_VALUE"`)
+- `WA_USERNAME` (Watson Assistant username - ALWAYS USE INSTANCE DEDICATED FOR TESTING ONLY! ALL CONTENT WILL BE DELETED DURING TESTING PROCESS!)
+- `WA_PASSWORD` (Watson Assistant password)
+- `CLOUD_FUNCTIONS_USERNAME` (Cloud Functions username)
+- `CLOUD_FUNCTIONS_PASSWORD` (Cloud Functions password)
+- `CLOUD_FUNCTIONS_URL` (Cloud Functions namespace - it should contain `https://` at the beginning and `/api/v1/namespaces` at the end)
+- `CLOUD_FUNCTIONS_NAMESPACE` (Cloud Functions namespace - don't forget enclosing it in apostrophes if it contains spaces)
+
+The unit tests and app tests can be started with these commands (from the top directory of this repository)
 ```
 PYTHONPATH=./scripts:$PYTHONPATH pytest ci/unit_tests
 PYTHONPATH=./scripts:$PYTHONPATH pytest ci/app_tests

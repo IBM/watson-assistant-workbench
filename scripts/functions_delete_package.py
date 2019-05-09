@@ -16,7 +16,7 @@ limitations under the License.
 import os, json, sys, argparse, requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from cfgCommons import Cfg
-from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath, openFile, getRequiredParameter, getOptionalParameter, getParametersCombination, convertApikeyToUsernameAndPassword, errorsInResponse
+from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath, openFile, getRequiredParameter, getOptionalParameter, getParametersCombination, convertApikeyToUsernameAndPassword, errorsInResponse, filterPackages
 import urllib3
 from urllib.parse import quote
 import logging
@@ -36,6 +36,7 @@ def main(argv):
     parser.add_argument('--cloudfunctions_username', required=False, help="cloud functions user name")
     parser.add_argument('--cloudfunctions_password', required=False, help="cloud functions password")
     parser.add_argument('--cloudfunctions_package', required=False, help="cloud functions package name")
+    parser.add_argument('--cloudfunctions_package_pattern', required=False, help='regex pattern specifying a name of workspaces to be deleted')
     parser.add_argument('--cloudfunctions_url', required=False, help="url of cloud functions API")
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
 
@@ -76,7 +77,6 @@ def main(argv):
     namespace = getRequiredParameter(config, 'cloudfunctions_namespace')
     urlNamespace = quote(namespace)
     auth = getParametersCombination(config, 'cloudfunctions_apikey', ['cloudfunctions_password', 'cloudfunctions_username'])
-    package = getRequiredParameter(config, 'cloudfunctions_package')
     cloudfunctionsUrl = getRequiredParameter(config, 'cloudfunctions_url')
     functionDir = getRequiredParameter(config, 'common_functions')
 
@@ -86,36 +86,61 @@ def main(argv):
         username = auth['cloudfunctions_username']
         password = auth['cloudfunctions_password']
 
-    logger.info("Will delete cloud functions in package '" + package + "'.")
-
-    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-    packageUrl = cloudfunctionsUrl + '/' + urlNamespace + '/packages/' + package
-    response = requests.get(packageUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
+    packagesUrl = cloudfunctionsUrl + '/' + namespace + '/packages'
+    response = requests.get(packagesUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
     if not handleResponse(response):
-        logger.critical("Unable to get information about package '" + package + "'.")
+        logger.critical("Unable to get available packages.")
         sys.exit(1)
 
-    actions = response.json()['actions']
-    # put the sequences at the beggining
-    actions.sort(key=lambda action: isActionSequence(action))
-
-    for action in actions:
-        name = action['name']
-        actionUrl = cloudfunctionsUrl + '/' + urlNamespace + '/actions/' + package + '/' + name
-        logger.verbose("Deleting action '" + name + "' at " + actionUrl)
-        response = requests.delete(actionUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
-        if not handleResponse(response):
-            logger.critical("Unable to delete action " + name + "' at " + actionUrl)
+    matchedPackages = filterPackages(config, response.json())
+    if not matchedPackages:
+        # only name was provided
+        if getOptionalParameter(config, 'cloudfunctions_package') and not getOptionalParameter(config, 'cloudfunctions_package_pattern'):
+            logger.critical("Package not found. Check your cloudfunctions url and namespace.")
             sys.exit(1)
-        logger.verbose("Action deleted.")
+        # pattern was provided
+        else:
+            logger.info("No matching packages to delete.")
+            return
 
-    logger.verbose("Deleting package '" + package + "' at " + packageUrl)
-    response = requests.delete(packageUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
-    if not handleResponse(response):
-        logger.critical("Unable to delete package '" + package + "' at " + packageUrl)
-        sys.exit(1)
-    logger.verbose("Package deleted.")
-    logger.info("Cloud functions in package successfully deleted.")
+    for package in matchedPackages:
+        packageName = package['name']
+
+        logger.info("Will delete cloud functions in package '" + packageName + "'.")
+
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        packageUrl = packagesUrl + '/' + packageName
+        response = requests.get(packageUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
+        if not handleResponse(response):
+            logger.critical("Unable to get information about package '" + packageName + "'.")
+            sys.exit(1)
+
+        actions = response.json()['actions']
+        # put the sequences at the beggining
+        actions.sort(key=lambda action: isActionSequence(action))
+
+        for action in actions:
+            name = action['name']
+            actionUrl = cloudfunctionsUrl + '/' + namespace + '/actions/' + packageName + '/' + name
+            logger.verbose("Deleting action '" + name + "' at " + actionUrl)
+            response = requests.delete(actionUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
+            if not handleResponse(response):
+                logger.critical("Unable to delete action " + name + "' at " + actionUrl)
+                sys.exit(1)
+            logger.verbose("Action deleted.")
+
+        logger.verbose("Deleting package '" + packageName + "' at " + packageUrl)
+        response = requests.delete(packageUrl, auth=(username, password), headers={'Content-Type': 'application/json'})
+        if not handleResponse(response):
+            logger.critical("Unable to delete package '" + packageName + "' at " + packageUrl)
+            sys.exit(1)
+        logger.verbose("Package deleted.")
+        logger.info("Cloud functions in package %s successfully deleted.", packageName)
+
+    if (len(matchedPackages) == 1):
+        logger.info("One package has been successfully deleted.")
+    else:
+        logger.info("%s packages have been successfully deleted.", len(matchedPackages))
 
 if __name__ == '__main__':
     main(sys.argv[1:])

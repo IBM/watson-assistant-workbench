@@ -304,7 +304,7 @@ def filterWorkspaces(config, workspaces):
                     logger.info("workspace name match: " + workspace['name'])
 
         else: # workspace match by name and name nor pattenot defined or empty
-            logger.error("'conversation_workspace_match_by_name' set to true but neither 'conversation_workspace_name' nor 'conversation_workspace_name_pattern' is defined.")
+            logger.critical("'conversation_workspace_match_by_name' set to true but neither 'conversation_workspace_name' nor 'conversation_workspace_name_pattern' is defined.")
             sys.exit(1)
 
     else: # workspace matched by id (default option)
@@ -322,6 +322,27 @@ def filterWorkspaces(config, workspaces):
             logger.warning("workspace is matched by 'conversation_workspace_id' but no id specified")
 
     return matchingWorkspaces
+
+def filterPackages(config, packages):
+    matchingPackages = []
+    packageNamePattern = getOptionalParameter(config, 'cloudfunctions_package_pattern')
+
+    if packageNamePattern is None:
+        packageNamePattern = getOptionalParameter(config, 'cloudfunctions_package')
+    if packageNamePattern:
+        pattern = re.compile(packageNamePattern)
+
+        for package in packages:
+            logger.debug("package name: " + package['name'])
+            if pattern.match(package['name']):
+                matchingPackages.append(package)
+                logger.info("package name match: " + package['name'])
+
+    else:
+        logger.critical("neither 'cloudfunctions_package' nor 'cloudfunctions_package_pattern' is defined.")
+        sys.exit(1)
+
+    return matchingPackages
 
 def errorsInResponse(responseJson):
     # check errors

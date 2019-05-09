@@ -46,29 +46,29 @@ class TestMain(BaseTestCaseCapture):
 
     def teardown_method(self):
         """Delete my package, if it exists."""
-        existsResponse = self._getResponseFromPackage()
+        existsResponse = self._getResponseFromPackage(self.package)
         if existsResponse.status_code == 200:
             params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctionsEmpty.cfg'),
-                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
+                '--cloudfunctions_namespace', self.namespace,
                 '--cloudfunctions_url', self.cloudFunctionsUrl,
                 '--cloudfunctions_package', self.package,
                 '--cloudfunctions_apikey', self.apikey]
             self.t_noException([params])
 
-    def _getResponseFromPackage(self):
+    def _getResponseFromPackage(self, package):
         """Get the package with the name of self.package"""
-        packageUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/packages/' + self.package
+        packageUrl = self.cloudFunctionsUrl + '/' + self.namespace + '/packages/' + package
         return requests.get(packageUrl, auth=(self.username, self.password), headers={'Content-Type': 'application/json'})
 
-    def _checkPackageExists(self):
+    def _checkPackageExists(self, package=None):
         """Check if the package was correctly created"""
-        response = self._getResponseFromPackage()
+        response = self._getResponseFromPackage(package or self.package)
         if response.status_code != 200:
             pytest.fail("The package does not exist!")
 
-    def _checkPackageDeleted(self):
+    def _checkPackageDeleted(self, package=None):
         """Check if the package was correctly deleted"""
-        response = self._getResponseFromPackage()
+        response = self._getResponseFromPackage(package or self.package)
         if response.status_code != 404:
             pytest.fail("The package is not deleted!")
 
@@ -78,7 +78,7 @@ class TestMain(BaseTestCaseCapture):
         """Tests if functions_delete_package deletes uploaded package that is empty."""
 
         params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctionsEmpty.cfg'),
-                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
+                '--cloudfunctions_namespace', self.namespace,
                 '--cloudfunctions_url', self.cloudFunctionsUrl,
                 '--cloudfunctions_package', self.package]
 
@@ -99,7 +99,7 @@ class TestMain(BaseTestCaseCapture):
         """Tests if functions_delete_package deletes uploaded package that is not empty and doesn't have a sequence."""
 
         params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
-                '--cloudfunctions_package', self.package, '--cloudfunctions_namespace', self.namespace,
+                '--cloudfunctions_namespace', self.namespace,
                 '--cloudfunctions_url', self.cloudFunctionsUrl,
                 '--cloudfunctions_package', self.package]
 
@@ -162,7 +162,42 @@ class TestMain(BaseTestCaseCapture):
         else:
             params.extend(['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password])
         # Fail
-        self.t_exitCodeAndLogMessage(1, "The resource could not be found. Check your cloudfunctions url and namespace.", [params])
+        self.t_exitCodeAndLogMessage(1, "Package not found. Check your cloudfunctions url and namespace.", [params])
+
+    # TODO: Enable apikey/username+password testing in Nightly builds
+    #@pytest.mark.parametrize('useApikey', [True, False])
+    @pytest.mark.parametrize('useApikey', [True])
+    def test_noPackageProvided(self, useApikey):
+        """Tests if functions_delete_package errors when not providing a package or package name pattern."""
+
+        params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
+                '--cloudfunctions_namespace', self.namespace,
+                '--cloudfunctions_url', self.cloudFunctionsUrl]
+
+        if useApikey:
+            params.extend(['--cloudfunctions_apikey', self.apikey])
+        else:
+            params.extend(['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password])
+        # Fail
+        self.t_exitCodeAndLogMessage(1, "neither 'cloudfunctions_package' nor 'cloudfunctions_package_pattern' is defined.", [params])
+
+    # TODO: Enable apikey/username+password testing in Nightly builds
+    #@pytest.mark.parametrize('useApikey', [True, False])
+    @pytest.mark.parametrize('useApikey', [True])
+    def test_noMatchingPackage(self, useApikey):
+        """Tests if functions_delete_package finishes successfully with no matching packages."""
+
+        randomNamePattern = str(uuid.uuid4())
+        params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctions.cfg'),
+                '--cloudfunctions_package_pattern', randomNamePattern, '--cloudfunctions_namespace', self.namespace,
+                '--cloudfunctions_url', self.cloudFunctionsUrl]
+
+        if useApikey:
+            params.extend(['--cloudfunctions_apikey', self.apikey])
+        else:
+            params.extend(['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password])
+
+        self.t_noExceptionAndLogMessage("No matching packages to delete.", [params])
 
     @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     @pytest.mark.parametrize('useApikey', [True, False])
@@ -249,3 +284,89 @@ class TestMain(BaseTestCaseCapture):
         # Fail
         self.t_exitCodeAndLogMessage(1,
         "The resource could not be found. Check your cloudfunctions url and namespace.", [paramsDelete])
+
+    @pytest.mark.parametrize('useApikey', [True])
+    def test_deletePackageByRegex(self, useApikey):
+        """Tests if functions_delete_package deletes uploaded packages by regex matching."""
+
+        params = ['-c', os.path.join(self.dataBasePath, 'exampleFunctionsEmpty.cfg'),
+                '--cloudfunctions_namespace', self.namespace,
+                '--cloudfunctions_url', self.cloudFunctionsUrl]
+
+        if useApikey:
+            params.extend(['--cloudfunctions_apikey', self.apikey])
+        else:
+            params.extend(['--cloudfunctions_username', self.username, '--cloudfunctions_password', self.password])
+
+        createdPackages = []
+        nonmatchingPackageName = None
+        # Generate random packages with common prefix and delete them afterwards
+        for i in range(4):
+            newParams = list(params)
+            # Add one package that doesn't match (will check if it wasn't deleted)
+            if i == 0:
+                newPackage = self.packageBase + "NONMATCHINGREGEX-" + str(uuid.uuid4())
+                nonmatchingPackageName = newPackage
+            else:
+                newPackage = self.packageBase + "REGEX-" + str(uuid.uuid4())
+            newParams.extend(['--cloudfunctions_package', newPackage])
+            functions_deploy.main(newParams)
+            self._checkPackageExists(newPackage)
+            createdPackages.append(newPackage)
+
+        # delete the packages
+        newParams = list(params)
+        newParams.extend(['--cloudfunctions_package_pattern', '^' + self.packageBase + 'REGEX-.*'])
+        self.t_noException([newParams])
+
+        # Check that the correct packages were deleted
+        for package in createdPackages:
+            if package != nonmatchingPackageName:
+                self._checkPackageDeleted(package)
+
+        # Check that the nonmatching package still exists
+        self._checkPackageExists(nonmatchingPackageName)
+
+        # Delete the nonmatching package
+        newParams = list(params)
+        newParams.extend(['--cloudfunctions_package_pattern', '^' + self.packageBase + 'NONMATCHINGREGEX-.*'])
+        self.t_noException([newParams])
+        self._checkPackageDeleted(nonmatchingPackageName)
+
+    def test_badArgs(self):
+        """Tests some basic common problems with args."""
+        self.t_unrecognizedArgs([['--nonExistentArg', 'randomNonPositionalArg']])
+        self.t_exitCode(1, [[]])
+
+        completeArgsList = ['--cloudfunctions_username', self.username,
+                            '--cloudfunctions_password', self.password,
+                            '--cloudfunctions_apikey', self.username + ":" + self.password,
+                            '--cloudfunctions_package', self.package,
+                            '--cloudfunctions_namespace', self.namespace,
+                            '--cloudfunctions_url', self.cloudFunctionsUrl,
+                            '--common_functions', self.dataBasePath]
+
+        for argIndex in range(len(completeArgsList)):
+            if not completeArgsList[argIndex].startswith('--'):
+                continue
+            paramName = completeArgsList[argIndex][2:]
+
+            argsListWithoutOne = []
+            for i in range(len(completeArgsList)):
+                if i != argIndex and i != (argIndex + 1):
+                    argsListWithoutOne.append(completeArgsList[i])
+
+            if paramName in ['cloudfunctions_username', 'cloudfunctions_password']:
+                message = 'combination already set: \'[\'cloudfunctions_apikey\']\''
+            elif paramName in ['cloudfunctions_apikey']:
+                # we have to remove username and password (if not it would be valid combination of parameters)
+                argsListWithoutOne = argsListWithoutOne[4:] # remove username and password (leave just apikey)
+                message = 'Combination 0: \'cloudfunctions_apikey\''
+            else:
+                # we have to remove username and password (if not then it would always return error that both auth types are provided)
+                argsListWithoutOne = argsListWithoutOne[4:] # remove username and password (leave just apikey)
+                message = 'required \'' + paramName + '\' parameter not defined'
+            if paramName == "cloudfunctions_package":
+                self.t_exitCodeAndLogMessage(1, "neither 'cloudfunctions_package' nor 'cloudfunctions_package_pattern' is defined.", [argsListWithoutOne])
+            else:
+                self.t_exitCodeAndLogMessage(1, message, [argsListWithoutOne])

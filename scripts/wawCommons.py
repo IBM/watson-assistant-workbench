@@ -443,8 +443,9 @@ def getParametersCombination(config, *args):
 
     return parametersCombinationMap
 
-def setLoggerConfig(level=None, isVerbose=False):
-    fileConfig(os.path.split(os.path.abspath(__file__))[0]+'/logging_config.ini')
+def setLoggerConfig(level=None, isVerbose=False, configPath=None):
+    d = os.path.dirname(os.path.abspath(__file__))
+    fileConfig(configPath or d+'/logging_config.ini')
     l = logging.getLogger()
     logging.Logger.isVerbose = isVerbose
 

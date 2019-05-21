@@ -14,9 +14,11 @@ before_script:
   - flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
   # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
   - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+  # stop the build if any of pytest customizations breaks the testing
+  - pytest ci/pytest_customization -v
 
 script:
-  - pytest ci -v
+  - pytest ci -v --durations=3 --ignore=ci/pytest_customization
 
 after_script:
   # deploy all 'outputs' folders to Artifactory

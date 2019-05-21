@@ -72,6 +72,7 @@ class TestMain(BaseTestCaseCapture):
                 '--cloudfunctions_apikey', self.apikey]
             self.t_fun_noException(functions_delete_package.main, [params])
 
+    @pytest.mark.skipiffails(label='Cloud Functions, Invoking an action with blocking=true returns 202')
     @pytest.mark.parametrize('useApikey', [True, False])
     def test_functionsUploadFromDirectory(self, useApikey):
         """Tests if functions_deploy uploads all supported functions from given directory."""

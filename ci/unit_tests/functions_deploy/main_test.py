@@ -17,6 +17,7 @@ import json, os, pytest, requests, shutil, unittest, uuid, zipfile
 
 import functions_deploy
 import functions_delete_package
+from wawCommons import getFunctionResponseJson
 from ...test_utils import BaseTestCaseCapture
 from urllib.parse import quote
 
@@ -36,13 +37,12 @@ class TestMain(BaseTestCaseCapture):
                                                'https://us-south.functions.cloud.ibm.com/api/v1/namespaces')
         cls.namespace = os.environ['CLOUD_FUNCTIONS_NAMESPACE']
         cls.urlNamespace = quote(cls.namespace)
-        cls.actionsUrl = cls.cloudFunctionsUrl + '/' + cls.urlNamespace + '/actions/'
 
     def callfunc(self, *args, **kwargs):
         functions_deploy.main(*args, **kwargs)
 
     def _getFunctionsInPackage(self, package):
-        functionListUrl = self.actionsUrl + '?limit=0&skip=0'
+        functionListUrl = self.cloudFunctionsUrl + '/' + self.urlNamespace + '/actions/?limit=0&skip=0'
         functionListResp = requests.get(functionListUrl, auth=(self.username, self.password),
                                         headers={'accept': 'application/json'})
 
@@ -100,15 +100,18 @@ class TestMain(BaseTestCaseCapture):
 
         # try to call particular functions
         for functionName in functionNames:
-            functionCallUrl = self.actionsUrl + self.package + '/' + functionName + '?blocking=true&result=true'
 
-            functionResp = requests.post(functionCallUrl, auth=(self.username, self.password),
-                                         headers={'Content-Type': 'application/json', 'accept': 'application/json'},
-                                         data=json.dumps({'name': 'unit test'}))
+            responseJson = getFunctionResponseJson(self.cloudFunctionsUrl,
+                                                   self.urlNamespace,
+                                                   self.username,
+                                                   self.password,
+                                                   self.package,
+                                                   functionName,
+                                                   {},
+                                                   {'name': 'unit test'})
 
-            assert functionResp.status_code == 200
-            functionRespJson = functionResp.json()
-            assert "Hello unit test!" in functionRespJson['greeting']
+            assert "Hello unit test!" in responseJson['greeting']
+
 
     @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     @pytest.mark.parametrize('useApikey', [True, False])
@@ -127,15 +130,16 @@ class TestMain(BaseTestCaseCapture):
             self.t_noException([params])
             self.packageCreated = True
 
-            functionCallUrl = self.actionsUrl + self.package + '/getPythonMajorVersion?blocking=true&result=true'
+            responseJson = getFunctionResponseJson(self.cloudFunctionsUrl,
+                                                   self.urlNamespace,
+                                                   self.username,
+                                                   self.password,
+                                                   self.package,
+                                                   'getPythonMajorVersion',
+                                                   {},
+                                                   {})
 
-            functionResp = requests.post(functionCallUrl, auth=(self.username, self.password),
-                                         headers={'Content-Type': 'application/json', 'accept': 'application/json'},
-                                         data="{}")
-
-            assert functionResp.status_code == 200
-            functionRespJson = functionResp.json()
-            assert pythonVersion == functionRespJson['majorVersion']
+            assert pythonVersion == responseJson['majorVersion']
 
     @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     @pytest.mark.parametrize('useApikey', [True, False])
@@ -162,15 +166,16 @@ class TestMain(BaseTestCaseCapture):
         self.packageCreated = True
 
         # call function and check if sub-function from non-main file was called
-        functionCallUrl = self.actionsUrl + self.package + '/testFunc?blocking=true&result=true'
+        responseJson = getFunctionResponseJson(self.cloudFunctionsUrl,
+                                               self.urlNamespace,
+                                               self.username,
+                                               self.password,
+                                               self.package,
+                                               'testFunc',
+                                               {},
+                                               {})
 
-        functionResp = requests.post(functionCallUrl, auth=(self.username, self.password),
-                                     headers={'Content-Type': 'application/json', 'accept': 'application/json'},
-                                     data="{}")
-
-        assert functionResp.status_code == 200
-        functionRespJson = functionResp.json()
-        assert "String from helper function" == functionRespJson['test']
+        assert "String from helper function" == responseJson['test']
 
     @pytest.mark.parametrize('useApikey', [True, False])
     def test_functionsUploadSequence(self, useApikey):
@@ -192,15 +197,18 @@ class TestMain(BaseTestCaseCapture):
         sequenceAnswers = {"a" : "123", "b" : "231", "c" : "312"}
         # try to call particular sequences and test their output
         for sequenceName in sequenceAnswers:
-            sequenceCallUrl = self.actionsUrl + self.package + '/' + sequenceName + '?blocking=true&result=true'
 
-            sequenceResp = requests.post(sequenceCallUrl, auth=(self.username, self.password),
-                                         headers={'Content-Type': 'application/json', 'accept': 'application/json'})
+            responseJson = getFunctionResponseJson(self.cloudFunctionsUrl,
+                                                   self.urlNamespace,
+                                                   self.username,
+                                                   self.password,
+                                                   self.package,
+                                                   sequenceName,
+                                                   {},
+                                                   {})
 
-            assert sequenceResp.status_code == 200
-            sequenceRespJson = sequenceResp.json()
             shouldAnswer = sequenceAnswers[sequenceName]
-            assert shouldAnswer in sequenceRespJson["entries"]
+            assert shouldAnswer in responseJson["entries"]
 
     @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     @pytest.mark.parametrize('useApikey', [True, False])

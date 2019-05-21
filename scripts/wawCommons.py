@@ -15,7 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import copy, sys, re, codecs, os, io, unidecode, types, fnmatch, requests
+import copy, sys, re, codecs, os, io, unidecode, types, fnmatch, requests, json
+from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 import lxml.etree as Xml
 import logging
 from logging.config import fileConfig
@@ -525,5 +526,92 @@ def replaceValue(sourceJson, target, replacementJson, matchKey = True):
             targetJson = copy.deepcopy(replacementJson)
             replacedValuesNumber += 1
     return targetJson, replacedValuesNumber
+
+def getFunctionResponseJson(cloudFunctionsUrl, urlNamespace, username, password, package, functionName, parameters, data):
+
+    functionUrl = cloudFunctionsUrl + '/' + urlNamespace + '/actions/' + package + '/' + functionName
+    url_parts = list(urlparse(functionUrl))
+    params = {'blocking':True, 'result': True} # wait for result and return only result
+    params.update(parameters) # add custom parameters
+    url_parts[4] = urlencode(params)
+    functionCallUrl = urlunparse(url_parts)
+
+    logger.info("Calling function url '%s'", functionCallUrl)
+
+    functionResponse = requests.post(functionCallUrl, auth=(username, password),
+                                 headers={'Content-Type': 'application/json',
+                                          'accept': 'application/json'},
+                                 data=json.dumps(data, ensure_ascii=False).encode('utf8'))
+
+    if functionResponse.status_code == 200:
+
+        responseContentType = functionResponse.headers.get('content-type')
+        if responseContentType != 'application/json':
+            logger.error('Response content type is not json, content type: %s, response:\n%s', responseContentType, functionResponse.text)
+            return None
+
+        return functionResponse.json()
+
+    elif functionResponse.status_code == 202: # try once more
+        # 202 Accepted activation request (should not happen while sending 'blocking=true&result=true')
+        logger.warning("Did not receive response from function '%s' in package '%s', trying once more.", functionName, package)
+        logger.info(json.dumps(functionResponse.json()))
+        responseJson = functionResponse.json()
+        activationId = responseJson['activationId']
+        functionCallUrl = cloudFunctionsUrl + '/' + urlNamespace + '/activations/' + activationId + '/result'
+        logger.info("Trying to get function result from url '%s'", functionCallUrl)
+        functionResponse = requests.get(functionCallUrl, auth=(username, password),
+                                        headers={})
+        if functionResponse.status_code == 200:
+
+            responseContentType = functionResponse.headers.get('content-type')
+            if responseContentType != 'application/json':
+                logger.error('Response content type is not json, content type: %s, response:\n%s', responseContentType, functionResponse.text)
+                return None
+
+            responseJson = functionResponse.json()
+            if isinstance(responseJson, dict) and 'result' in responseJson\
+             and isinstance(responseJson['result'], dict) and 'payload' in responseJson['result']:
+                return responseJson['result']['payload']
+            else:
+                logger.error("Bad response format received from function '%s' in package '%s', status code '%d',\
+                 response: %s, expected was {\"result\":{\"payload\":\"<function_payload>\"}}",\
+                 functionName, package, functionResponse.status_code, json.dumps(functionResponse.json(), ensure_ascii=False).encode('utf8'))
+                return None
+
+        elif functionResponse.status_code in [403, 404, 408]: # not so serious errors, the next request may be fine
+            # 403 Forbidden (could be just for specific package or function)
+            # 404 Not Found (action or package could be incorrectly specified for given request)
+            # 408 Request Timeout (could happen e.g. for CF that requests some REST APIs, e.g. Discovery service)
+            logger.error("Unexpected response status from function '%s' in package '%s' with activation id '%s', status code '%d', response: %s",
+                         functionName, package, activationId, functionResponse.status_code,
+                         functionResponse.text)
+            return None
+        else: # serious errors, stop the process
+            # 401 Unauthorized (while we use same credentials for all tests then we want to end after the first test returns bad authentification)
+            # 500 Internal Server Error (could happen that IBM Cloud has several issue and is not able to handle incoming requests,
+             # then it would be probably same for all requests)
+            # 502 Bad Gateway (when the CF raises exception, e.g. bad params were provided)
+            logger.critical("Unexpected response status from function '%s' in package '%s' with activation id '%s', status code '%d', response: %s",
+                            functionName, package, activationId, functionResponse.status_code, functionResponse.text)
+            sys.exit(1)
+
+    elif functionResponse.status_code in [403, 404, 408]: # not so serious errors, the next request may be fine
+        # 403 Forbidden (could be just for specific package or function)
+        # 404 Not Found (action or package could be incorrectly specified for given request)
+        # 408 Request Timeout (could happen e.g. for CF that requests some REST APIs, e.g. Discovery service)
+        logger.error("Unexpected response status from function '%s' in package '%s', status code '%d', response: %s",
+                     functionName, package, functionResponse.status_code,
+                     functionResponse.text)
+    else: # serious errors, stop the process
+        # 401 Unauthorized (while we use same credentials for all tests then we want to end after the first test returns bad authentification)
+        # 500 Internal Server Error (could happen that IBM Cloud has several issue and is not able to handle incoming requests,
+         # then it would be probably same for all requests)
+        # 502 Bad Gateway (when the CF raises exception, e.g. bad params were provided)
+        logger.critical("Unexpected response status from function '%s' in package '%s', status code '%d', response: %s",
+                        functionName, package, functionResponse.status_code,
+                        json.dumps(functionResponse.json(), ensure_ascii=False).encode('utf8'))
+        sys.exit(1)
+
 
 logger = getScriptLogger(__file__)

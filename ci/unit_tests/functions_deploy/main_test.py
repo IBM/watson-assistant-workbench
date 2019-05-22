@@ -183,6 +183,7 @@ class TestMain(BaseTestCaseCapture):
 
         assert "String from helper function" == responseJson['test']
 
+    @pytest.mark.skipiffails(label='Cloud Functions, Invoking an action with blocking=true returns 202')
     @pytest.mark.parametrize('useApikey', [True, False])
     def test_functionsUploadSequence(self, useApikey):
         """Tests if functions_deploy uploads sequences."""

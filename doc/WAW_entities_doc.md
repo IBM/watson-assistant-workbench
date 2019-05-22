@@ -44,3 +44,10 @@ _Following are only recommendations, intent name has no impact on the behavior o
 - There shouldn't be any domain prefix as entity is usually cross-domain (e.g. color)
 
 **Example:**`first_name`
+
+# Fuzzy matching
+For now, only global fuzzy matching (for all entities) is supported. To turn it on, add `fuzzy` setting to the `entities` section of your config file. The value can be one of `on`, `On`, `true` or `True`. E.g.:
+```ini
+[entities]
+fuzzy = On
+```

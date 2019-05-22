@@ -1,0 +1,6 @@
+[
+    {
+        "outputExpected": "@/some/random/path",
+        "outputReturned": "@test_single_payload.json"
+    }
+]

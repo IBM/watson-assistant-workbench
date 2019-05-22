@@ -1,0 +1,11 @@
+[
+    {
+        "type": "BAD TYPE",
+        "outputExpected": {
+            "message": "test message"
+        },
+        "outputReturned": {
+            "message": "test message"
+        }
+    }
+]

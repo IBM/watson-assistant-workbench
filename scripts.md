@@ -62,7 +62,7 @@ python scripts/workspace_test.py example/en_app/private.cfg example/en_app/tests
 Compares all dialog flows from given files and generate xml report
 
 ```
-python scripts/evaluate_tests.py example/en_app/tests/test_more_outputs.test example/en_app/outputs/test_more_outputs.out -o example/en_app/outputs/test_more_outputs.xml -v
+python scripts/workspace_test_evaluate.py example/en_app/tests/test_more_outputs.test example/en_app/outputs/test_more_outputs.out -o example/en_app/outputs/test_more_outputs.xml -v
 ```
 
 ## Delete workspace

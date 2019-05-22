@@ -1,6 +1,8 @@
 configparser
+deprecation
+deepdiff==3.3.0
+junitparser
 lxml
 openpyxl==2.5.14
 requests
 unidecode
-deepdiff==3.3.0

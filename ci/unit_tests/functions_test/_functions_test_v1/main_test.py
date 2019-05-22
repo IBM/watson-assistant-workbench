@@ -20,7 +20,7 @@ import pytest
 
 import functions_test
 
-from ...test_utils import BaseTestCaseCapture
+from ....test_utils import BaseTestCaseCapture
 
 
 class TestMain(BaseTestCaseCapture):

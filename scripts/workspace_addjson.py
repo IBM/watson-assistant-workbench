@@ -53,14 +53,14 @@ def main(argv):
     with codecs.open(os.path.join(getRequiredParameter(config, 'common_outputs_directory'), getRequiredParameter(config, 'common_outputs_workspace')), 'r', encoding='utf8') as inputpath:
         try:
             workspaceInput = json.load(inputpath)
-        except:
+        except AttributeError:
             logger.error('Workspace JSON is not valid JSON: %s', os.path.join(getRequiredParameter(config, 'common_outputs_directory'), getRequiredParameter(config, 'common_outputs_workspace')))
             exit(1)
     # json to add
     with codecs.open(os.path.join(getRequiredParameter(config, 'includejsondata_jsonfile')), 'r', encoding='utf8') as jsonincludepath:
         try:
             jsonInclude = json.load(jsonincludepath)
-        except:
+        except AttributeError:
             logger.error('JSON to include is not valid JSON: %s', os.path.join(getRequiredParameter(config, 'includejsondata_jsonfile')))
             exit(1)
     # target element

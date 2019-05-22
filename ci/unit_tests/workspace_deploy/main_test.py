@@ -16,13 +16,11 @@ import os
 import uuid
 
 import pytest
-import requests
 
 import workspace_delete
 import workspace_deploy
-
-from cfgCommons import Cfg
 from wawCommons import getWorkspaces
+
 from ...test_utils import BaseTestCaseCapture
 
 

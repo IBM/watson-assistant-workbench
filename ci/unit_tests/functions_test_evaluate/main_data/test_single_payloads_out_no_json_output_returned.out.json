@@ -1,0 +1,6 @@
+[
+    {
+        "outputExpected": "@test_single_payload.json",
+        "outputReturned": "@no.json"
+    }
+]

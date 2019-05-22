@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testsuite errors="6" failures="1" name="test_multi_junitxml.out" skipped="0" tests="11" time="50.0" timestamp="2019-05-17 17:16:54.437212">
+		<testcase>
+			<error message="Input test array element 0 is not dictionary. Each test has to be dictionary, please see doc!" type="ValueError"/>
+		</testcase>
+		<testcase name="Cannot open expected output">
+			<error message="Cannot open expected output payload from file '/some/random/path'" type="IOError"/>
+		</testcase>
+		<testcase name="Cannot decode json from expected output">
+			<error message="Cannot decode json from expected output payload from file 'main_data/no.json', error 'Expecting value: line 1 column 1 (char 0)'" type="ValueError"/>
+		</testcase>
+		<testcase name="Cannot open returned output">
+			<error message="Cannot open returned output payload from file '/some/random/path'" type="IOError"/>
+		</testcase>
+		<testcase name="Cannot decode json from returned output">
+			<error message="Cannot decode json from returned output payload from file 'main_data/no.json', error 'Expecting value: line 1 column 1 (char 0)'" type="ValueError"/>
+		</testcase>
+		<testcase name="Unknown test type">
+			<error message="Unknown test type: BAD TYPE" type="ValueError"/>
+		</testcase>
+		<testcase name="Failure">
+			<failure message="{&quot;values_changed&quot;: {&quot;root['message']&quot;: {&quot;new_value&quot;: &quot;test message 2&quot;, &quot;old_value&quot;: &quot;test message&quot;}}}"/>
+		</testcase>
+		<testcase name="Success"/>
+		<testcase name="Valid time" time="50"/>
+		<testcase name="Invalid time"/>
+		<testcase/>
+	</testsuite>
+</testsuites>

@@ -1,0 +1,11 @@
+[
+    {
+        "input": "@test_single_payload.json",
+        "outputExpected": {
+            "message": "test message"
+        },
+        "outputReturned": {
+            "message": "test message"
+        }
+    }
+]

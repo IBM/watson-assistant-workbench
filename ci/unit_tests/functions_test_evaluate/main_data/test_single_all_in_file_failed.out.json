@@ -1,0 +1,13 @@
+[
+    {
+        "input": {
+            "message": "test message"
+        },
+        "outputReturned": {
+            "message": "test message"
+        },
+        "outputExpected": {
+            "message": "bad expected message"
+        }
+    }
+]

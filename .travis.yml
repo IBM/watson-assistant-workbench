@@ -18,7 +18,7 @@ before_script:
   - pytest ci/pytest_customization -v
 
 script:
-  - pytest ci -v --durations=3 --ignore=ci/pytest_customization
+  - pytest ci -v --durations=3 --ignore=ci/pytest_customization -W error::deprecation.UnsupportedWarning
 
 after_script:
   # deploy all 'outputs' folders to Artifactory

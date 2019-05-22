@@ -4,6 +4,7 @@
 </p>
 
 <p align="center">
+    <a href="https://github.com/IBM/watson-assistant-workbench/releases/latest"><img src="https://img.shields.io/badge/dynamic/json.svg?color=blue&label=version&query=tag_name&url=https%3A%2F%2Fgithub.com%2FIBM%2Fwatson-assistant-workbench%2Freleases%2Flatest" alt="WAW-version" /></a>
     <a href="https://www.python.org/downloads/release/python-350/"><img src="https://img.shields.io/badge/Python-3.5-Green.svg" alt="Python" /></a>
 </p>
 

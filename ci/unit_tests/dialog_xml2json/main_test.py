@@ -13,10 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, json
+import json
+import os
 
 import dialog_xml2json
+
 from ...test_utils import BaseTestCaseCapture
+
 
 class TestMain(BaseTestCaseCapture):
 
@@ -46,8 +49,6 @@ class TestMain(BaseTestCaseCapture):
                             '--common_outputs_dialogs', 'dialog.json',
                             '--common_outputs_directory', outputJsonDirPath]])
 
-        expectedJson = ""
-        outputJson = ""
 
         with open(expectedJsonPath, 'r') as expectedJsonFile, open(outputJsonPath, 'r') as outputJsonFile:
             assert json.load(expectedJsonFile) == json.load(outputJsonFile)

@@ -17,6 +17,7 @@ import pytest
 
 from ..test_utils import BaseTestCaseCapture
 
+
 class TestSkipiffails(BaseTestCaseCapture):
 
     def test_withoutMarkLabel(self):

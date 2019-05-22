@@ -13,13 +13,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, os, pytest, requests, unittest, uuid
+import json
+import os
+import uuid
+from urllib.parse import quote
+
+import pytest
+import requests
 
 import functions_delete_package
 import functions_deploy
+
 from ...test_utils import BaseTestCaseCapture
-from urllib.parse import quote
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
 
 class TestMain(BaseTestCaseCapture):
 
@@ -343,8 +349,7 @@ class TestMain(BaseTestCaseCapture):
                             '--cloudfunctions_apikey', self.username + ":" + self.password,
                             '--cloudfunctions_package', self.package,
                             '--cloudfunctions_namespace', self.namespace,
-                            '--cloudfunctions_url', self.cloudFunctionsUrl,
-                            '--common_functions', self.dataBasePath]
+                            '--cloudfunctions_url', self.cloudFunctionsUrl]
 
         for argIndex in range(len(completeArgsList)):
             if not completeArgsList[argIndex].startswith('--'):

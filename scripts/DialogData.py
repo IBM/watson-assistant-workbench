@@ -13,14 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os
-from IntentData import IntentData
 from EntityData import EntityData
+from IntentData import IntentData
 from NodeData import NodeData
-import unicodedata, unidecode
-from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName, toEntityName
-import logging
-
+from wawCommons import getScriptLogger, toEntityName, toIntentName
 
 logger = getScriptLogger(__file__)
 

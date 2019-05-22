@@ -16,9 +16,10 @@ limitations under the License.
 import argparse
 
 import wawCommons
-
 from cfgCommons import Cfg
+
 from ...test_utils import BaseTestCaseCapture
+
 
 class TestGetParametersCombination(BaseTestCaseCapture):
 
@@ -176,4 +177,3 @@ class TestGetParametersCombination(BaseTestCaseCapture):
         assert rc == {
             'parameterNameC': 'parameterNameCValue'
         }
-

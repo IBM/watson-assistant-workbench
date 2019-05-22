@@ -13,11 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, pytest, argparse, json
+import json
+import os
 
 import workspace_compose
-from cfgCommons import Cfg
 from wawCommons import openFile
+
 from ...test_utils import BaseTestCaseCapture
 
 
@@ -34,12 +35,6 @@ class TestMain(BaseTestCaseCapture):
 
     def callfunc(self, *args, **kwargs):
         workspace_compose.main(*args, **kwargs)
-
-    def setup_method(self):
-        pass
-
-    def teardown_method(self):
-        pass
 
     def test_allFromFileAndAllFromConfiguration(self):
         """Tests if all intents, entities and dialog from files and name,

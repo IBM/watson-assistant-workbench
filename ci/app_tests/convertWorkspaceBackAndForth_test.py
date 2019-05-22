@@ -13,12 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, pytest
+import os
+
+import pytest
 
 import compare_dialogs
 import dialog_json2xml
 import dialog_xml2json
+
 from ..test_utils import BaseTestCaseCapture
+
 
 class TestConvertWorkspaceBackAndForth(BaseTestCaseCapture):
 
@@ -48,4 +52,3 @@ class TestConvertWorkspaceBackAndForth(BaseTestCaseCapture):
 
         # compare dialogs if they are same
         self.t_fun_exitCode(compare_dialogs.main, 0, [[dialogJsonRefPath, dialogJsonHypPath]])
-

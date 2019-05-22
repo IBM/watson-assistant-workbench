@@ -12,10 +12,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
+import uuid
 
-import os, pytest, requests, argparse, uuid
+import pytest
+import requests
 
-import workspace_deploy, workspace_delete
+import workspace_delete
+import workspace_deploy
+
 from cfgCommons import Cfg
 from wawCommons import getWorkspaces
 from ...test_utils import BaseTestCaseCapture
@@ -35,6 +40,7 @@ class TestMain(BaseTestCaseCapture):
         cls.password = os.environ['WA_PASSWORD']
 
         cls.deployParamsBase = ['--common_outputs_directory', cls.dataBasePath,
+
                                 '--conversation_username', cls.username,
                                 '--conversation_password', cls.password,
                                 '--conversation_url', cls.workspacesUrl,

@@ -13,11 +13,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, pytest, requests, argparse, uuid
+import argparse
+import os
+import uuid
 
-import workspace_delete, workspace_deploy
+import pytest
+import requests
+
+import workspace_delete
+import workspace_deploy
 from cfgCommons import Cfg
-from wawCommons import getWorkspaces, getRequiredParameter
+from wawCommons import getRequiredParameter, getWorkspaces
+
 from ...test_utils import BaseTestCaseCapture
 
 
@@ -65,7 +72,7 @@ class TestMain(BaseTestCaseCapture):
 
         for workspace in workspaces:
             requestUrl = self.workspacesUrl + '/' + workspace['workspace_id'] + '?version=' + self.version
-            response = requests.delete(requestUrl, auth=(self.username, self.password), headers={'Accept': 'text/html'})
+            requests.delete(requestUrl, auth=(self.username, self.password), headers={'Accept': 'text/html'})
 
         workspaces = getWorkspaces(self.workspacesUrl, self.version, self.username, self.password)
 

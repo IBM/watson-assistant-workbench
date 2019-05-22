@@ -13,7 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, os, pytest, sys, unittest, traceback, shutil
+import os
+import shutil
+import traceback
+
+import pytest
+
 
 #class BaseTestCaseCapture(unittest.TestCase):
 class BaseTestCaseCapture(object):
@@ -222,4 +227,3 @@ class BaseTestCaseCapture(object):
             else:
                 missingEnvironmentVariables.sort()
                 pytest.fail('Missing ENVIRONMENT VARIABLES: ' + str(missingEnvironmentVariables))
-

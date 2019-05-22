@@ -13,10 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, sys, argparse, os
-from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName, openFile
+import argparse
+import json
 import logging
+import os
+import sys
 
+from wawCommons import getScriptLogger, openFile, setLoggerConfig, toIntentName
 
 logger = getScriptLogger(__file__)
 
@@ -56,4 +59,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-

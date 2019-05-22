@@ -13,13 +13,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, os, pytest, requests, shutil, unittest, uuid, zipfile
-
-import functions_deploy
-import functions_delete_package
-from wawCommons import getFunctionResponseJson
-from ...test_utils import BaseTestCaseCapture
+import os
+import uuid
+import zipfile
 from urllib.parse import quote
+
+import pytest
+import requests
+
+import functions_delete_package
+import functions_deploy
+from wawCommons import getFunctionResponseJson
+
+from ...test_utils import BaseTestCaseCapture
 
 
 class TestMain(BaseTestCaseCapture):

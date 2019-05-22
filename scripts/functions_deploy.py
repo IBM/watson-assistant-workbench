@@ -13,14 +13,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, json, sys, argparse, requests, zipfile, base64
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from cfgCommons import Cfg
-from wawCommons import setLoggerConfig, getScriptLogger, getFilesAtPath, openFile, getRequiredParameter, getOptionalParameter, getParametersCombination, convertApikeyToUsernameAndPassword, errorsInResponse
-from urllib.parse import quote
-import urllib3
+import argparse
+import base64
+import json
 import logging
+import os
+import sys
+import zipfile
+from urllib.parse import quote
 
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+from cfgCommons import Cfg
+from wawCommons import (convertApikeyToUsernameAndPassword, errorsInResponse,
+                        getFilesAtPath, getOptionalParameter,
+                        getParametersCombination, getRequiredParameter,
+                        getScriptLogger, setLoggerConfig)
 
 logger = getScriptLogger(__file__)
 

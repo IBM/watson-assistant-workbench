@@ -13,11 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, sys, argparse, os
-import lxml.etree as LET
-from wawCommons import setLoggerConfig, getScriptLogger, openFile
+import argparse
+import json
 import logging
+import os
+import sys
 
+import lxml.etree as LET
+
+from wawCommons import getScriptLogger, openFile, setLoggerConfig
 
 logger = getScriptLogger(__file__)
 
@@ -278,7 +282,6 @@ def convertAll(upperNodeXML, nodeJSON, keyJSON, nameXML = None):
 #                upperNodeXML.attrib['structure'] = "listItem"
 #                logger.verbose("setting listItem")
             for i in range(len(nodeJSON[keyJSON])):
-                listItemJSON = nodeJSON[keyJSON][i]
                 convertAll(upperNodeXML, nodeJSON[keyJSON], i, keyJSON)
     # dict
     elif isinstance(nodeJSON[keyJSON], dict):

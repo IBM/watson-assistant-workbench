@@ -13,14 +13,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import json, sys, os, argparse, requests, configparser
-from wawCommons import setLoggerConfig, getScriptLogger, getRequiredParameter,\
-   getOptionalParameter, getParametersCombination,\
-   convertApikeyToUsernameAndPassword, replaceValue,\
-   getFunctionResponseJson
-from cfgCommons import Cfg
+import argparse
+import json
 import logging
+import os
+import sys
+
 from deepdiff import DeepDiff
+
+from cfgCommons import Cfg
+from wawCommons import (convertApikeyToUsernameAndPassword,
+                        getFunctionResponseJson, getOptionalParameter,
+                        getParametersCombination, getRequiredParameter,
+                        getScriptLogger, replaceValue, setLoggerConfig)
 
 logger = getScriptLogger(__file__)
 

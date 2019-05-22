@@ -34,16 +34,16 @@ limitations under the License.
    node_name - is derived from condition (unless we are using meta command to assign it)
        - they should be unique across all node names, if already exists - we ad _xxx where xxx is a unique number
 """
-import os, re
-import unicodedata, unidecode
-from openpyxl import load_workbook
-from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName
-from zipfile import BadZipfile
+import os
+import re
 from xml.sax.saxutils import escape
+from zipfile import BadZipfile
+
+from openpyxl import load_workbook
+
 import DialogData as Dialog
 from DialogData import DialogData
-import logging
-
+from wawCommons import getScriptLogger, toIntentName
 
 logger = getScriptLogger(__file__)
 

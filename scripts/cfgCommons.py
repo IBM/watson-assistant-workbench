@@ -13,9 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import configparser, sys, os
-from wawCommons import setLoggerConfig, getScriptLogger, openFile
-import logging
+import configparser
+import sys
+
+from wawCommons import getScriptLogger, openFile
 
 logger = getScriptLogger(__file__)
 
@@ -32,13 +33,6 @@ class Cfg:
 
         # Sections (names can not contain '_')
         commonSection = 'common'
-        conversationSection = 'conversation'
-        cloudfunctionsSection = 'cloudfunctions'
-        workspaceSection = 'workspace'
-        weatherSection = 'weatherservice'
-        replaceSection = 'replace'
-        versionSection = 'version'
-        contextSection = 'context'
 
         # List of attributes of framework section to be appended rather then ovewrriden (if the same parameter is defined in more config files)
         frameworkAppend = ['xls', 'intents', 'entities', 'dialogs', 'functions', 'generated_intents',

@@ -14,10 +14,8 @@ limitations under the License.
 """
 
 import lxml.etree as XML
-from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName
-import os
-import logging
 
+from wawCommons import getScriptLogger
 
 logger = getScriptLogger(__file__)
 

@@ -14,7 +14,9 @@ limitations under the License.
 """
 
 import intents_csv2json
+
 from ...test_utils import BaseTestCaseCapture
+
 
 class TestProcessExample(BaseTestCaseCapture):
 

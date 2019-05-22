@@ -13,11 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json, sys, os, os.path, argparse
-from deepdiff import DeepDiff
-from wawCommons import setLoggerConfig, getScriptLogger
+import argparse
+import json
 import logging
+import os
+import os.path
+import sys
 
+from deepdiff import DeepDiff
+
+from wawCommons import getScriptLogger, setLoggerConfig
 
 logger = getScriptLogger(__file__)
 
@@ -68,4 +73,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-

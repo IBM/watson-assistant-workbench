@@ -12,16 +12,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import json,sys,argparse,os,re,csv,io,copy
-import lxml.etree as LET
-from xml.sax.saxutils import unescape
-from cfgCommons import Cfg
-from wawCommons import setLoggerConfig, getScriptLogger, openFile, getOptionalParameter
-import time
+import argparse
+import copy
 import datetime
 import io
+import json
 import logging
+import os
+import re
+import sys
+from xml.sax.saxutils import unescape
 
+import lxml.etree as LET
+
+from cfgCommons import Cfg
+from wawCommons import getOptionalParameter, getScriptLogger, setLoggerConfig
 
 logger = getScriptLogger(__file__)
 
@@ -144,12 +149,10 @@ def replace_config_variables (importTree):
          # repl.text  - name of the variable to be replaced
          # getattr(config, repl.text) - value of replacement
          # whole segment <replace>...</replace>
-         before="" if repl.getparent().text is None else repl.getparent().text
          if repl.text=='internal_build_date_time':
              middle= unicode(datetime.datetime.now().strftime("%y-%m-%d-%H-%M"))
          else:
             middle=getattr(config, repl.text) if hasattr(config, repl.text) else ""
-         after="" if repl.tail is None else repl.tail
          repl.getparent().text = ("" if repl.getparent().text is None else repl.getparent().text) + middle + ("" if repl.tail is None else repl.tail)
          repl.getparent().remove(repl)
 
@@ -202,8 +205,8 @@ def importNodes(root, config):
         childIndex = 1
         for importChild in importRoot.findall('node'):
             #logger.info('  Importing node: %s', importChild)
-            nodeWithTheSameCondition = getNodeWithTheSameCondition(root, importChild)
             """
+            nodeWithTheSameCondition = getNodeWithTheSameCondition(root, importChild)
             if nodeWithTheSameCondition is not None:
                 # SKIP NODES WITH SAME CONDITIONS
                 #logger.info('    Skipping node (same condition): %s', nodeWithTheSameCondition)
@@ -898,6 +901,7 @@ def main(argv):
     global names
     names = findAllNodeNames(dialogTree)
 
+    global parent_map
     parent_map = dict((c, p) for p in dialogTree.getiterator() for c in p)
     generateNodes(root, None, DEFAULT_ABORT, DEFAULT_AGAIN, DEFAULT_BACK, DEFAULT_REPEAT, DEFAULT_GENERIC)
 

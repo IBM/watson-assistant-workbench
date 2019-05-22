@@ -13,12 +13,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, json, sys, argparse, requests, configparser
-from wawCommons import setLoggerConfig, getScriptLogger, filterWorkspaces, getWorkspaces, errorsInResponse, getOptionalParameter, getRequiredParameter, openFile
-from cfgCommons import Cfg
+import argparse
 import datetime
+import json
 import logging
+import os
+import sys
 
+import requests
+
+from cfgCommons import Cfg
+from wawCommons import (errorsInResponse, filterWorkspaces,
+                        getOptionalParameter, getRequiredParameter,
+                        getScriptLogger, getWorkspaces, openFile,
+                        setLoggerConfig)
 
 logger = getScriptLogger(__file__)
 

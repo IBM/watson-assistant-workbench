@@ -13,12 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, json
-
-import dialog_json2xml
-from ...test_utils import BaseTestCaseCapture
+import os
 
 from lxml import etree
+
+import dialog_json2xml
+
+from ...test_utils import BaseTestCaseCapture
+
 
 class TestMain(BaseTestCaseCapture):
 

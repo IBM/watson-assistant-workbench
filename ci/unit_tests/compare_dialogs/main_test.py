@@ -13,10 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, pytest, json
+import json
+import os
 
 import compare_dialogs
+
 from ...test_utils import BaseTestCaseCapture
+
 
 class TestMain(BaseTestCaseCapture):
 
@@ -161,4 +164,3 @@ class TestMain(BaseTestCaseCapture):
         ''' Tests if complex json and its subjson are different '''
         self.t_exitCode(1, [[self.complexDictJsonPath, self.complexDictSubJsonPath]])
         self.t_exitCode(1, [[self.complexDictSubJsonPath, self.complexDictJsonPath]])
-

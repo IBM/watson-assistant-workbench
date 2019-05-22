@@ -13,11 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import re, os
+import re
 from collections import OrderedDict
-from wawCommons import setLoggerConfig, getScriptLogger
-import logging
 
+from wawCommons import getScriptLogger
 
 logger = getScriptLogger(__file__)
 

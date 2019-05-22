@@ -13,11 +13,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys, argparse, requests, configparser, os
-from wawCommons import setLoggerConfig, getScriptLogger, openFile, getOptionalParameter, getRequiredParameter, filterWorkspaces, getWorkspaces, errorsInResponse
-from cfgCommons import Cfg
+import argparse
 import logging
+import os
+import sys
 
+import requests
+
+from cfgCommons import Cfg
+from wawCommons import (errorsInResponse, filterWorkspaces,
+                        getOptionalParameter, getRequiredParameter,
+                        getScriptLogger, getWorkspaces, setLoggerConfig)
 
 logger = getScriptLogger(__file__)
 
@@ -50,7 +56,7 @@ def main(argv):
     password = getRequiredParameter(config, 'conversation_password')
     try:
         workspaces = filterWorkspaces(config, getWorkspaces(workspacesUrl, version, username, password))
-    except SystemExit as e:
+    except SystemExit:
         logger.error("Failed to retrieve workspaces to delete.")
         sys.exit(1)
 

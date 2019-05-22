@@ -16,7 +16,9 @@ limitations under the License.
 import pytest
 
 import wawCommons
+
 from ...test_utils import BaseTestCaseCapture
+
 
 class TestMain(BaseTestCaseCapture):
 
@@ -329,5 +331,3 @@ class TestMain(BaseTestCaseCapture):
                 ]
             ]
         ]
-
-

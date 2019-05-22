@@ -13,10 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys, argparse, os, re
-from wawCommons import setLoggerConfig, getScriptLogger,  toIntentName, toEntityName, openFile
+import argparse
 import logging
+import os
+import re
+import sys
 
+from wawCommons import (getScriptLogger, openFile, setLoggerConfig,
+                        toEntityName, toIntentName)
 
 logger = getScriptLogger(__file__)
 
@@ -36,7 +40,6 @@ def getEntities(entityDir, entitiesNameCheck, NAME_POLICY):
 
 def tagEntities(line, entities):
     """Tags entities in the text using names from the entities (entity value to entity name) dictionary"""
-    newline = ""
     words = re.findall('[\w-]+', line, re.UNICODE)
     for word in words:
         if word.lower() in entities:

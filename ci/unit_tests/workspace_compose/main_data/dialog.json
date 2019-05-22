@@ -1,0 +1,20 @@
+[
+  {
+    "type": "standard",
+    "title": "Opening",
+    "output": {
+      "text": {
+        "values": [
+          "Hello, I’m a demo customer care virtual assistant to show you the basics.  I can help with directions to my store, hours of operation and booking an in-store appointment"
+        ],
+        "selection_policy": "sequential"
+      }
+    },
+    "context": {
+      "no_reservation": true
+    },
+    "metadata": {},
+    "conditions": "welcome",
+    "dialog_node": "Opening"
+  }
+]

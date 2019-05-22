@@ -1,0 +1,32 @@
+[
+  {
+    "intent": "Help",
+    "examples": [
+      {
+        "text": "help me"
+      },
+      {
+        "text": "i need assistance"
+      },
+      {
+        "text": "help me decide"
+      }
+    ],
+    "description": "Ask for help"
+  },
+  {
+    "intent": "General_Greetings",
+    "examples": [
+      {
+        "text": "Hi there"
+      },
+      {
+        "text": "How are things going?"
+      },
+      {
+        "text": "Hey there"
+      }
+    ],
+    "description": "Greetings"
+  }
+]

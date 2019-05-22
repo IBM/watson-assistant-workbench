@@ -1,0 +1,42 @@
+[
+  {
+    "entity": "specialist",
+    "values": [
+      {
+        "type": "synonyms",
+        "value": "Maria",
+        "synonyms": []
+      },
+      {
+        "type": "synonyms",
+        "value": "Derrik",
+        "synonyms": [
+          "derek",
+          "derik",
+          "derrik",
+          "derrick"
+        ]
+      }
+    ]
+  },
+  {
+    "entity": "sys-time",
+    "values": []
+  },
+  {
+    "entity": "phone",
+    "values": [
+      {
+        "type": "patterns",
+        "value": "US Phone pattern",
+        "patterns": [
+          "(\\d{3})-(\\d{3})-(\\d{4})"
+        ]
+      }
+    ]
+  },
+  {
+    "entity": "sys-number",
+    "values": []
+  }
+]

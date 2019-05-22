@@ -1,0 +1,99 @@
+{
+  "name": "Configuration-defined workspace name",
+  "intents": [
+    {
+      "intent": "Help",
+      "examples": [
+        {
+          "text": "help me"
+        },
+        {
+          "text": "i need assistance"
+        },
+        {
+          "text": "help me decide"
+        }
+      ],
+      "description": "Ask for help"
+    },
+    {
+      "intent": "General_Greetings",
+      "examples": [
+        {
+          "text": "Hi there"
+        },
+        {
+          "text": "How are things going?"
+        },
+        {
+          "text": "Hey there"
+        }
+      ],
+      "description": "Greetings"
+    }
+  ],
+  "entities": [
+    {
+      "entity": "specialist",
+      "values": [
+        {
+          "type": "synonyms",
+          "value": "Maria",
+          "synonyms": []
+        },
+        {
+          "type": "synonyms",
+          "value": "Derrik",
+          "synonyms": [
+            "derek",
+            "derik",
+            "derrik",
+            "derrick"
+          ]
+        }
+      ]
+    },
+    {
+      "entity": "sys-time",
+      "values": []
+    },
+    {
+      "entity": "phone",
+      "values": [
+        {
+          "type": "patterns",
+          "value": "US Phone pattern",
+          "patterns": [
+            "(\\d{3})-(\\d{3})-(\\d{4})"
+          ]
+        }
+      ]
+    },
+    {
+      "entity": "sys-number",
+      "values": []
+    }
+  ],
+  "language": "en",
+  "description": "Configuration-defined skill description",
+  "dialog_nodes": [
+    {
+      "type": "standard",
+      "title": "Opening",
+      "output": {
+        "text": {
+          "values": [
+            "Hello, I’m a demo customer care virtual assistant to show you the basics.  I can help with directions to my store, hours of operation and booking an in-store appointment"
+          ],
+          "selection_policy": "sequential"
+        }
+      },
+      "context": {
+        "no_reservation": true
+      },
+      "metadata": {},
+      "conditions": "welcome",
+      "dialog_node": "Opening"
+    }
+  ]
+}

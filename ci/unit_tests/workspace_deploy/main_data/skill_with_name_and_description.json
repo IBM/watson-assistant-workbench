@@ -1,0 +1,61 @@
+{
+  "name": "Customer Care Sample Skill",
+  "intents": [
+    {
+      "intent": "Help",
+      "examples": [
+        {
+          "text": "help me"
+        },
+        {
+          "text": "i need assistance"
+        },
+        {
+          "text": "help me decide"
+        }
+      ],
+      "description": "Ask for help"
+    }
+  ],
+  "entities": [
+    {
+      "entity": "specialist",
+      "values": [
+        {
+          "type": "synonyms",
+          "value": "Robert",
+          "synonyms": [
+            "bob"
+          ]
+        }
+      ]
+    },
+    {
+      "entity": "sys-time",
+      "values": []
+    }
+  ],
+  "language": "en",
+  "description": "A sample simple Customer Service skill",
+  "dialog_nodes": [
+    {
+      "type": "standard",
+      "title": "Opening",
+      "output": {
+        "text": {
+          "values": [
+            "Hello, I’m a demo customer care virtual assistant to show you the basics.  I can help with directions to my store, hours of operation and booking an in-store appointment"
+          ],
+          "selection_policy": "sequential"
+        }
+      },
+      "context": {
+        "no_reservation": true
+      },
+      "metadata": {},
+      "conditions": "welcome",
+      "dialog_node": "Opening"
+    }
+  ],
+  "counterexamples": []
+}

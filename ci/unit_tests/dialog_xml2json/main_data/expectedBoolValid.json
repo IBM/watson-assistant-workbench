@@ -1,0 +1,14 @@
+[
+    {
+        "dialog_node": "node_3_123156480932",
+        "title": "WDlk23fFbe4FBG3429c",
+        "type": "standard",
+        "conditions": "#SKFUROIGCNB",
+        "context": {
+            "testBool": true,
+            "testNotBool": "true",
+            "testBool2": false
+        },
+        "metadata": {}
+    }
+]

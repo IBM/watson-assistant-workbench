@@ -1,0 +1,14 @@
+[
+    {
+        "title": "ASdx7HDfdh92HDadl32",
+        "dialog_node": "node_3_434432552143",
+        "type": "standard",
+        "conditions": "#DAEHUIDSBNE",
+        "context": {
+            "testBool": true,
+            "testNotBool": "true",
+            "testBool2": false
+        },
+        "metadata": {}
+    }
+]

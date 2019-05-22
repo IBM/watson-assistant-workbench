@@ -36,6 +36,19 @@ class TestMain(BaseTestCaseCapture):
     def callfunc(self, *args, **kwargs):
         dialog_json2xml.main(*args, **kwargs)
 
+    def _assertXmlEqual(self, xml1path, xml2path):
+        """Tests if two xml files are equal."""
+        with open(xml1path, 'r') as xml1File:
+            xml1 = etree.XML(xml1File.read(), etree.XMLParser(remove_blank_text=True))
+            for parent in xml1.xpath('//*[./*]'): # Search for parent elements
+                parent[:] = sorted(parent, key=lambda x: x.tag)
+        with open(xml2path, 'r') as xml2File:
+            xml2 = etree.XML(xml2File.read(), etree.XMLParser(remove_blank_text=True))
+            for parent in xml2.xpath('//*[./*]'): # Search for parent elements
+                parent[:] = sorted(parent, key=lambda x: x.tag)
+
+        assert etree.tostring(xml1) == etree.tostring(xml2)
+
     def test_mainValidActions(self):
         """Tests if the script successfully completes with valid input file with actions."""
         inputJsonPath = os.path.abspath(os.path.join(self.dataBasePath, 'inputActionsValid.json'))
@@ -47,14 +60,17 @@ class TestMain(BaseTestCaseCapture):
         BaseTestCaseCapture.createFolder(outputXmlDirPath)
 
         self.t_noException([[inputJsonPath, '-d', outputXmlDirPath]])
+        self._assertXmlEqual(expectedXmlPath, outputXmlPath)
 
-        with open(expectedXmlPath, 'r') as expectedXmlFile:
-            expectedXml = etree.XML(expectedXmlFile.read(), etree.XMLParser(remove_blank_text=True))
-            for parent in expectedXml.xpath('//*[./*]'): # Search for parent elements
-                parent[:] = sorted(parent, key=lambda x: x.tag)
-        with open(outputXmlPath, 'r') as outputXmlFile:
-            outputXml = etree.XML(outputXmlFile.read(), etree.XMLParser(remove_blank_text=True))
-            for parent in outputXml.xpath('//*[./*]'): # Search for parent elements
-                parent[:] = sorted(parent, key=lambda x: x.tag)
+    def test_mainValidBool(self):
+        """Tests if the script successfully completes with valid input file with bool."""
+        inputJsonPath = os.path.abspath(os.path.join(self.dataBasePath, 'inputBoolValid.json'))
+        expectedXmlPath = os.path.abspath(os.path.join(self.dataBasePath, 'expectedBoolValid.xml'))
 
-        assert etree.tostring(expectedXml) == etree.tostring(outputXml)
+        outputXmlDirPath = os.path.join(self.testOutputPath, 'outputBoolValidResult')
+        outputXmlPath = os.path.join(outputXmlDirPath, 'dialog.xml')
+
+        BaseTestCaseCapture.createFolder(outputXmlDirPath)
+
+        self.t_noException([[inputJsonPath, '-d', outputXmlDirPath]])
+        self._assertXmlEqual(expectedXmlPath, outputXmlPath)

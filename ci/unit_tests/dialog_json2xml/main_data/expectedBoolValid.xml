@@ -1,0 +1,12 @@
+<nodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <node name="node_3_434432552143" title="ASdx7HDfdh92HDadl32">
+    <type>standard</type>
+    <condition>#DAEHUIDSBNE</condition>
+    <context>
+      <testBool type="boolean">True</testBool>
+      <testNotBool>true</testNotBool>
+      <testBool2 type="boolean">False</testBool2>
+    </context>
+    <metadata structure="emptyDict"/>
+  </node>
+</nodes>

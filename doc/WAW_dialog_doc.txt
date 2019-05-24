@@ -85,6 +85,7 @@
 	************************************************************
 	Elements
 		<condition> (only once)
+		<type> (only once)
 		<context> (only once)
 		<output> (only once)
 		<goto> (only once)
@@ -112,6 +113,19 @@
 			<actions>...</actions>
 			<digress_in>returns</digress_in>
 		</node>
+
+	**************************************************
+	** <type>
+	**************************************************
+	Specifies the type of the node.
+	Allowed values
+		'standard'
+		'event_handler'
+		'frame'
+		'slot'
+		'response_condition'
+		'folder'
+	Default value: 'standard'
 
 	**************************************************
 	** <outputs>

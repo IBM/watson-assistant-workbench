@@ -26,7 +26,7 @@ from xml.sax.saxutils import unescape
 import lxml.etree as LET
 
 from cfgCommons import Cfg
-from wawCommons import getOptionalParameter, getScriptLogger, setLoggerConfig
+from wawCommons import getRequiredParameter, getOptionalParameter, getScriptLogger, setLoggerConfig
 
 logger = getScriptLogger(__file__)
 
@@ -156,13 +156,16 @@ def replace_config_variables (importTree):
          repl.getparent().text = ("" if repl.getparent().text is None else repl.getparent().text) + middle + ("" if repl.tail is None else repl.tail)
          repl.getparent().remove(repl)
 
-def validate(xml):
+def validate(xml, filePath, imported):
+    importedStr = "imported" if imported else "root"
     global schema
     try:
         schema.assertValid(xml)
-        logger.verbose("XML is valid")
-    except LET.XMLSchemaError:
-        logger.error("Invalid XML %s!")
+        logger.verbose("%s XML %s is valid", importedStr, filePath)
+    except LET.DocumentInvalid as e:
+        logger.critical("Invalid %s XML: %s", importedStr, filePath)
+        logger.critical(e)
+        exit(1)
 
 
 def getNodeWithTheSameCondition(root, testNode):
@@ -176,8 +179,8 @@ def importText(importTree, config):
     imports = importTree.xpath('//importText')
     for imp in imports:
         filename = imp.text.split('/')
-        logger.verbose('Importing %s', os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*filename))
-        fp = io.open(os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*filename) ,'r', encoding='utf-8')
+        logger.verbose('Importing %s', os.path.join(os.path.dirname(getRequiredParameter(config, 'common_dialog_main')), *filename))
+        fp = io.open(os.path.join(os.path.dirname(getRequiredParameter(config, 'common_dialog_main')),*filename) ,'r', encoding='utf-8')
         importTxt = fp.read()
         fp.close()
         imp.getparent().text = ("" if imp.getparent().text is None else imp.getparent().text) + importTxt + ("" if imp.tail is None else imp.tail)
@@ -192,14 +195,18 @@ def importNodes(root, config):
         defaultNode = root[len(root)-1]
 
     for node in root.findall('import'):
-        logger.verbose('Importing %s', os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),node.text))
-        importPath = node.text.split('/')
-        importTree = LET.parse(os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')),*importPath))
+        logger.verbose('Importing %s', os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')), node.text))
+        importPathSplit = node.text.split('/')
+        importPath = os.path.join(os.path.dirname(getattr(config, 'common_dialog_main')), *importPathSplit)
+        if not os.path.exists(importPath):
+            logger.critical('Imported dialog file %s not found.', importPath)
+            exit(1)
+        importTree = LET.parse(importPath)
         importText(importTree, config)
         replace_config_variables(importTree)
 
         if schema is not None:
-            validate(importTree)
+            validate(importTree, importPath[0], True)
 
         importRoot = importTree.getroot()
         childIndex = 1
@@ -865,11 +872,13 @@ def main(argv):
     NSMAP = {"xsi" : XSI_NAMESPACE}
 
     # load dialogue from XML
-    if hasattr(config, 'common_dialog_main'):
-        #TODO might need UTF-8
-        dialogTree = LET.parse(getattr(config, 'common_dialog_main'))
-    else:
-        dialogTree = LET.parse(sys.stdin)
+    dialogTreeFile = getOptionalParameter(config, 'common_dialog_main') or sys.stdin
+
+    if not os.path.exists(dialogTreeFile):
+        logger.critical('Root dialog file %s not found.', dialogTreeFile)
+        exit(1)
+
+    dialogTree = LET.parse(dialogTreeFile)
 
     # load schema
     schemaParam = getOptionalParameter(config, 'common_schema')
@@ -877,13 +886,13 @@ def main(argv):
         schemaDirname = os.path.split(os.path.abspath(__file__))[0]
         schemaFile = os.path.join(schemaDirname, schemaParam)
         if not os.path.exists(schemaFile):
-            logger.error('Schema file %s not found.', schemaFile)
+            logger.critical('Schema file %s not found.', schemaFile)
             exit(1)
         #TODO might need UTF-8
         schemaTree = LET.parse(schemaFile)
         global schema
         schema = LET.XMLSchema(schemaTree)
-        validate(dialogTree)
+        validate(dialogTree, dialogTreeFile, False)
 
     # process dialog tree
     root = dialogTree.getroot()

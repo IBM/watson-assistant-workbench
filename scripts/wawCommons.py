@@ -23,11 +23,14 @@ import logging
 import os
 import re
 import sys
+import time
 from logging.config import fileConfig
 from urllib.parse import urlencode, urlparse, urlunparse
 
 import requests
 import unidecode
+
+from ExceptionCommons import CFCallException, CFCallStatusException
 
 
 def openFile(name, *args, **kwargs):
@@ -555,8 +558,15 @@ def getFunctionResponseJson(cloudFunctionsUrl, urlNamespace, username, password,
 
         responseContentType = functionResponse.headers.get('content-type')
         if responseContentType != 'application/json':
-            logger.error('Response content type is not json, content type: %s, response:\n%s', responseContentType, functionResponse.text)
-            return None
+            exception = CFCallException(
+                functionName, 
+                package, 
+                functionResponse, 
+                "Response content type is not json",
+                None,
+                {'contentType': responseContentType})
+            logger.error(exception)
+            raise exception
 
         return functionResponse.json()
 
@@ -574,52 +584,65 @@ def getFunctionResponseJson(cloudFunctionsUrl, urlNamespace, username, password,
 
             responseContentType = functionResponse.headers.get('content-type')
             if responseContentType != 'application/json':
-                logger.error('Response content type is not json, content type: %s, response:\n%s', responseContentType, functionResponse.text)
-                return None
+                exception = CFCallException(
+                    functionName, 
+                    package, 
+                    functionResponse, 
+                    "Response content type is not json",
+                    None,
+                    {'activationId': activationId, 'contentType': responseContentType})
+                logger.error(exception)
+                raise exception
 
             responseJson = functionResponse.json()
             if isinstance(responseJson, dict) and 'result' in responseJson\
              and isinstance(responseJson['result'], dict) and 'payload' in responseJson['result']:
                 return responseJson['result']['payload']
             else:
-                logger.error("Bad response format received from function '%s' in package '%s', status code '%d',\
-                 response: %s, expected was {\"result\":{\"payload\":\"<function_payload>\"}}",\
-                 functionName, package, functionResponse.status_code, json.dumps(functionResponse.json(), ensure_ascii=False).encode('utf8'))
-                return None
+                exception = CFCallException(
+                    functionName, 
+                    package, 
+                    functionResponse, 
+                    "Bad response format received", 
+                    "expected was {\"result\":{\"payload\":\"<function_payload>\"}}", 
+                    {'activationId': activationId})
+                logger.error(exception)
+                raise exception
 
         elif functionResponse.status_code in [403, 404, 408]: # not so serious errors, the next request may be fine
             # 403 Forbidden (could be just for specific package or function)
             # 404 Not Found (action or package could be incorrectly specified for given request)
             # 408 Request Timeout (could happen e.g. for CF that requests some REST APIs, e.g. Discovery service)
-            logger.error("Unexpected response status from function '%s' in package '%s' with activation id '%s', status code '%d', response: %s",
-                         functionName, package, activationId, functionResponse.status_code,
-                         functionResponse.text)
-            return None
+            exception = CFCallStatusException(functionName, package, functionResponse, {'activationId': activationId})
+            logger.error(exception)
+            raise exception
         else: # serious errors, stop the process
             # 401 Unauthorized (while we use same credentials for all tests then we want to end after the first test returns bad authentification)
             # 500 Internal Server Error (could happen that IBM Cloud has several issue and is not able to handle incoming requests,
              # then it would be probably same for all requests)
             # 502 Bad Gateway (when the CF raises exception, e.g. bad params were provided)
-            logger.critical("Unexpected response status from function '%s' in package '%s' with activation id '%s', status code '%d', response: %s",
-                            functionName, package, activationId, functionResponse.status_code, functionResponse.text)
+            exception = CFCallStatusException(functionName, package, functionResponse, {'activationId': activationId})
+            logger.critical(exception)
             sys.exit(1)
 
     elif functionResponse.status_code in [403, 404, 408]: # not so serious errors, the next request may be fine
         # 403 Forbidden (could be just for specific package or function)
         # 404 Not Found (action or package could be incorrectly specified for given request)
         # 408 Request Timeout (could happen e.g. for CF that requests some REST APIs, e.g. Discovery service)
-        logger.error("Unexpected response status from function '%s' in package '%s', status code '%d', response: %s",
-                     functionName, package, functionResponse.status_code,
-                     functionResponse.text)
+        exception = CFCallStatusException(functionName, package, functionResponse)
+        logger.error(exception)
+        raise exception
     else: # serious errors, stop the process
         # 401 Unauthorized (while we use same credentials for all tests then we want to end after the first test returns bad authentification)
         # 500 Internal Server Error (could happen that IBM Cloud has several issue and is not able to handle incoming requests,
          # then it would be probably same for all requests)
         # 502 Bad Gateway (when the CF raises exception, e.g. bad params were provided)
-        logger.critical("Unexpected response status from function '%s' in package '%s', status code '%d', response: %s",
-                        functionName, package, functionResponse.status_code,
-                        json.dumps(functionResponse.json(), ensure_ascii=False).encode('utf8'))
+        exception = CFCallStatusException(functionName, package, functionResponse)
+        logger.critical(exception)
         sys.exit(1)
+
+def getTimestampInMillis():
+    return int(round(time.time() * 1000))    
 
 
 logger = getScriptLogger(__file__)

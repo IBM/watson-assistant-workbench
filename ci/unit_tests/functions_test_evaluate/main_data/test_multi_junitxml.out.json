@@ -83,5 +83,38 @@
         "outputReturned": {
             "message": "test message"
         }
+    },
+    {
+        "name": "Error from testing phase - only message",
+        "error": {
+            "message": "error message"
+        }
+    },
+    {
+        "name": "Error from testing phase - only type",
+        "error": {
+            "type": "error type"
+        }
+    },
+    {
+        "name": "Error from testing phase - message and type",
+        "error": {
+            "message": "error message",
+            "type": "error type"
+        }
+    },
+    {
+        "input": "input message",
+        "outputExpected": {
+            "message": "test message"
+        },
+        "outputReturned": {
+            "message": "test message 2"
+        },
+        "name": "Error from testing phase - message and type and rest of the test definition",
+        "error": {
+            "message": "error message",
+            "type": "error type"
+        }
     }
 ]

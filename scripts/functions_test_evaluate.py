@@ -84,13 +84,14 @@ def main(argv):
     xml.add_testsuite(suite)
     suite.timestamp = str(datetime.datetime.now()) # time of evaluation, not the testing it self (evaluations could differ)
     #suite.hostname = '<Host on which the tests were executed. 'localhost' should be used if the hostname cannot be determined.>'
-    testCounter = 0
+    testCounter = -1
     for test in inputJson:
+        testCounter += 1
         case = TestCase()
         suite.add_testcase(case)
 
         if not isinstance(test, dict):
-            errorMessage = "Input test array element {:d} is not dictionary. Each test has to be dictionary, please see doc!".format(testCounter)
+            errorMessage = "Test output array element {:d} is not dictionary. Each test output has to be dictionary, please see doc!".format(testCounter)
             logger.error(errorMessage)
             case.result = Error(errorMessage, 'ValueError')
             continue
@@ -104,6 +105,14 @@ def main(argv):
                 case.time = test.get('time')
             else:
                 logger.warning("Time is not type of integer, type '%s'", str(type(time).__name__))
+
+        # propagate error from test script
+        if 'error' in test:
+            message = test['error']['message'] if 'message' in test['error'] else ''
+            error = test['error']['type'] if 'type' in test['error'] else ''
+            logger.error("Test output contains error, error type '{}' and message '{}'".format(message, error))
+            case.result = Error(message, error)
+            continue
 
         # load test expected output payload json
         testOutputExpectedJson = test['outputExpected']
@@ -174,10 +183,9 @@ def main(argv):
             logger.error(errorMessage)
             case.result = Error(errorMessage, 'ValueError')
 
-        testCounter += 1
-
     # write outputs
     if junitFileName:
+        xml.update_statistics()
         xml.write(junitFileName, True)
     outputFile.write(json.dumps(inputJson, indent=4, ensure_ascii=False) + '\n')
 

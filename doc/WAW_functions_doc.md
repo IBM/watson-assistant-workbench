@@ -68,6 +68,13 @@ configuration parameters or by values specified by parameter `replace`
           rest of the input test definition
         ...
         "outputReturned": <OBJECT> # returned payload from CF
+        "error": { # in case an error occurs during the testing
+            "type": "<ERROR_TYPE>",
+            "message": "<ERROR_MESSAGE>"
+        },
+        "start": "<START_TIMESTAMP_IN_MILLISECONDS>", # see -t script parameter
+        "end": "<END_TIMESTAMP_IN_MILLISECONDS>", # --||--
+        "time": "<TIME_IN_MILLISECONDS>" # --||--
     }
 ]
 ```
@@ -107,4 +114,20 @@ from evaluation.
         "diff": <OBJECT> # if test passed then "diff" is Null, else contains object that represents differences
     }
 ]
+```
+
+**Output junit xml file example (see -j script parameter):**
+```
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites errors="0" failures="0" tests="1" time="761.0">
+	<testsuite errors="0" failures="0" name="<TEST_FILE_NAME>" skipped="0" tests="1" time="761.0" timestamp="2019-05-24 12:20:22.173440">
+		<testcase name="<TEST_CASE_NAME>" time="761">
+            <!-- 1) If test passes then testcase is empty -->
+            <!-- 2) If test fails (result == 1) -->
+			<failure message="<DIFF_OBJECT>"/>
+            <!-- 3) If test ends with error -->
+			<error message="<ERROR_MESSAGE>" type="<ERROR_TYPE>"/>
+		</testcase>
+	</testsuite>
+</testsuites>
 ```

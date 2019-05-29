@@ -28,6 +28,7 @@ from wawCommons import (convertApikeyToUsernameAndPassword,
                         getFunctionResponseJson, getOptionalParameter,
                         getParametersCombination, getRequiredParameter,
                         getScriptLogger, replaceValue, setLoggerConfig)
+from ExceptionCommons import CFCallException
 
 logger = getScriptLogger(__file__)
 
@@ -114,23 +115,23 @@ def main(argv):
     try:
         inputFile = open(args.inputFileName, 'r')
     except IOError:
-        logger.critical('Cannot open test input file %s', args.inputFileName)
+        logger.critical("Cannot open test input file '%s'", args.inputFileName)
         sys.exit(1)
 
     try:
         outputFile = open(args.outputFileName, 'w')
     except IOError:
-        logger.critical('Cannot open test output file %s', args.outputFileName)
+        logger.critical("Cannot open test output file '%s'", args.outputFileName)
         sys.exit(1)
 
     try:
         inputJson = json.load(inputFile)
     except ValueError as e:
-        logger.critical('Cannot decode json from test input file %s, error: %s', args.inputFileName, str(e))
+        logger.critical("Cannot decode json from test input file '%s', error '%s'", args.inputFileName, str(e))
         sys.exit(1)
 
     if not isinstance(inputJson, list):
-        logger.critical('Input test json is not array!')
+        logger.critical("Input test json is not array!")
         sys.exit(1)
 
     replaceDict = {}
@@ -142,19 +143,28 @@ def main(argv):
                 for replacementString in replacementsString.split(','):
                     replacementStringSplit = replacementString.split(':')
                     if len(replacementStringSplit) != 2 or not replacementStringSplit[0] or not replacementStringSplit[1]:
-                        logger.critical('Invalid format of \'replace\' parameter, valid format is \'valueToBeReplaced1:replacement1,valueToBeReplaced2:replacement2\'')
+                        logger.critical("Invalid format of 'replace' parameter, valid format is 'valueToBeReplaced1:replacement1,valueToBeReplaced2:replacement2'")
                         sys.exit(1)
                     replaceDict[replacementStringSplit[0]] = replacementStringSplit[1]
             else:
                 replaceDict[attr] = getattr(config, attr)
 
+    # helper to create error errorMessage
+    def errorJsonTemplate(message, type):
+        return { 'message': message, 'type': type }
+
     # run tests
-    testCounter = 0
+    testCounter = -1
     for test in inputJson:
+        testCounter += 1
+
         if not isinstance(test, dict):
-            logger.error('Input test array element %d is not dictionary. Each test has to be dictionary, please see doc!', testCounter)
+            errorMessage = "Input test array element {:d} is not dictionary. Each test has to be dictionary, please see doc!".format(testCounter)
+            logger.error(errorMessage)
+            inputJson[testCounter] = {}
+            inputJson[testCounter]['error'] = errorJsonTemplate(errorMessage, 'ValueError')
             continue
-        logger.info('Test number: %d, name: %s', testCounter, (test['name'] if 'name' in test else '-'))
+        logger.info("Test number %d, name '%s'", testCounter, (test['name'] if 'name' in test else '-'))
 
         # load test input payload json
         testInputJson = test['input']
@@ -166,12 +176,16 @@ def main(argv):
                 try:
                     inputFile = open(testInputPath, 'r')
                 except IOError:
-                    logger.error('Cannot open input payload from file: %s', testInputPath)
+                    errorMessage = "Cannot open input payload from file '{}'".format(testInputPath)
+                    logger.error(errorMessage)
+                    test['error'] = errorJsonTemplate(errorMessage, 'IOError')
                     continue
                 try:
                     testInputJson = json.load(inputFile)
                 except ValueError as e:
-                    logger.error('Cannot decode json from input payload from file %s, error: %s', testInputPath, str(e))
+                    errorMessage = "Cannot decode json from input payload from file '{}', error '{}'".format(testInputPath, str(e))
+                    logger.error(errorMessage)
+                    test['error'] = errorJsonTemplate(errorMessage, 'IOError')
                     continue
         except AttributeError:
             pass
@@ -189,12 +203,16 @@ def main(argv):
                 try:
                     outputExpectedFile = open(testOutputExpectedPath, 'r')
                 except IOError:
-                    logger.error('Cannot open expected output payload from file: %s', testOutputExpectedPath)
+                    errorMessage = "Cannot open expected output payload from file '{}'".format(testOutputExpectedPath)
+                    logger.error(errorMessage)
+                    test['error'] = errorJsonTemplate(errorMessage, 'IOError')
                     continue
                 try:
                     testOutputExpectedJson = json.load(outputExpectedFile)
                 except ValueError as e:
-                    logger.error('Cannot decode json from expected output payload from file %s, error: %s', testOutputExpectedPath, str(e))
+                    errorMessage = "Cannot decode json from expected output payload from file '{}', error '{}'".format(testOutputExpectedPath, str(e))
+                    logger.error(errorMessage)
+                    test['error'] = errorJsonTemplate(errorMessage, 'IOError')
                     continue
         except AttributeError:
             pass
@@ -214,34 +232,38 @@ def main(argv):
 
         # call CF
         logger.debug('Sending input json: %s', json.dumps(testInputJson, ensure_ascii=False).encode('utf8'))
-        testOutputReturnedJson = getFunctionResponseJson(
-            url,
-            namespace,
-            username,
-            password,
-            (test['cf_package'] if 'cf_package' in test else package),
-            (test['cf_function'] if 'cf_function' in test else function),
-            {},
-            testInputJson)
+        try:
+            testOutputReturnedJson = getFunctionResponseJson(
+                url,
+                namespace,
+                username,
+                password,
+                (test['cf_package'] if 'cf_package' in test else package),
+                (test['cf_function'] if 'cf_function' in test else function),
+                {},
+                testInputJson)
 
-        logger.debug('Received output json: %s', json.dumps(testOutputReturnedJson, ensure_ascii=False).encode('utf8'))
-        test['outputReturned'] = testOutputReturnedJson
+            logger.debug('Received output json: %s', json.dumps(testOutputReturnedJson, ensure_ascii=False).encode('utf8'))
+            test['outputReturned'] = testOutputReturnedJson
 
-        # evaluate test
-        if 'type' not in test or test['type'] == 'EXACT_MATCH':
-            testResultString = DeepDiff(testOutputExpectedJson, testOutputReturnedJson, ignore_order=True).json
-            testResultJson = json.loads(testResultString)
-            if testResultJson == {}:
-                test['result'] = 0
+            # evaluate test
+            if 'type' not in test or test['type'] == 'EXACT_MATCH':
+                testResultString = DeepDiff(testOutputExpectedJson, testOutputReturnedJson, ignore_order=True).json
+                testResultJson = json.loads(testResultString)
+                if testResultJson == {}:
+                    test['result'] = 0
+                else:
+                    test['result'] = 1
+                    test['diff'] = testResultJson
             else:
-                test['result'] = 1
-                test['diff'] = testResultJson
-        else:
-            logger.error('Unknown test type: %s', test['type'])
-
-        testCounter += 1
+                errorMessage = "Unknown test type: {}".format(test['type'])
+                logger.error(errorMessage)
+                test['error'] = errorJsonTemplate(errorMessage, 'ValueError')
+        except CFCallException as e:
+            test['error'] = e.toJson()
 
     outputFile.write(json.dumps(inputJson, indent=4, ensure_ascii=False) + '\n')
+    outputFile.close()
     logger.info('FINISHING: '+ os.path.basename(__file__))
 
 if __name__ == '__main__':

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<testsuites>
-	<testsuite errors="6" failures="1" name="test_multi_junitxml.out" skipped="0" tests="11" time="50.0" timestamp="2019-05-17 17:16:54.437212">
+<testsuites errors="10" failures="1" tests="15" time="50.0">
+	<testsuite errors="10" failures="1" name="test_multi_junitxml.out" skipped="0" tests="15" time="50.0" timestamp="2019-05-17 17:16:54.437212">
 		<testcase>
-			<error message="Input test array element 0 is not dictionary. Each test has to be dictionary, please see doc!" type="ValueError"/>
+			<error message="Test output array element 0 is not dictionary. Each test output has to be dictionary, please see doc!" type="ValueError"/>
 		</testcase>
 		<testcase name="Cannot open expected output">
 			<error message="Cannot open expected output payload from file '/some/random/path'" type="IOError"/>
@@ -26,5 +26,17 @@
 		<testcase name="Valid time" time="50"/>
 		<testcase name="Invalid time"/>
 		<testcase/>
+		<testcase name="Error from testing phase - only message">
+			<error message="error message"/>
+		</testcase>
+		<testcase name="Error from testing phase - only type">
+			<error type="error type"/>
+		</testcase>
+		<testcase name="Error from testing phase - message and type">
+			<error message="error message" type="error type"/>
+		</testcase>
+		<testcase name="Error from testing phase - message and type and rest of the test definition">
+			<error message="error message" type="error type"/>
+		</testcase>
 	</testsuite>
 </testsuites>

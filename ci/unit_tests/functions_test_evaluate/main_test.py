@@ -97,7 +97,7 @@ class TestMain(BaseTestCaseCapture):
         ''' Tests if the input file contains test that is not dictionary '''
         testArgs = [self.testSingleInvalidOutJsonPath, self.outputCommonPath]
         self.t_noExceptionAndLogMessage(
-            'ERROR    Input test array element 0 is not dictionary. Each test has to be dictionary, please see doc!', # error message substring
+            'ERROR    Test output array element 0 is not dictionary. Each test output has to be dictionary, please see doc!', # error message substring
             [testArgs] # params (*args, **kwargs)
         )
 

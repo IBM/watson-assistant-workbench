@@ -15,6 +15,7 @@ limitations under the License.
 
 import json
 import os
+import re
 
 import functions_test
 import functions_test_evaluate
@@ -55,15 +56,22 @@ class TestTestAndEvaluateFunction(BaseTestCaseCapture):
          functionality (using standard config parameter)'''
         testSingleAllInFileReplacePackageOutJsonPath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileReplacePackageJsonPath))[0] + '.out.json'))
         testSingleAllInFileReplacePackageEvalJsonPath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileReplacePackageJsonPath))[0] + '.eval.json'))
+        testSingleAllInFileReplacePackageEvaJUnitXmlFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.basename(self.testSingleAllInFileReplacePackageJsonPath).split('.')[0] + '.eval.junit.xml'))
 
         testArgs = [self.testSingleAllInFileReplacePackageJsonPath, testSingleAllInFileReplacePackageOutJsonPath] + self.functionsTestArgs
-        self.t_fun_noException(functions_test.main, [testArgs + ['--version', '2.2']])
+        self.t_fun_noException(functions_test.main, [testArgs + ['--version', '2.2', '-t']])
 
         testArgs = [testSingleAllInFileReplacePackageOutJsonPath, testSingleAllInFileReplacePackageEvalJsonPath]
-        self.t_fun_noException(functions_test_evaluate.main, [testArgs])
+        self.t_fun_noException(functions_test_evaluate.main, [testArgs + ['-j', testSingleAllInFileReplacePackageEvaJUnitXmlFilePath]])
 
         with open(testSingleAllInFileReplacePackageEvalJsonPath, 'r') as outputFile:
             outputJson = json.load(outputFile)
+            assert isinstance(outputJson[0]['start'], int)
+            assert isinstance(outputJson[0]['end'], int)
+            assert isinstance(outputJson[0]['time'], int)
+            del outputJson[0]['start']
+            del outputJson[0]['end']
+            del outputJson[0]['time']
             assert outputJson == [
                 {
                     "input": {
@@ -78,3 +86,16 @@ class TestTestAndEvaluateFunction(BaseTestCaseCapture):
                     "result": 0
                 }
             ]
+
+        with open(testSingleAllInFileReplacePackageEvaJUnitXmlFilePath, 'r') as outputFile:
+            outputString = outputFile.read()
+            outputString = re.sub(r'time="[0-9\.]+"', 'time="TIME"', outputString)
+            outputString = re.sub(r'timestamp="[0-9\.:\- ]+"', 'timestamp="TIMESTAMP"', outputString)
+            assert outputString == \
+                '<?xml version="1.0" encoding="utf-8"?>\n' +\
+                '<testsuites errors="0" failures="0" tests="1" time="TIME">\n' +\
+                '\t<testsuite errors="0" failures="0" name="test_single_all_in_file_replace_package.out" ' +\
+                    'skipped="0" tests="1" time="TIME" timestamp="TIMESTAMP">\n' +\
+                '\t\t<testcase time="TIME"/>\n' +\
+                '\t</testsuite>\n' +\
+                '</testsuites>\n'

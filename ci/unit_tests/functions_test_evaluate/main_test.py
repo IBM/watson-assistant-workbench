@@ -42,6 +42,7 @@ class TestMain(BaseTestCaseCapture):
     testMultiOutJsonPath = os.path.abspath(os.path.join(dataBasePath, 'test_multi.out.json'))
     testMultiJUnitXmlOutJsonPath = os.path.abspath(os.path.join(dataBasePath, 'test_multi_junitxml.out.json'))
     testMultiJUnitXmlRefEvalJUnitXmlPath = os.path.abspath(os.path.join(dataBasePath, 'test_multi_junitxml_ref.eval.junit.xml'))
+    testMultiJUnitXmlWithClassAndSuitNameRefEvalJUnitXmlPath = os.path.abspath(os.path.join(dataBasePath, 'test_multi_junitxml_with_class_and_suit_name_ref.eval.junit.xml'))
 
     def setup_class(cls):
         ''' Setup any state specific to the execution of the given class (which usually contains tests). '''
@@ -272,6 +273,23 @@ class TestMain(BaseTestCaseCapture):
         testArgs = [self.testMultiJUnitXmlOutJsonPath, outputFilePath, '-j', outputJUnitXmlFilePath]
         self.t_noException([testArgs])
         with open(self.testMultiJUnitXmlRefEvalJUnitXmlPath, 'r') as f1, open(outputJUnitXmlFilePath, 'r') as f2:
+            for l1, l2 in zip(f1, f2):
+                # remove timestamp because it is not static
+                l1 = re.sub(r' timestamp="[^"]*"', '', l1)
+                l2 = re.sub(r' timestamp="[^"]*"', '', l2)
+                # remove absolute path because it is not static
+                l1 = re.sub(r' from file [^ ]*no.json', '', l1)
+                l2 = re.sub(r' from file [^ ]*no.json', '', l2)
+                assert l1 == l2
+
+    def test_testMultiJUnitXmlWithClassAndSuitName(self):
+        ''' Tests if junit xml is generated correctly '''
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.basename(self.testMultiJUnitXmlOutJsonPath).split('.')[0] + '_with_class_and_suit_name.eval.json'))
+        outputJUnitXmlFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.basename(self.testMultiJUnitXmlOutJsonPath).split('.')[0] + '_with_class_and_suit_name.eval.junit.xml'))
+
+        testArgs = [self.testMultiJUnitXmlOutJsonPath, outputFilePath, '-j', outputJUnitXmlFilePath, '--className', 'CLASS_NAME', '--suitName', 'SUIT_NAME']
+        self.t_noException([testArgs])
+        with open(self.testMultiJUnitXmlWithClassAndSuitNameRefEvalJUnitXmlPath, 'r') as f1, open(outputJUnitXmlFilePath, 'r') as f2:
             for l1, l2 in zip(f1, f2):
                 # remove timestamp because it is not static
                 l1 = re.sub(r' timestamp="[^"]*"', '', l1)

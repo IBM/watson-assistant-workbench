@@ -35,6 +35,8 @@ def main(argv):
     parser.add_argument('outputFileName', help='File where to store evaluation output.')
     # optional arguments
     parser.add_argument('-j', '--junitFileName', required=False, help='File where to store evaluation JUnit XML output (if not specified, no JUnit XML output is generated).')
+    parser.add_argument('--className', required=False, help="Default value for test class name (it is overwritten by 'class' values inside given test output as an input).")
+    parser.add_argument('--suitName', required=False, help="Default value for test suit name (if not provided the name of the file is taken).")
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
@@ -80,7 +82,9 @@ def main(argv):
 
     # run evaluation
     xml = JUnitXml()
-    suite = TestSuite(os.path.splitext(os.path.basename(args.inputFileName))[0]) # once we support multiple test files then for each one should be test suite created
+    suitNameDefault = getOptionalParameter(config, 'suitName')
+    classNameDefault = getOptionalParameter(config, 'className')
+    suite = TestSuite(suitNameDefault or os.path.splitext(os.path.basename(args.inputFileName))[0]) # once we support multiple test files then for each one should be test suite created
     xml.add_testsuite(suite)
     suite.timestamp = str(datetime.datetime.now()) # time of evaluation, not the testing it self (evaluations could differ)
     #suite.hostname = '<Host on which the tests were executed. 'localhost' should be used if the hostname cannot be determined.>'
@@ -90,6 +94,9 @@ def main(argv):
         case = TestCase()
         suite.add_testcase(case)
 
+        if classNameDefault:
+            case.classname = classNameDefault
+
         if not isinstance(test, dict):
             errorMessage = "Test output array element {:d} is not dictionary. Each test output has to be dictionary, please see doc!".format(testCounter)
             logger.error(errorMessage)
@@ -98,6 +105,9 @@ def main(argv):
 
         logger.info("Test number %d, name '%s'", testCounter, test.get('name', '-'))
         case.name = test.get('name', None)
+
+        if 'class':
+            case.classname = test.get('class')
 
         if 'time' in test:
             time = test.get('time')

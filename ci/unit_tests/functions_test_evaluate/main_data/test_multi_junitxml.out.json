@@ -116,5 +116,15 @@
             "message": "error message",
             "type": "error type"
         }
+    },
+    {
+        "name": "Class test",
+        "class": "class 1",
+        "outputExpected": {
+            "message": "test message"
+        },
+        "outputReturned": {
+            "message": "test message"
+        }
     }
 ]

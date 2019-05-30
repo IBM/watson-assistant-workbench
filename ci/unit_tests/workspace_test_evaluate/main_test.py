@@ -14,6 +14,7 @@ limitations under the License.
 """
 
 import os
+import re
 
 import workspace_test_evaluate
 
@@ -29,6 +30,7 @@ class TestMain(BaseTestCaseCapture):
     receivedJsonPath = os.path.abspath(os.path.join(dataBasePath, 'recieved.json'))
 
     outputJunitXmlPath = os.path.abspath(os.path.join(testOutputPath, 'test.junit.xml'))
+    outputRefJunitXmlPath = os.path.abspath(os.path.join(dataBasePath, 'test_ref.junit.xml'))
 
     def setup_class(cls):
         ''' Setup any state specific to the execution of the given class (which usually contains tests). '''
@@ -47,6 +49,15 @@ class TestMain(BaseTestCaseCapture):
     def test_noExceptionIfFails(self):
         ''' Tests if script does not raise exception when one of tests fails and parameter --exception_if_fail is set to False '''
         self.t_noException([[self.expectedJsonPath, self.receivedJsonPath, '-o', self.outputJunitXmlPath]])
+        with open(self.outputJunitXmlPath, 'r') as f1, open(self.outputRefJunitXmlPath, 'r') as f2:
+            for l1, l2 in zip(f1, f2):
+                # remove timestamp because it is not static
+                l1 = re.sub(r' timestamp="[^"]*"', '', l1)
+                l2 = re.sub(r' timestamp="[^"]*"', '', l2)
+                # remove time because it is not static
+                l1 = re.sub(r' time="[^"]*"', '', l1)
+                l2 = re.sub(r' time="[^"]*"', '', l2)
+                assert l1 == l2
 
     def test_raiseExceptionIfFails(self):
         ''' Tests if script raises exception when one of tests fails and parameter --exception_if_fail is set to True '''

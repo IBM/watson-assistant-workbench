@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <testsuites errors="10" failures="1" tests="16" time="50.0">
-	<testsuite errors="10" failures="1" name="test_multi_junitxml.out" skipped="0" tests="16" time="50.0" timestamp="2019-05-17 17:16:54.437212">
+	<testsuite errors="10" failures="1" name="test_multi_junitxml" skipped="0" tests="16" time="50.0" timestamp="2019-05-17 17:16:54.437212">
 		<testcase>
 			<error message="Test output array element 0 is not dictionary. Each test output has to be dictionary, please see doc!" type="ValueError"/>
 		</testcase>
@@ -38,6 +38,6 @@
 		<testcase name="Error from testing phase - message and type and rest of the test definition">
 			<error message="error message" type="error type"/>
 		</testcase>
-		<testcase classname="class 1" name="Class test"/>
+		<testcase classname="test_multi_junitxml.class_1" name="Class test"/>
 	</testsuite>
 </testsuites>

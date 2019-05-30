@@ -82,9 +82,10 @@ def main(argv):
 
     # run evaluation
     xml = JUnitXml()
-    suitNameDefault = getOptionalParameter(config, 'suitName')
+    suitName = getOptionalParameter(config, 'suitName') or os.path.basename(args.inputFileName).split('.')[0]
+    suitName = suitName.replace(' ', '_')
     classNameDefault = getOptionalParameter(config, 'className')
-    suite = TestSuite(suitNameDefault or os.path.splitext(os.path.basename(args.inputFileName))[0]) # once we support multiple test files then for each one should be test suite created
+    suite = TestSuite(suitName) # once we support multiple test files then for each one should be test suite created
     xml.add_testsuite(suite)
     suite.timestamp = str(datetime.datetime.now()) # time of evaluation, not the testing it self (evaluations could differ)
     #suite.hostname = '<Host on which the tests were executed. 'localhost' should be used if the hostname cannot be determined.>'
@@ -95,7 +96,7 @@ def main(argv):
         suite.add_testcase(case)
 
         if classNameDefault:
-            case.classname = classNameDefault
+            case.classname = suitName + '.' + classNameDefault.replace(' ', '_')
 
         if not isinstance(test, dict):
             errorMessage = "Test output array element {:d} is not dictionary. Each test output has to be dictionary, please see doc!".format(testCounter)
@@ -106,8 +107,8 @@ def main(argv):
         logger.info("Test number %d, name '%s'", testCounter, test.get('name', '-'))
         case.name = test.get('name', None)
 
-        if 'class':
-            case.classname = test.get('class')
+        if 'class' in test:
+            case.classname = suitName + '.' + test.get('class').replace(' ', '_')
 
         if 'time' in test:
             time = test.get('time')

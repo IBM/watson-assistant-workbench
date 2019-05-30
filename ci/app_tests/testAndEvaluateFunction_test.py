@@ -94,7 +94,7 @@ class TestTestAndEvaluateFunction(BaseTestCaseCapture):
             assert outputString == \
                 '<?xml version="1.0" encoding="utf-8"?>\n' +\
                 '<testsuites errors="0" failures="0" tests="1" time="TIME">\n' +\
-                '\t<testsuite errors="0" failures="0" name="test_single_all_in_file_replace_package.out" ' +\
+                '\t<testsuite errors="0" failures="0" name="test_single_all_in_file_replace_package" ' +\
                     'skipped="0" tests="1" time="TIME" timestamp="TIMESTAMP">\n' +\
                 '\t\t<testcase time="TIME"/>\n' +\
                 '\t</testsuite>\n' +\

@@ -90,6 +90,7 @@ from evaluation.
     {
         "name": "test example 1", # OPTIONAL
         "type": "EXACT_MATCH", # OPTIONAL (DEFAULT = EXACT_MATCH, OPTIONS = [EXACT_MATCH])
+        "class": "class name example 1", # OPTIONAL
         "outputExpected": <OBJECT> | <@PATH/TO/FILE>, # expected payload to be return from CF (--||--)
         "outputReturned": <OBJECT> # returned payload from CF
     },
@@ -116,12 +117,12 @@ from evaluation.
 ]
 ```
 
-**Output junit xml file example (see -j script parameter):**
+**Output junit xml file example (see -j script parameter and others for default suit name and class name):**
 ```
 <?xml version="1.0" encoding="utf-8"?>
 <testsuites errors="0" failures="0" tests="1" time="761.0">
-	<testsuite errors="0" failures="0" name="<TEST_FILE_NAME>" skipped="0" tests="1" time="761.0" timestamp="2019-05-24 12:20:22.173440">
-		<testcase name="<TEST_CASE_NAME>" time="761">
+	<testsuite errors="0" failures="0" name="<SUIT_NAME>" skipped="0" tests="1" time="761.0" timestamp="2019-05-24 12:20:22.173440">
+		<testcase classname="<SUIT_NAME>.<CLASS_NAME>" name="<TEST_CASE_NAME>" time="761">
             <!-- 1) If test passes then testcase is empty -->
             <!-- 2) If test fails (result == 1) -->
 			<failure message="<DIFF_OBJECT>"/>

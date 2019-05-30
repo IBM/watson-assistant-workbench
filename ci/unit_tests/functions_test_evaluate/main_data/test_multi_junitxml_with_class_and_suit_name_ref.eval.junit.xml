@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <testsuites errors="10" failures="1" tests="16" time="50.0">
 	<testsuite errors="10" failures="1" name="SUIT_NAME" skipped="0" tests="16" time="50.0" timestamp="2019-05-17 17:16:54.437212">
-		<testcase classname="CLASS_NAME">
+		<testcase classname="SUIT_NAME.CLASS_NAME">
 			<error message="Test output array element 0 is not dictionary. Each test output has to be dictionary, please see doc!" type="ValueError"/>
 		</testcase>
-		<testcase classname="CLASS_NAME" name="Cannot open expected output">
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Cannot open expected output">
 			<error message="Cannot open expected output payload from file '/some/random/path'" type="IOError"/>
 		</testcase>
-		<testcase classname="CLASS_NAME" name="Cannot decode json from expected output">
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Cannot decode json from expected output">
 			<error message="Cannot decode json from expected output payload from file 'main_data/no.json', error 'Expecting value: line 1 column 1 (char 0)'" type="ValueError"/>
 		</testcase>
-		<testcase classname="CLASS_NAME" name="Cannot open returned output">
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Cannot open returned output">
 			<error message="Cannot open returned output payload from file '/some/random/path'" type="IOError"/>
 		</testcase>
-		<testcase classname="CLASS_NAME" name="Cannot decode json from returned output">
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Cannot decode json from returned output">
 			<error message="Cannot decode json from returned output payload from file 'main_data/no.json', error 'Expecting value: line 1 column 1 (char 0)'" type="ValueError"/>
 		</testcase>
-		<testcase classname="CLASS_NAME" name="Unknown test type">
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Unknown test type">
 			<error message="Unknown test type: BAD TYPE" type="ValueError"/>
 		</testcase>
-		<testcase classname="CLASS_NAME" name="Failure">
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Failure">
 			<failure message="{&quot;values_changed&quot;: {&quot;root['message']&quot;: {&quot;new_value&quot;: &quot;test message 2&quot;, &quot;old_value&quot;: &quot;test message&quot;}}}"/>
 		</testcase>
-		<testcase classname="CLASS_NAME" name="Success"/>
-		<testcase classname="CLASS_NAME" name="Valid time" time="50"/>
-		<testcase classname="CLASS_NAME" name="Invalid time"/>
-		<testcase classname="CLASS_NAME"/>
-		<testcase classname="CLASS_NAME" name="Error from testing phase - only message">
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Success"/>
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Valid time" time="50"/>
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Invalid time"/>
+		<testcase classname="SUIT_NAME.CLASS_NAME"/>
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Error from testing phase - only message">
 			<error message="error message"/>
 		</testcase>
-		<testcase classname="CLASS_NAME" name="Error from testing phase - only type">
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Error from testing phase - only type">
 			<error type="error type"/>
 		</testcase>
-		<testcase classname="CLASS_NAME" name="Error from testing phase - message and type">
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Error from testing phase - message and type">
 			<error message="error message" type="error type"/>
 		</testcase>
-		<testcase classname="CLASS_NAME" name="Error from testing phase - message and type and rest of the test definition">
+		<testcase classname="SUIT_NAME.CLASS_NAME" name="Error from testing phase - message and type and rest of the test definition">
 			<error message="error message" type="error type"/>
 		</testcase>
-		<testcase classname="class 1" name="Class test"/>
+		<testcase classname="SUIT_NAME.class_1" name="Class test"/>
 	</testsuite>
 </testsuites>

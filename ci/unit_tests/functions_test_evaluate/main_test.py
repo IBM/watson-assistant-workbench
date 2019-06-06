@@ -298,3 +298,14 @@ class TestMain(BaseTestCaseCapture):
                 l1 = re.sub(r' from file [^ ]*no.json', '', l1)
                 l2 = re.sub(r' from file [^ ]*no.json', '', l2)
                 assert l1 == l2
+
+    def test_raiseExceptionIfFails(self):
+        ''' Tests if script raises exception when one of tests fails and parameter --exception_if_fail is set to True '''
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.basename(self.testMultiJUnitXmlOutJsonPath).split('.')[0] + '_exception.eval.json'))
+
+        testArgs = [self.testMultiJUnitXmlOutJsonPath, outputFilePath, '-e']
+        self.t_raiseException(
+            NameError,
+            'FailedTestDetected',
+            [testArgs])
+

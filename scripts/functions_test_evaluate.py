@@ -40,6 +40,7 @@ def main(argv):
     parser.add_argument('-c', '--common_configFilePaths', help='configuaration file', action='append')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
+    parser.add_argument('-e','--exception_if_fail', required=False, help='script throws exception if any test fails', action='store_true')
     args = parser.parse_args(argv)
 
     if __name__ == '__main__':
@@ -199,6 +200,10 @@ def main(argv):
         xml.update_statistics()
         xml.write(junitFileName, True)
     outputFile.write(json.dumps(inputJson, indent=4, ensure_ascii=False) + '\n')
+
+    # as last step of our script, we raise an exception in case user required such behavior and any test failure was detected
+    if args.exception_if_fail and (xml.failures or xml.errors):
+        raise NameError('FailedTestDetected')
 
     logger.info('FINISHING: '+ os.path.basename(__file__))
 

@@ -71,7 +71,7 @@ def convertNode(nodeJSON):
     #title
     if 'title' in nodeJSON:
         if nodeJSON['title'] != nodeJSON['dialog_node']: # WA adds title to all uploaded workspaces equal to dialog_name, this is cleanup TODO: remove the conditions when upgrading to new version of WA API
-            nodeXML.attrib['title'] = nodeJSON['title']
+            nodeXML.attrib['title'] = str(nodeJSON['title'])
     #type
     if 'type' in nodeJSON:
         typeNodeXML = LET.Element('type')

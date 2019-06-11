@@ -14,10 +14,12 @@ limitations under the License.
 """
 
 import argparse
+import csv
 import datetime
 import json
 import logging
 import os
+import pydash
 import re
 import sys
 import time
@@ -25,6 +27,8 @@ import time
 import lxml.etree as LET
 
 from wawCommons import getScriptLogger, openFile, setLoggerConfig
+
+from WorkspaceTest import WorkspaceTest
 
 logger = getScriptLogger(__file__)
 
@@ -137,6 +141,7 @@ def main(argv):
     parser.add_argument('receivedFileName', help='file with received JSONs')
     # optional arguments
     parser.add_argument('-o','--output', required=False, help='name of generated xml file', default='test.junit.xml')
+    parser.add_argument('--outputE2EATformat', required=False, help='name of generated csv file in E2EAT format', default='test.e2eat.csv')
     parser.add_argument('-v','--verbose', required=False, help='verbosity', action='store_true')
     parser.add_argument('--log', type=str.upper, default=None, choices=list(logging._levelToName.values()))
     parser.add_argument('-e','--exception_if_fail', required=False, help='script throws exception if any test fails', action='store_true')
@@ -166,7 +171,7 @@ def main(argv):
             logger.info('-- TEST: ' + testName)
             logger.info('--------------------------------------------------------------------------------')
 
-            # XML (new dialouge)
+            # XML (new dialog)
             dialogXml = LET.Element('testsuite')
             outputXml.append(dialogXml)
 
@@ -179,6 +184,9 @@ def main(argv):
             nFailuresInDialog = 0
             timeDialogStart = time.time()
 
+            WorkspaceTestRows = []
+            e2eatHeader = []
+
             # for every line
             while expectedJsonLine:
                 line += 1
@@ -187,7 +195,37 @@ def main(argv):
                     sys.exit(1)
                 expectedData = json.loads(expectedJsonLine)
                 expectedJson = expectedData['output_message']
+                expectedJson.sort
                 receivedJson = json.loads(receivedJsonLine)
+
+                WorkspaceTestItem = WorkspaceTest()
+                e2eatHeader = WorkspaceTestItem.getHeader()
+
+                # E2EAT intents
+                if pydash.get(expectedJson, 'intents.[0].intent'):
+                    setattr(WorkspaceTestItem, 'expectedIntent', pydash.get(expectedJson, 'intents.[0].intent'))
+                if pydash.get(receivedJson, 'intents.[0].intent'):
+                    setattr(WorkspaceTestItem, 'returnedIntent', pydash.get(receivedJson, 'intents.[0].intent'))
+                if pydash.get(expectedJson, 'intents.[0].intent') == pydash.get(receivedJson, 'intents.[0].intent'):
+                    setattr(WorkspaceTestItem, 'resultIntent', 1)
+                else:
+                    setattr(WorkspaceTestItem, 'resultIntent', 0)
+
+                # E2EAT entities
+                if pydash.get(expectedJson, 'entities'):
+                    expectedEntityString = ""
+                    for entity in expectedJson['entities']:
+                        expectedEntityString += entity['entity'] + ':' + entity['value'] + ' '
+                    setattr(WorkspaceTestItem, 'expectedEntity', expectedEntityString)
+                if pydash.get(returnedJson, 'entities'):
+                    returnedEntityString = ""
+                    for entity in returnedJson['entities']:
+                        returnedEntityString += entity['entity'] + ':' + entity['value'] + ' '
+                    setattr(WorkspaceTestItem, 'returnedEntity', returnedEntityString)
+                if expectedEntityString == returnedEntityString:
+                    setattr(WorkspaceTestItem, 'resultEntity', 1)
+                else:
+                    setattr(WorkspaceTestItem, 'resultEntity', 0)
 
                 if (dialogId == 0 or dialogId != expectedData['dialog_id']):
 
@@ -207,7 +245,7 @@ def main(argv):
                         dialogXml.attrib['failures'] = str(nFailuresInDialog)
                         dialogXml.attrib['time'] = str(time.time() - timeDialogStart)
 
-                        # XML (new dialouge)
+                        # XML (new dialog)
                         dialogXml = LET.Element('testsuite')
                         outputXml.append(dialogXml)
 
@@ -246,6 +284,8 @@ def main(argv):
 
                 logger.info('  LINE: %d, RESULT: %s, TIME: %.2f sec', line, resultText, checkMessagesTime)
 
+                WorkspaceTestRows.append(WorkspaceTestItem.toRow(e2eatHeader))
+
                 expectedJsonLine = expectedJsonFile.readline()
                 receivedJsonLine = receivedJsonFile.readline()
 
@@ -271,8 +311,8 @@ def main(argv):
 
     logger.info('-------------------------------------------------------------------------------')
     logger.info('--------------------------------------------------------------------------------')
-    if nDialogsFailed: logger.info('-- SUMMARY - DIALOUGES: %s, RESULT: FAILED, FAILED DIALOGS: %d', nDialogs, nDialogsFailed)
-    else: logger.info('-- SUMMARY - DIALOUGES: %s, RESULT: OK', nDialogs)
+    if nDialogsFailed: logger.info('-- SUMMARY - DIALOGS: %s, RESULT: FAILED, FAILED DIALOGS: %d', nDialogs, nDialogsFailed)
+    else: logger.info('-- SUMMARY - DIALOGS: %s, RESULT: OK', nDialogs)
     logger.info('--------------------------------------------------------------------------------')
 
     outputXml.attrib['name'] = testName
@@ -283,6 +323,12 @@ def main(argv):
 
     with openFile(args.output, "w") as outputFile:
         outputFile.write(LET.tostring(outputXml, pretty_print=True, encoding='unicode'))
+
+    with openFile(args.outputE2EATformat, "w") as e2eatFile:
+        e2eatWriter = csv.writer(e2eatFile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        e2eatWriter.writerow(e2eatHeader)
+        for WorkspaceTestRow in WorkspaceTestRows:
+            e2eatWriter.writerow(WorkspaceTestRow)
 
     #as last step of our script, we raise an exception in case user required such behavior and any test failure was detected
     if args.exception_if_fail and nDialogsFailed:

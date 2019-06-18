@@ -1,0 +1,10 @@
+<nodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <node name="node_359930185908224" title="06c40b7ab4fd5594b8bb656b184a0e4b">
+    <type>standard</type>
+    <nodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <node name="invalid_type_node_1802719494930432" title="1e109faae03255858ead2b3ddd075b5b">
+        <type>random_type</type>
+      </node>
+    </nodes>
+  </node>
+</nodes>

@@ -1,0 +1,26 @@
+<testsuites name="expected" tests="5" failures="3" timestamp="" time="">
+  <testsuite name="dialog 1" tests="3" failures="1" time="">
+    <testcase classname="dialog.1" name="line 1" time="">
+      <failure message="Received output differs from expected output. (root)">
+        <expected>VALUE A</expected>
+        <received>VALUE B</received>
+      </failure>
+    </testcase>
+    <testcase classname="dialog.1" name="line 2" time=""/>
+    <testcase classname="dialog.1" name="line 3" time=""/>
+  </testsuite>
+  <testsuite name="dialog 2" tests="2" failures="2" time="">
+    <testcase classname="dialog.2" name="line 4" time="">
+      <failure message="Received output differs from expected output. (root)">
+        <expected>VALUE A</expected>
+        <received>VALUE B</received>
+      </failure>
+    </testcase>
+    <testcase classname="dialog.2" name="line 5" time="">
+      <failure message="Received output differs from expected output. (root)">
+        <expected>VALUE A</expected>
+        <received>VALUE B</received>
+      </failure>
+    </testcase>
+  </testsuite>
+</testsuites>

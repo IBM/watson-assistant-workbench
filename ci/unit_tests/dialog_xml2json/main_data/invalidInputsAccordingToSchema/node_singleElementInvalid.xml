@@ -1,0 +1,6 @@
+<nodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <node>
+    <condition>#INTENT_DUMMY</condition>
+    <condition>#INTENT_DUMMY</condition>
+  </node>
+</nodes>

@@ -117,7 +117,7 @@ class TestMain(BaseTestCaseCapture):
         testArgs = ['/some/random/path', '/some/random/path'] + self.functionsTestArgs
         self.t_exitCodeAndLogMessage(
             1, # exit code
-            'CRITICAL Cannot open test input file /some/random/path', # critical message substring
+            "CRITICAL Cannot open test input file '/some/random/path'", # critical message substring
             [testArgs] # params (*args, **kwargs)
         )
 
@@ -126,7 +126,7 @@ class TestMain(BaseTestCaseCapture):
         testArgs = [self.noJsonPath, '/some/random/path'] + self.functionsTestArgs
         self.t_exitCodeAndLogMessage(
             1, # exit code
-            'CRITICAL Cannot open test output file /some/random/path', # critical message substring
+            "CRITICAL Cannot open test output file '/some/random/path'", # critical message substring
             [testArgs] # params (*args, **kwargs)
         )
 
@@ -150,15 +150,27 @@ class TestMain(BaseTestCaseCapture):
 
     def test_testSingleInvalid(self):
         ''' Tests if the input file contains test that is not dictionary '''
-        testArgs = [self.testSingleInvalidJsonPath, self.outputCommonPath] + self.functionsTestArgs
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleInvalidJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSingleInvalidJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
             'ERROR    Input test array element 0 is not dictionary. Each test has to be dictionary, please see doc!', # error message substring
             [testArgs] # params (*args, **kwargs)
         )
+        with open(outputFilePath, 'r') as outputFile:
+            outputJson = json.load(outputFile)
+            assert outputJson == [
+                {
+                    "error": {
+                        "message": "Input test array element 0 is not dictionary. Each test has to be dictionary, please see doc!",
+                        "type": "ValueError"
+                    }
+                }
+            ]
 
     def test_testSingleAllInFileBadAuthentification(self):
         ''' Tests if bad authentification was provided '''
-        testArgs = [self.testSingleAllInFileJsonPath, self.outputCommonPath] + self.functionsTestArgs
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSingleAllInFileJsonPath, outputFilePath] + self.functionsTestArgs
         testArgs[testArgs.index('--cloudfunctions_password') + 1] = 'invalidPassword' # change password to something different
         self.t_exitCodeAndLogMessage(
             1, # exit code
@@ -168,12 +180,17 @@ class TestMain(BaseTestCaseCapture):
 
     def test_testSingleAllInFileBadUrl(self):
         ''' Tests if bad url was provided '''
-        testArgs = [self.testSingleAllInFileJsonPath, self.outputCommonPath] + self.functionsTestArgs
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSingleAllInFileJsonPath, outputFilePath] + self.functionsTestArgs
         testArgs[testArgs.index('--cloudfunctions_url') + 1] = 'https://us-south.functions.cloud.ibm.com/invalidUrl' # change password to something different
         self.t_noExceptionAndLogMessage(
             '404 Not Found', # error message substring
             [testArgs] # params (*args, **kwargs)
         )
+        with open(outputFilePath, 'r') as outputFile:
+            outputJson = json.load(outputFile)
+            assert 'CFCallStatusException' == outputJson[0]['error']['type']
+            assert '404 Not Found' in outputJson[0]['error']['message']
 
     @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     def test_testSingleAllInFile(self):
@@ -204,7 +221,7 @@ class TestMain(BaseTestCaseCapture):
         ''' Tests if the single test where input and expected output is specified
          in file (all other params are given from command line), using replace
          functionality (using --replace_)'''
-        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileJsonPath))[0] + '.out.json'))
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileReplaceJsonPath))[0] + '.out.json'))
         testArgs = [self.testSingleAllInFileReplaceJsonPath, outputFilePath] + self.functionsTestArgs + ['--replace', 'OUTPUT_EXPECTED_MESSAGE:test message']
         self.t_noException([testArgs])
         with open(outputFilePath, 'r') as outputFile:
@@ -228,7 +245,7 @@ class TestMain(BaseTestCaseCapture):
         ''' Tests if the single test where input and expected output is specified
          in file (all other params are given from command line), using replace
          functionality (using standard config parameter)'''
-        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileJsonPath))[0] + '.out.json'))
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileReplacePackageJsonPath))[0] + '.out.json'))
         testArgs = [self.testSingleAllInFileReplacePackageJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noException([testArgs])
         with open(outputFilePath, 'r') as outputFile:
@@ -302,67 +319,138 @@ class TestMain(BaseTestCaseCapture):
     def test_testSinglePayloadsOutNonExistingInput(self):
         ''' Tests if the single test where input and expected output is specified
          in another file - by relative path to that file but input path is wrong (all other params are given from command line) '''
-        testArgs = [self.testSinglePayloadsOutNonExistingInputJsonPath, self.outputCommonPath] + self.functionsTestArgs
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSinglePayloadsOutNonExistingInputJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSinglePayloadsOutNonExistingInputJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
-            'ERROR    Cannot open input payload from file: /some/random/path', # error message substring
+            "ERROR    Cannot open input payload from file '/some/random/path'", # error message substring
             [testArgs] # params (*args, **kwargs)
         )
+        with open(outputFilePath, 'r') as outputFile:
+            outputJson = json.load(outputFile)
+            assert outputJson == [
+                {
+                    "input": "@/some/random/path",
+                    "outputExpected": "@test_single_payload.json",
+                    "error": {
+                        "message": "Cannot open input payload from file '/some/random/path'",
+                        "type": "IOError"
+                    }
+                }
+            ]
 
     def test_testSinglePayloadsOutNoJsonInput(self):
         ''' Tests if the single test where input and expected output is specified
          in another file - by relative path to that file but input is invalid json
          (all other params are given from command line) '''
-        testArgs = [self.testSinglePayloadsOutNoJsonInputJsonPath, self.outputCommonPath] + self.functionsTestArgs
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSinglePayloadsOutNoJsonInputJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSinglePayloadsOutNoJsonInputJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
             'ERROR    Cannot decode json from input payload from file', # error message substring
             [testArgs] # params (*args, **kwargs)
         )
+        with open(outputFilePath, 'r') as outputFile:
+            outputJson = json.load(outputFile)
+            assert outputJson == [
+                {
+                    "input": "@no.json",
+                    "outputExpected": "@test_single_payload.json",
+                    "error": {
+                        "message": "Cannot decode json from input payload from file '" +
+                                    self.noJsonPath + "', " +
+                                    "error 'Expecting value: line 1 column 1 (char 0)'",
+                        "type": "IOError"
+                    }
+                }
+            ]
 
     def test_testSinglePayloadsOutNonExistingOutput(self):
         ''' Tests if the single test where input and expected output is specified
          in another file - by relative path to that file but expected output path
          is wrong (all other params are given from command line) '''
-        testArgs = [self.testSinglePayloadsOutNonExistingOutputJsonPath, self.outputCommonPath] + self.functionsTestArgs
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSinglePayloadsOutNonExistingOutputJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSinglePayloadsOutNonExistingOutputJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
-            'ERROR    Cannot open expected output payload from file: /some/random/path', # error message substring
+            "ERROR    Cannot open expected output payload from file '/some/random/path'", # error message substring
             [testArgs] # params (*args, **kwargs)
         )
+        with open(outputFilePath, 'r') as outputFile:
+            outputJson = json.load(outputFile)
+            assert outputJson == [
+                {
+                    "input": "@test_single_payload.json",
+                    "outputExpected": "@/some/random/path",
+                    "error": {
+                        "message": "Cannot open expected output payload from file '/some/random/path'",
+                        "type": "IOError"
+                    }
+                }
+            ]
 
     def test_testSinglePayloadsOutNoJsonOutput(self):
         ''' Tests if the single test where input and expected output is specified
          in another file - by relative path to that file but expected output
          is invalid json (all other params are given from command line) '''
-        testArgs = [self.testSinglePayloadsOutNoJsonOutputJsonPath, self.outputCommonPath] + self.functionsTestArgs
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSinglePayloadsOutNoJsonOutputJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSinglePayloadsOutNoJsonOutputJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
             'ERROR    Cannot decode json from expected output payload from file', # error message substring
             [testArgs] # params (*args, **kwargs)
         )
+        with open(outputFilePath, 'r') as outputFile:
+            outputJson = json.load(outputFile)
+            assert outputJson == [
+                {
+                    "input": "@test_single_payload.json",
+                    "outputExpected": "@no.json",
+                    "error": {
+                        "message": "Cannot decode json from expected output payload from file '" +
+                                    self.noJsonPath + "', " +
+                                    "error 'Expecting value: line 1 column 1 (char 0)'",
+                        "type": "IOError"
+                    }
+                }
+            ]
 
     def test_testSingleAllInFileBadType(self):
         ''' Tests if bad test type was provided '''
-        testArgs = [self.testSingleAllInFileBadTypeJsonPath, self.outputCommonPath] + self.functionsTestArgs
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileBadTypeJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSingleAllInFileBadTypeJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
             'ERROR    Unknown test type: BAD TYPE', # error message substring
             [testArgs] # params (*args, **kwargs)
         )
+        with open(outputFilePath, 'r') as outputFile:
+            outputJson = json.load(outputFile)
+            assert 'ValueError' == outputJson[0]['error']['type']
+            assert 'Unknown test type: BAD TYPE' == outputJson[0]['error']['message']
 
     @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     def test_testSingleAllInFileOverridePackage(self):
         ''' Tests if bad package was provided in test it self, the main reason is test that override works '''
-        testArgs = [self.testSingleAllInFileOverridePackageJsonPath, self.outputCommonPath] + self.functionsTestArgs
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileOverridePackageJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSingleAllInFileOverridePackageJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
             'actions/BAD_PACKAGE/echo', # log message substring
             [testArgs] # params (*args, **kwargs)
         )
+        with open(outputFilePath, 'r') as outputFile:
+            outputJson = json.load(outputFile)
+            assert 'CFCallStatusException' == outputJson[0]['error']['type']
+            assert '403' in outputJson[0]['error']['message']
 
     @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     def test_testSingleAllInFileOverrideFunction(self):
         ''' Tests if bad function was provided in test it self, the main reason is test that override works '''
-        testArgs = [self.testSingleAllInFileOverrideFunctionJsonPath, self.outputCommonPath] + self.functionsTestArgs
+        outputFilePath = os.path.abspath(os.path.join(self.testOutputPath, os.path.splitext(os.path.basename(self.testSingleAllInFileOverrideFunctionJsonPath))[0] + '.out.json'))
+        testArgs = [self.testSingleAllInFileOverrideFunctionJsonPath, outputFilePath] + self.functionsTestArgs
         self.t_noExceptionAndLogMessage(
             'actions/utils/BAD_FUNCTION', # log message substring
             [testArgs] # params (*args, **kwargs)
         )
+        with open(outputFilePath, 'r') as outputFile:
+            outputJson = json.load(outputFile)
+            assert 'CFCallStatusException' == outputJson[0]['error']['type']
+            assert '404' in outputJson[0]['error']['message']
 
     @pytest.mark.skipif(os.environ.get('TRAVIS_EVENT_TYPE') != "cron", reason="This test is nightly build only.")
     @pytest.mark.parametrize('useApikey', [True, False])

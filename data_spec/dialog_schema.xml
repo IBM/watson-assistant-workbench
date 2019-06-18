@@ -35,7 +35,7 @@
 <xs:complexType name="nodeSchema">
     <xs:all>
         <xs:element name="condition" type="conditionSchema" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="type" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="type" type="nodeTypeSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="context" type="contextSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="output" type="outputSchema" minOccurs="0" maxOccurs="1"/>
         <xs:element name="goto" type="gotoSchema" minOccurs="0" maxOccurs="1"/>
@@ -64,6 +64,17 @@
         </xs:extension>
     </xs:simpleContent>
 </xs:complexType>
+
+<xs:simpleType name="nodeTypeSchema">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="standard"/>
+        <xs:enumeration value="event_handler"/>
+        <xs:enumeration value="frame"/>
+        <xs:enumeration value="slot"/>
+        <xs:enumeration value="response_condition"/>
+        <xs:enumeration value="folder"/>
+    </xs:restriction>
+</xs:simpleType>
 
 <xs:complexType name="outputsSchema">
     <xs:sequence minOccurs="1" maxOccurs="1">

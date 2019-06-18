@@ -1,0 +1,27 @@
+<nodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <node name="node_3638833644044288" title="540942d041a45440a213ad7d9f7faa12">
+    <type>standard</type>
+    <nodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <node name="resp_cond_1_7280777033154560" title="5f34b70a943a5a308e559e9b95e5ad46">
+        <type>response_condition</type>
+      </node>
+      <node name="frame_8727368180957184" title="bed962c8212f5d83b19baf9824add368">
+        <type>frame</type>
+        <nodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <node name="slot_1_6280101954060288" title="157869116c40536f941e9538a38dc298">
+            <type>slot</type>
+          </node>
+          <node name="notype_3060600670257152" title="cad3c356ca5d5fb69e869bf090750fad">
+          </node>
+          <node name="resp_cond_2_5702754720808960" title="e45da14b88e452d78a3767a5adca4764">
+            <type>response_condition</type>
+          </node>
+        </nodes>
+      </node>
+      <node name="event_handler_6116417732608000" title="fb5d0979513c52c9b39501225df54e07">
+        <type>event_handler</type>
+        <event_name>filled</event_name>
+      </node>
+    </nodes>
+  </node>
+</nodes>

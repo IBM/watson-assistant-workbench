@@ -153,10 +153,12 @@ def main(argv):
         with openFile(args.receivedFileName, "r") as receivedJsonFile:
 
             # init whole test
+            nTests = 0
+            nTestsFailed = 0
             nDialogs = 0
             nDialogsFailed = 0
             firstFailedLine = None
-            timeStart = time.time()
+            timeStart = time.time() # TODO: It does not make sense to measure time of the evaluation, it should be time of the testing (calling WA) instead
 
             # XML (whole test)
             outputXml = LET.Element('testsuites')
@@ -218,6 +220,7 @@ def main(argv):
                     timeDialogStart = time.time()
                     dialogId = expectedData['dialog_id']
 
+                nTests += 1
                 nTestsinDialog += 1
                 timeLineStart = time.time()
                 checkMessagesTime = 0
@@ -226,6 +229,7 @@ def main(argv):
                 # XML
                 lineXml = LET.Element('testcase')
                 dialogXml.append(lineXml)
+                lineXml.attrib['classname'] = 'dialog.' + str(dialogId)
                 lineXml.attrib['name'] = 'line ' + str(line)
                 lineXml.attrib['time'] = str(time.time() - timeLineStart)
 
@@ -233,6 +237,7 @@ def main(argv):
                     # line failure
                     lineXml.append(createLineFailureXML(failureData))
 
+                    nTestsFailed += 1
                     nFailuresInDialog += 1 # in this file
                     if firstFailedLine is None:
                         firstFailedLine = line
@@ -276,8 +281,8 @@ def main(argv):
     logger.info('--------------------------------------------------------------------------------')
 
     outputXml.attrib['name'] = testName
-    outputXml.attrib['tests'] = str(nDialogs)
-    outputXml.attrib['failures'] = str(nDialogsFailed)
+    outputXml.attrib['tests'] = str(nTests)
+    outputXml.attrib['failures'] = str(nTestsFailed)
     outputXml.attrib['timestamp'] = '{0:%Y-%b-%d %H:%M:%S}'.format(datetime.datetime.now())
     outputXml.attrib['time'] = str(time.time() - timeStart)
 

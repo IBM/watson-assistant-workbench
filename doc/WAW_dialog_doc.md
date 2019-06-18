@@ -1,10 +1,12 @@
-## Dialog
+# Dialog
+## Structure
+The structure of the dialog is supposed to be similar in xml and json, with the main difference being in the way how nesting is done. In json, the elements are connected via IDs/names, while in xml the elements are nested explicitly, with child elements being nested inside the parent element. The structure of the xml file is documented in [WAW_dialog_structure.md](WAW_dialog_structure.md).
 
-### Localization
+## Localization
 
 If you want to make your xml dialog language-independent or customize it for various purposes you can use following scripts which allow you to use the same dialog structure for different languages or customers. Use them directly before `dialog_xml2json.py` or `update_all.py` in the pipeline.
 
-##### Encoding
+### Encoding
 You can replace all language-dependent fields with _replacement codes_ using the script `dialog_text2code`. Following command replaces all values of `<values>` tags and all values of `text` tags which has no `values` subtags in the input file `chitchat.xml` with _replacement codes_ and creates a `chitchat-resource-en.json` file with translations.
 
 ```bash
@@ -12,7 +14,7 @@ python scripts/dialog_text2code.py "example/en_app/dialogs/chitchat.xml" "chitch
 
 ```
 
-###### Input
+#### Input
 
 `chitchat.xml` file
 
@@ -26,7 +28,7 @@ python scripts/dialog_text2code.py "example/en_app/dialogs/chitchat.xml" "chitch
 ...
 ```
 
-###### Output
+#### Output
 
 `chitchat-encoded.xml` file
 
@@ -57,7 +59,7 @@ python scripts/dialog_text2code.py "example/en_app/dialogs/chitchat.xml" "chitch
 
 ```
 
-###### Input
+#### Input
 
 `chitchat.xml` file
 
@@ -67,7 +69,7 @@ python scripts/dialog_text2code.py "example/en_app/dialogs/chitchat.xml" "chitch
 ...
 ```
 
-###### Output
+#### Output
 
 `chitchat-encoded.xml` file
 
@@ -93,14 +95,14 @@ For more information on this script please type
 python scripts/dialog_text2code.py --help
 ```
 
-##### Decoding
+### Decoding
 Having `chitchat-encoded.xml` file and `chitchat-resource-cz.json` file with czech translations, you can create czech version of source dialog in the following way:
 
 ```bash
 python scripts/dialog_code2text.py "chitchat-encoded.xml" "chitchat-resource-cz.json" -o "chitchat-cz.xml" -t "//text[not(values)]" "//values" "//condition" -v
 ```
 
-###### Input
+#### Input
 
 `chitchat-encoded.xml` file
 
@@ -128,7 +130,7 @@ python scripts/dialog_code2text.py "chitchat-encoded.xml" "chitchat-resource-cz.
 }
 ```
 
-###### Output
+#### Output
 
 `chitchat-cz.xml` file
 
@@ -148,4 +150,24 @@ For more information on this script please type
 
 ```bash
 python scripts/dialog_code2text.py --help
+```
+
+## Scoping
+
+Sometimes you want to build more dialogs with very similar structure,
+e.g. one online dialog which will reside on the server, and the local one
+which will be always available but will not contain some functionality.
+For this purpose there is the `scope` attribute which indicates whether
+to include this tag to output dialog or not.
+
+following node will be included only if server dialog is built:
+
+```xml
+<node scope="type-server"/>
+```
+
+following node will be included in all built dialogs:
+
+```xml
+<node/>
 ```

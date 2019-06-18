@@ -1,0 +1,5 @@
+<nodes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <import>../dummyImportXml.xml</import>
+  <autogenerate type="generic"></autogenerate>
+  <node></node>
+</nodes>

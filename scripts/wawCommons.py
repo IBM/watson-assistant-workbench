@@ -462,7 +462,7 @@ def setLoggerConfig(level=None, isVerbose=False, configPath=None):
     logging.Logger.isVerbose = isVerbose
 
     def verbose(self, message, *args, **kws):
-        if (logging.Logger.isVerbose):
+        if (logging.Logger.isVerbose or self.getEffectiveLevel() <= logging.DEBUG):
             self.info(message, *args, **kws)
 
     logging.Logger.verbose = verbose

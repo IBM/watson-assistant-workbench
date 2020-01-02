@@ -26,9 +26,9 @@ It aims at
 
 It contains a bundle of tools for generating WA workspace from the structure data (and viceversa), testing and uploading (working with the WCS API).
 
-Currently supported conversation version is 2017-02-03 except:
+Currently supported conversation version is 2017-02-03 except that:
 
-- Fuzzy matching, Folders and Digression are not supported.
+- Folders and Digression are not supported.
 - A name of a dialog node still has to be unique as it is used as node ID.
 - Missing "slot_in_focus" property.
 - Slots are not supported in json to xml conversion scripts.
